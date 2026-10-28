@@ -45,6 +45,7 @@
 ## Revisión enfocada
 
 - Una búsqueda con `%`, `_`, comillas o paréntesis no amplía resultados ni altera el filtro de organización.
+- El carácter `*` muestra una validación y no ejecuta búsqueda, porque PostgREST lo expande a `%`.
 - Parámetros repetidos o excesivos no generan consultas enormes ni rompen la página.
 - Cambiar cualquier filtro vuelve a la primera página.
 - Una sede ajena no produce datos, aunque se escriba su ID en la URL.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeLikePattern, localDateInTimezone, parseWorkItemFilters, workItemListHref } from "../../src/features/work-items/filters";
+import { escapeLikePattern, hasUnsupportedSearch, localDateInTimezone, parseWorkItemFilters, workItemListHref } from "../../src/features/work-items/filters";
 
 describe("work item filters", () => {
   it("accepts the supported filters and ignores malformed or repeated input", () => {
@@ -12,6 +12,9 @@ describe("work item filters", () => {
 
   it("escapes SQL LIKE wildcards and retains filters in page links", () => {
     expect(escapeLikePattern("50%_\\" )).toBe("50\\%\\_\\\\");
+    expect(hasUnsupportedSearch("*")).toBe(true);
+    expect(hasUnsupportedSearch("informe*final")).toBe(true);
+    expect(hasUnsupportedSearch("informe 50%_final")).toBe(false);
     const filters = parseWorkItemFilters({ q: "Mesa", priority: "high", due: "today" });
     expect(workItemListHref(filters, 2, 3)).toBe("/mi-trabajo?q=Mesa&priority=high&due=today&activos=2&archivo=3");
   });

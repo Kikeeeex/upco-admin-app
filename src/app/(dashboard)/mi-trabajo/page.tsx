@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getAccessContext } from "@/features/auth/access";
-import { escapeLikePattern, localDateInTimezone, parseWorkItemFilters, workItemListHref, type RawWorkItemFilters } from "@/features/work-items/filters";
+import { escapeLikePattern, hasUnsupportedSearch, localDateInTimezone, parseWorkItemFilters, workItemListHref, type RawWorkItemFilters } from "@/features/work-items/filters";
 import { parsePageNumber, formatWorkItemDateTime } from "@/features/work-items/presentation";
 import { ArchiveWorkItemForm, CreateWorkItemForm, EditWorkItemForm, type ListedWorkItem } from "@/components/work-item-forms";
 
@@ -28,6 +28,7 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
   const supabase = access.supabase;
   const search = await searchParams;
   const filters = parseWorkItemFilters(search);
+  const unsupportedSearch = hasUnsupportedSearch(filters.query);
   const activePage = parsePageNumber(search.activos);
   const archivePage = parsePageNumber(search.archivo);
   const [profile, sites] = await Promise.all([
@@ -55,7 +56,9 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
       .order("id", { ascending: false })
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   }
-  const [active, archived] = await Promise.all([listQuery(false, activePage), listQuery(true, archivePage)]);
+  const [active, archived] = unsupportedSearch
+    ? [{ data: [], error: null }, { data: [], error: null }]
+    : await Promise.all([listQuery(false, activePage), listQuery(true, archivePage)]);
   const activeRows = (active.data ?? []) as ListedWorkItem[];
   const archivedRows = (archived.data ?? []) as ListedWorkItem[];
   const items = activeRows.slice(0, PAGE_SIZE);
@@ -77,6 +80,7 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
         <div className="field"><label htmlFor="filter-due">Vencimiento</label><select id="filter-due" name="due" defaultValue={filters.due}><option value="">Cualquiera</option><option value="overdue">Vencidas</option><option value="today">Vencen hoy</option><option value="upcoming">Futuras</option><option value="none">Sin fecha</option></select></div>
         <div className="filter-actions"><button className="quiet-button" type="submit">Aplicar filtros</button><Link href="/mi-trabajo" className="text-link">Limpiar</Link></div>
       </form>
+      {unsupportedSearch && <p role="alert" className="error-message">La búsqueda no admite el carácter *. Elimínalo e inténtalo de nuevo.</p>}
       {sites.error && <p className="error-message">No se pudieron cargar las sedes.</p>}
     </section>
     <section className="work-card work-list"><h2>Actividades recientes</h2>

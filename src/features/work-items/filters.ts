@@ -39,6 +39,11 @@ export function escapeLikePattern(value: string): string {
   return value.replace(/[\\%_]/g, "\\$&");
 }
 
+export function hasUnsupportedSearch(value: string): boolean {
+  // PostgREST expands * to % before the pattern reaches PostgreSQL.
+  return value.includes("*");
+}
+
 export function localDateInTimezone(instant: Date, timezone: string): string {
   const makeDate = (zone: string) => {
     const parts = new Intl.DateTimeFormat("en-US", {
