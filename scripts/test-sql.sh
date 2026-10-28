@@ -11,5 +11,7 @@ for attempt in $(seq 1 30); do
 done
 docker exec "$container" pg_isready -U postgres >/dev/null
 docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/bootstrap.sql
-docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261028000000_core.sql
+for migration in supabase/migrations/*.sql; do
+  docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < "$migration"
+done
 docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/authorization.sql

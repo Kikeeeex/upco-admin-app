@@ -10,6 +10,10 @@ INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_object_
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', true),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', true);
 
+DO $$ BEGIN
+  IF has_table_privilege('anon', 'public.work_items', 'SELECT') THEN RAISE EXCEPTION 'anon table privilege remains'; END IF;
+END $$;
+
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
 SELECT auth.uid() AS current_user_id, (SELECT count(*) FROM memberships) AS visible_memberships, (SELECT count(*) FROM organizations) AS visible_organizations;
