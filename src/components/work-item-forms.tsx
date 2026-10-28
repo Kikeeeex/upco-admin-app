@@ -1,14 +1,15 @@
 "use client";
 
 import { useActionState } from "react";
-import { createWorkItem, updateWorkItem, type ActionState } from "@/features/work-items/actions";
+import { addWorkItemNote, archiveWorkItem, createWorkItem, restoreWorkItem, updateWorkItem, type ActionState } from "@/features/work-items/actions";
 
 const initial: ActionState = { kind: "idle", message: "" };
 const priorities = [["low", "Baja"], ["medium", "Media"], ["high", "Alta"], ["critical", "Crítica"]] as const;
 const statuses = [["pending", "Pendiente"], ["in_progress", "En progreso"], ["waiting", "En espera"], ["completed", "Completada"], ["cancelled", "Cancelada"]] as const;
 
 export type ListedWorkItem = {
-  id: string; code: string; type: string; title: string; status: string; priority: string; due_date: string | null;
+  id: string; code: string; type: string; title: string; status: string; priority: string;
+  due_date: string | null; closed_at: string | null; archived_at: string | null;
 };
 
 export function CreateWorkItemForm() {
@@ -30,6 +31,24 @@ export function EditWorkItemForm({ item }: { item: ListedWorkItem }) {
     <div className="field"><label htmlFor={`status-${item.id}`}>Estado</label><select id={`status-${item.id}`} name="status" defaultValue={item.status}>{statuses.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
     <div className="field"><label htmlFor={`due-${item.id}`}>Fecha límite</label><input id={`due-${item.id}`} name="dueDate" type="date" defaultValue={item.due_date ?? ""} /></div>
     <button className="primary-button" type="submit" disabled={pending}>{pending ? "Guardando…" : "Guardar cambios"}</button>
+    {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}
+  </form>;
+}
+
+export function ArchiveWorkItemForm({ id, archived }: { id: string; archived: boolean }) {
+  const [state, action, pending] = useActionState(archived ? restoreWorkItem : archiveWorkItem, initial);
+  return <form action={action} className="inline-action"><input type="hidden" name="id" value={id} />
+    <button className="quiet-button" type="submit" disabled={pending}>{pending ? "Guardando…" : archived ? "Restaurar" : "Archivar"}</button>
+    {state.kind === "error" && <p role="status" className="error-message">{state.message}</p>}
+  </form>;
+}
+
+export function AddWorkItemNoteForm({ id }: { id: string }) {
+  const [state, action, pending] = useActionState(addWorkItemNote, initial);
+  return <form action={action} className="note-form"><input type="hidden" name="id" value={id} />
+    <label htmlFor={`note-${id}`}>Nueva nota</label>
+    <textarea id={`note-${id}`} name="body" required maxLength={2000} rows={3} placeholder="Escribe una actualización breve" />
+    <button className="quiet-button" type="submit" disabled={pending}>{pending ? "Guardando…" : "Añadir nota"}</button>
     {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}
   </form>;
 }

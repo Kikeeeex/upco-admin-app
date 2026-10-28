@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOverdue, parseWorkItemInput, parseWorkItemUpdate } from "../../src/features/work-items/rules";
+import { isOverdue, parseWorkItemId, parseWorkItemInput, parseWorkItemNote, parseWorkItemUpdate } from "../../src/features/work-items/rules";
 
 const valid = {
   title: "  Preparar informe  ",
@@ -40,6 +40,27 @@ describe("parseWorkItemUpdate", () => {
 
   it("rejects an invalid state transition value", () => {
     expect(() => parseWorkItemUpdate({ ...update, status: "archived" })).toThrow();
+  });
+});
+
+describe("parseWorkItemId", () => {
+  it("accepts a work item UUID and rejects a malformed archive target", () => {
+    expect(parseWorkItemId("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")).toBe("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(() => parseWorkItemId("not-an-id")).toThrow();
+  });
+});
+
+describe("parseWorkItemNote", () => {
+  const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+  it("trims a note for a valid work item", () => {
+    expect(parseWorkItemNote({ id, body: "  Revisar documento  " })).toEqual({ id, body: "Revisar documento" });
+  });
+
+  it("rejects blank, oversized and invalid work item notes", () => {
+    expect(() => parseWorkItemNote({ id, body: "   " })).toThrow();
+    expect(() => parseWorkItemNote({ id, body: "x".repeat(2001) })).toThrow();
+    expect(() => parseWorkItemNote({ id: "wrong", body: "Nota" })).toThrow();
   });
 });
 

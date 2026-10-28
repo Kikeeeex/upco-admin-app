@@ -12,8 +12,8 @@ Estado al 28/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
 | BL-07 | RNF-08, RNF-16 | parcial | Navegación presente y prueba de render; falta revisión manual móvil |
 | BL-08 | RF-006, RF-007 | hecho | Creación, lista y edición verificadas desde el navegador y en Supabase |
-| BL-09 | RF-008, RF-012 | parcial | Cierre/reapertura y auditoría SQL; archivo sin UI |
-| BL-10 | RF-011, RNF-05 | parcial | Bitácora de creación/cambios SQL; faltan notas |
+| BL-09 | RF-008, RF-012 | parcial | Cierre/reapertura, archivo/restauración e historial probados en SQL; falta prueba en navegador |
+| BL-10 | RF-011, RNF-05 | parcial | Notas inmutables e historial implementados; RLS probado local y remoto, falta prueba en navegador |
 
 **Siguiente historia:** BL-11, vista Mi trabajo con búsqueda y filtros.
 
@@ -24,3 +24,5 @@ Comprobación inicial de staging del 28/10/2026: `GET /login` devolvió 200 con 
 Después se completó el primer login corporativo y la aplicación respondió con acceso denegado, como exige la lista explícita de acceso. La identidad Azure real usa `custom_claims.tid` y `sub`; se corrigió la validación y se aplicó la tercera migración para guardar el sujeto estable. La suite SQL remota pasó con rollback. Se provisionó una organización, un perfil y una membresía administradora activa; una prueba bajo el rol autenticado de esa cuenta comprobó lectura, escritura y auditoría con rollback. Falta comprobar la sesión y persistencia desde la interfaz.
 
 Después de publicar el cambio de autorización, el usuario confirmó que pudo abrir el panel con su cuenta corporativa. Creó una actividad sintética desde «Mi trabajo» y confirmó que aparece en «Actividades recientes». Una consulta administrativa verificó exactamente un registro, asociado a su organización y usuario, con código generado y un evento de auditoría de creación. El usuario cambió la prioridad a Alta y el estado a En progreso desde la interfaz; otra consulta confirmó ambos valores y un evento de auditoría de actualización. El token temporal de administración ya puede revocarse.
+
+Continuación de Sprint 1: se añadieron controles de archivo/restauración, fecha visible de cierre y notas con historial por actividad. La cuarta migración amplió `activity_log` con notas inmutables y una política de INSERT limitada a actividades propias activas. La suite local pasó (25 pruebas de Vitest, typecheck, lint, build y SQL); la migración y la suite SQL sintética con rollback pasaron en Supabase de desarrollo. Los datos previos permanecieron: una actividad y dos eventos de auditoría, sin notas de prueba persistidas. Falta probar estas acciones desde el navegador.

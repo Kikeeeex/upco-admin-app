@@ -31,6 +31,19 @@ export function parseWorkItemUpdate(value: unknown): WorkItemUpdate {
   return workItemUpdate.parse(value);
 }
 
+export function parseWorkItemId(value: unknown): string {
+  return z.uuid().parse(value);
+}
+
+const workItemNote = z.object({
+  id: z.uuid(),
+  body: z.string().trim().min(1).max(2000),
+});
+
+export function parseWorkItemNote(value: unknown): z.infer<typeof workItemNote> {
+  return workItemNote.parse(value);
+}
+
 export function isOverdue(
   dueDate: string | null,
   status: (typeof workItemStatuses)[number],

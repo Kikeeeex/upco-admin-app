@@ -57,11 +57,70 @@ DO $$ BEGIN
   IF (SELECT count(*) FROM activity_log) <> 4 THEN RAISE EXCEPTION 'reopening audit failed'; END IF;
 END $$;
 
+UPDATE work_items SET archived_at = now() WHERE title = 'Primer registro';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM work_items WHERE title = 'Primer registro' AND archived_at IS NOT NULL) <> 1 THEN
+    RAISE EXCEPTION 'archiving lost the work item';
+  END IF;
+  IF (SELECT count(*) FROM activity_log) <> 5 THEN RAISE EXCEPTION 'archive audit failed'; END IF;
+END $$;
+UPDATE work_items SET archived_at = NULL WHERE title = 'Primer registro';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM work_items WHERE title = 'Primer registro' AND archived_at IS NULL) <> 1 THEN
+    RAISE EXCEPTION 'restoring lost the work item';
+  END IF;
+  IF (SELECT count(*) FROM activity_log) <> 6 THEN RAISE EXCEPTION 'restore audit failed'; END IF;
+END $$;
+
+INSERT INTO activity_log(organization_id, work_item_id, action, after_values, actor_id)
+SELECT organization_id, id, 'note', jsonb_build_object('body', 'Primera nota'), auth.uid()
+FROM work_items WHERE title = 'Primer registro';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM activity_log WHERE action = 'note' AND after_values->>'body' = 'Primera nota') <> 1 THEN
+    RAISE EXCEPTION 'own note was not saved';
+  END IF;
+  IF (SELECT count(*) FROM activity_log) <> 7 THEN RAISE EXCEPTION 'note history is missing'; END IF;
+  IF has_table_privilege('authenticated', 'public.activity_log', 'UPDATE')
+     OR has_column_privilege('authenticated', 'public.activity_log', 'after_values', 'UPDATE')
+     OR has_table_privilege('authenticated', 'public.activity_log', 'DELETE') THEN
+    RAISE EXCEPTION 'authenticated user can change historical events';
+  END IF;
+  BEGIN
+    INSERT INTO activity_log(organization_id, work_item_id, action, after_values, actor_id)
+    SELECT organization_id, id, 'updated', '{}'::jsonb, auth.uid()
+    FROM work_items WHERE title = 'Primer registro';
+    RAISE EXCEPTION 'forged update event was allowed';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO activity_log(organization_id, work_item_id, action, after_values, actor_id)
+    SELECT 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', id, 'note', jsonb_build_object('body', 'Nota ajena'), auth.uid()
+    FROM work_items WHERE title = 'Primer registro';
+    RAISE EXCEPTION 'cross organization note was allowed';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO activity_log(organization_id, work_item_id, action, after_values, actor_id)
+    SELECT organization_id, id, 'note', jsonb_build_object('body', '  '), auth.uid()
+    FROM work_items WHERE title = 'Primer registro';
+    RAISE EXCEPTION 'blank note was allowed';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+END $$;
+
 SELECT set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
 DO $$ BEGIN
   IF (SELECT count(*) FROM work_items) <> 0 THEN RAISE EXCEPTION 'cross organization read failed'; END IF;
   IF (SELECT count(*) FROM activity_log) <> 0 THEN RAISE EXCEPTION 'cross organization audit read failed'; END IF;
 END $$;
+DO $$
+DECLARE affected bigint;
+BEGIN
+  UPDATE work_items SET archived_at = now() WHERE title = 'Primer registro';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  IF affected <> 0 THEN RAISE EXCEPTION 'cross organization archive was allowed'; END IF;
+END;
+$$;
 
 SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
 DO $$ BEGIN
