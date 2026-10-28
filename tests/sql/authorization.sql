@@ -7,6 +7,8 @@ INSERT INTO auth.users(id) VALUES
 INSERT INTO organizations(id, name) VALUES
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Organización A'),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Organización B');
+INSERT INTO sites(id, organization_id, code, name) VALUES
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'SEDE-A', 'Sede A');
 INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_object_id, entra_subject, active) VALUES
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-a', true),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-b', true),
@@ -25,9 +27,9 @@ DO $$ BEGIN
   IF (SELECT count(*) FROM memberships) <> 1 THEN RAISE EXCEPTION 'membership RLS failed'; END IF;
 END $$;
 
-INSERT INTO work_items(organization_id, creator_id, type, title, priority) VALUES
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'general', 'Primer registro', 'medium'),
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'general', 'Segundo registro', 'high');
+INSERT INTO work_items(organization_id, creator_id, type, title, priority, site_id) VALUES
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'general', 'Primer registro', 'medium', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'),
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'general', 'Segundo registro', 'high', NULL);
 
 DO $$ BEGIN
   BEGIN
@@ -39,6 +41,9 @@ END $$;
 
 DO $$ BEGIN
   IF (SELECT count(DISTINCT code) FROM work_items) <> 2 THEN RAISE EXCEPTION 'code allocation failed'; END IF;
+  IF (SELECT count(*) FROM work_items WHERE search_text ILIKE '%primer registro%') <> 1 THEN RAISE EXCEPTION 'title search failed'; END IF;
+  IF (SELECT count(*) FROM work_items WHERE search_text ILIKE '%GEN-000001%') <> 1 THEN RAISE EXCEPTION 'code search failed'; END IF;
+  IF has_column_privilege('authenticated', 'public.work_items', 'search_text', 'UPDATE') THEN RAISE EXCEPTION 'search text can be changed'; END IF;
   IF (SELECT count(*) FROM activity_log) <> 2 THEN RAISE EXCEPTION 'creation audit failed'; END IF;
   BEGIN
     INSERT INTO work_items(organization_id, creator_id, type, title) VALUES
@@ -52,6 +57,11 @@ UPDATE work_items SET status = 'completed', due_date = '2026-10-30' WHERE title 
 DO $$ BEGIN
   IF (SELECT closed_at IS NULL FROM work_items WHERE title = 'Primer registro') THEN RAISE EXCEPTION 'completion timestamp missing'; END IF;
   IF (SELECT count(*) FROM activity_log) <> 3 THEN RAISE EXCEPTION 'critical update audit failed'; END IF;
+  IF (SELECT count(*) FROM work_items WHERE search_text ILIKE '%primer%' AND type = 'general'
+    AND status = 'completed' AND priority = 'medium'
+    AND site_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd' AND due_date = '2026-10-30') <> 1 THEN
+    RAISE EXCEPTION 'combined search filters failed';
+  END IF;
 END $$;
 UPDATE work_items SET status = 'in_progress' WHERE title = 'Primer registro';
 DO $$ BEGIN
@@ -120,6 +130,7 @@ END $$;
 SELECT set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
 DO $$ BEGIN
   IF (SELECT count(*) FROM work_items) <> 0 THEN RAISE EXCEPTION 'cross organization read failed'; END IF;
+  IF (SELECT count(*) FROM work_items WHERE search_text ILIKE '%primer%') <> 0 THEN RAISE EXCEPTION 'cross organization search failed'; END IF;
   IF (SELECT count(*) FROM activity_log) <> 0 THEN RAISE EXCEPTION 'cross organization audit read failed'; END IF;
 END $$;
 DO $$
