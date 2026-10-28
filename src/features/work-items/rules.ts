@@ -12,6 +12,8 @@ const workItemInput = z.object({
   area: z.enum(["general", "administration", "procurement", "it"]),
   priority: z.enum(["low", "medium", "high", "critical"]),
   dueDate: validDate.optional(),
+  description: z.string().trim().max(5000).transform((value) => value || undefined).optional(),
+  siteId: z.uuid().optional(),
 });
 
 export type WorkItemInput = z.infer<typeof workItemInput>;

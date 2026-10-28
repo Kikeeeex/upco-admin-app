@@ -11,12 +11,13 @@ Estado al 28/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-05 | RNF-02, RNF-13 | hecho | Tres migraciones aplicadas al proyecto Supabase de desarrollo y registradas en historial |
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
 | BL-07 | RNF-08, RNF-16 | parcial | Navegación presente y prueba de render; falta revisión manual móvil |
-| BL-08 | RF-006, RF-007 | parcial | Creación, lista y edición verificadas; faltan descripción y sede en los formularios |
+| BL-08 | RF-006, RF-007 | parcial | Descripción y sede implementadas y probadas localmente; falta comprobar desde staging con una sede autorizada |
 | BL-09 | RF-008, RF-012 | hecho | Archivo/restauración y cierre/reapertura confirmados en navegador y Supabase |
 | BL-10 | RF-011, RNF-05 | hecho | Nota e historial conservados tras archivo/restauración, confirmados en navegador y Supabase |
 | BL-11 | RF-009 | hecho | Búsqueda y prioridad combinadas confirmadas en navegador; filtros combinados, incluida sede, probados en SQL local/remoto |
+| BL-12 | RF-010 | parcial | Panel de hoy, vencidas y en espera implementado; falta comprobación autenticada y próximos seguimientos cuando exista BL-23 |
 
-**Siguientes pendientes:** completar campos de BL-08 y construir BL-12, panel diario con hoy, vencidas y en espera.
+**Siguientes pendientes:** verificar BL-08 y BL-12 en staging, configurar sedes autorizadas para la prueba de sede y continuar Sprint 2 con Administración y Procura.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -39,3 +40,7 @@ BL-11 se publicó en `main` (`5133ab1`) y la URL de staging sirvió la nueva hoj
 El usuario confirmó que buscar «Prueba de integración» con prioridad Alta muestra su actividad y cambiar a Baja la excluye de ambas listas. También confirmó que completar presenta fecha de cierre, reabrir la limpia y ambos cambios permanecen en el historial. La consulta administrativa final mostró una actividad activa en progreso sin fecha de cierre, siete eventos y una nota. BL-09 y BL-11 cumplen sus criterios de verificación; la prueba de sede en navegador depende de disponer de sedes de prueba y una actividad asociada.
 
 Personalización visual: el manual de UPCO y los tres PNG originales se incorporaron a la interfaz. Login y panel usan variantes autorizadas del logo, paleta oficial y Satoshi local para títulos. Helvetica Neue se usa solo si está instalada en el equipo; el usuario optó por alternativa del sistema para no publicar archivos comerciales en el repositorio público sin licencia confirmada. Se revisaron vistas de escritorio, ancho intermedio y móvil localmente. Tras publicar en `main` (`a04dcb4`), staging sirvió el PNG verde byte por byte, la hoja CSS con paleta y Satoshi y el archivo WOFF2 con HTTP 200; `/login` respondió 200 y rutas privadas sin sesión redirigieron 307 a `/login`. Falta recibir la valoración visual del usuario en su navegador.
+
+El usuario confirmó que el logo, los colores y los títulos se ven correctos en acceso y panel. La valoración visual queda cerrada.
+
+Continuación de BL-08 y BL-12: se añadieron descripción opcional (hasta 5000 caracteres) y sede a los formularios, escritura explícita de NULL al limpiar ambos campos, sede visible en lista y ficha, y aviso cuando el catálogo está vacío. La FK compuesta existente mantiene la sede dentro de la organización. Inicio ahora consulta, cuenta y muestra hasta cinco registros de hoy, vencidos y en espera bajo RLS; los enlaces abren los filtros correspondientes. Hoy y vencidas excluyen estados completado/cancelado y el día usa la zona del perfil. Pasaron 47 pruebas, typecheck, ESLint, build y SQL local con rollback. Falta prueba autenticada y visual en staging; no hay sedes configuradas en el proyecto de pruebas.

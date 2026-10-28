@@ -40,7 +40,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .overview-card a, .text-link, .work-actions summary, .pagination a, .work-actions > a { color: #0b4b32; }
 .badge { background: rgba(11, 75, 50, .1); color: #0b4b32; }
 .field label, .note-form label { color: #041914; }
-.field input, .field select, .note-form textarea { border-color: var(--line); }
+.field input, .field select, .field textarea, .note-form textarea { border-color: var(--line); }
+.field textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 11px; background: #fff; color: var(--ink); resize: vertical; }
+.field small { color: var(--muted); font-size: .75rem; }
+.work-form .description-field { grid-column: 1 / -1; }
+.work-form.edit-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.work-form.edit-form button { grid-column: 2; }
+.work-actions .edit-form { min-width: 320px; }
+.daily-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 24px; }
+.daily-panel { display: flex; flex-direction: column; min-width: 0; }
+.daily-panel-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.daily-panel-heading h2 { margin-bottom: 10px; }
+.daily-panel-heading strong { color: #0b4b32; white-space: nowrap; font-size: .85rem; }
+.daily-list { list-style: none; margin: 0 0 18px; padding: 0; }
+.daily-list li { display: grid; gap: 3px; border-top: 1px solid var(--line); padding: 11px 0; }
+.daily-list a { color: #0b4b32; font-weight: 700; font-size: .85rem; overflow-wrap: anywhere; }
+.daily-list a:hover { text-decoration: underline; }
+.daily-list span { color: var(--muted); font-size: .75rem; }
+.daily-panel > .text-link { margin-top: auto; }
 .work-list th, .login-footnote { color: var(--muted); }
 
 .login-side { background: linear-gradient(145deg, #0b4b32, #041914); }
@@ -55,9 +72,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 950px) {
   .sidebar { width: 260px; }
   .brand { padding: 15px 24px 42px; }
+  .daily-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
   .sidebar { width: 100%; }
   .brand { margin: 0; padding: 10px 24px 30px; }
   .brand-logo { width: 210px; }
+  .work-form.edit-form { grid-template-columns: 1fr; }
+  .work-form.edit-form button { grid-column: auto; }
 }

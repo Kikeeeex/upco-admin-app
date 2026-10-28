@@ -31,7 +31,7 @@ export default async function WorkItemDetailPage({ params, searchParams }: {
   const eventPage = parsePageNumber((await searchParams).eventos);
   const [itemResult, profileResult] = await Promise.all([
     access.supabase.from("work_items")
-      .select("id, code, type, title, description, status, priority, due_date, closed_at, archived_at, creator_id, created_at, updated_at")
+      .select("id, code, type, title, description, site_id, status, priority, due_date, closed_at, archived_at, creator_id, created_at, updated_at")
       .eq("id", id)
       .eq("organization_id", access.organizationId)
       .maybeSingle(),
@@ -44,6 +44,12 @@ export default async function WorkItemDetailPage({ params, searchParams }: {
   const item = itemResult.data as DetailItem;
   const timezone = profileResult.data?.timezone ?? "America/Caracas";
   const isOwner = item.creator_id === access.user.id;
+  const sitesResult = await access.supabase.from("sites")
+    .select("id, code, name")
+    .eq("organization_id", access.organizationId)
+    .order("name");
+  const siteOptions = sitesResult.data ?? [];
+  const selectedSite = siteOptions.find((site) => site.id === item.site_id);
 
   const historyResult = await access.supabase.from("activity_log")
     .select("id, work_item_id, action, before_values, after_values, actor_id, occurred_at")
@@ -68,16 +74,18 @@ export default async function WorkItemDetailPage({ params, searchParams }: {
     <div className="page-heading"><Link href="/mi-trabajo" className="text-link">← Mi trabajo</Link><span className="eyebrow">{item.code}</span><h1>{item.title}</h1><p>Consulta la actividad y sus cambios.</p></div>
     <section className="work-card detail-card">
       <h2>Ficha de actividad</h2>
+      {sitesResult.error && <p className="error-message" role="alert">No se pudo cargar el catálogo de sedes. La sede asignada se conservará al guardar.</p>}
       <dl className="detail-grid">
         <div><dt>Estado</dt><dd>{statusLabels[item.status] ?? item.status}</dd></div>
         <div><dt>Prioridad</dt><dd>{priorityLabels[item.priority] ?? item.priority}</dd></div>
+        <div><dt>Sede</dt><dd>{item.site_id ? selectedSite ? `${selectedSite.code} · ${selectedSite.name}` : "Sede no disponible" : "Sin sede"}</dd></div>
         <div><dt>Fecha límite</dt><dd>{item.due_date ?? "—"}</dd></div>
         <div><dt>Cierre</dt><dd>{formatWorkItemDateTime(item.closed_at, timezone)}</dd></div>
         <div><dt>Creada</dt><dd>{formatWorkItemDateTime(item.created_at, timezone)}</dd></div>
         <div><dt>Actualizada</dt><dd>{formatWorkItemDateTime(item.updated_at, timezone)}</dd></div>
       </dl>
       {item.description && <p className="detail-description">{item.description}</p>}
-      {isOwner && <div className="detail-actions">{item.archived_at ? <ArchiveWorkItemForm id={item.id} archived /> : <><EditWorkItemForm item={item} /><ArchiveWorkItemForm id={item.id} archived={false} /></>}</div>}
+      {isOwner && <div className="detail-actions">{item.archived_at ? <ArchiveWorkItemForm id={item.id} archived /> : <><EditWorkItemForm item={item} sites={siteOptions} /><ArchiveWorkItemForm id={item.id} archived={false} /></>}</div>}
     </section>
     <section className="work-card work-list">
       <WorkItemHistory id={id} events={events} error={Boolean(historyResult.error)} actorNames={actorNames} timezone={timezone} canAddNote={isOwner && !item.archived_at} />

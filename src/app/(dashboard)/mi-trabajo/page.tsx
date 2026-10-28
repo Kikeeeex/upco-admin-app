@@ -40,7 +40,7 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
   const today = localDateInTimezone(new Date(), timezone);
   function listQuery(isArchived: boolean, page: number) {
     let query = supabase.from("work_items")
-      .select("id, code, type, title, status, priority, due_date, closed_at, archived_at, creator_id")
+      .select("id, code, type, title, description, site_id, status, priority, due_date, closed_at, archived_at, creator_id")
       .eq("organization_id", access.organizationId);
     query = isArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
     if (filters.query) query = query.ilike("search_text", `%${escapeLikePattern(filters.query)}%`);
@@ -49,7 +49,7 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
     if (filters.priority) query = query.eq("priority", filters.priority);
     if (filters.site) query = query.eq("site_id", filters.site);
     if (filters.due === "overdue") query = query.lt("due_date", today).in("status", ["pending", "in_progress", "waiting"]);
-    if (filters.due === "today") query = query.eq("due_date", today);
+    if (filters.due === "today") query = query.eq("due_date", today).in("status", ["pending", "in_progress", "waiting"]);
     if (filters.due === "upcoming") query = query.gt("due_date", today);
     if (filters.due === "none") query = query.is("due_date", null);
     return query.order(isArchived ? "archived_at" : "created_at", { ascending: false })
@@ -63,13 +63,15 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
   const archivedRows = (archived.data ?? []) as ListedWorkItem[];
   const items = activeRows.slice(0, PAGE_SIZE);
   const archivedItems = archivedRows.slice(0, PAGE_SIZE);
+  const siteOptions = sites.data ?? [];
+  const siteLabels = new Map(siteOptions.map((site) => [site.id, `${site.code} · ${site.name}`]));
   const activeHref = (page: number) => workItemListHref(filters, page, archivePage);
   const archiveHref = (page: number) => workItemListHref(filters, activePage, page);
   const hasFilters = Object.values(filters).some(Boolean);
 
   return <div className="page-content">
     <div className="page-heading"><span className="eyebrow">ORGANIZA TU DÍA</span><h1>Mi trabajo</h1><p>Crea y actualiza tus actividades desde un solo lugar.</p></div>
-    <CreateWorkItemForm />
+    <CreateWorkItemForm sites={siteOptions} />
     <section className="work-card work-filters"><h2>Buscar y filtrar</h2>
       <form action="/mi-trabajo" method="get" className="filter-grid" role="search">
         <div className="field filter-search"><label htmlFor="filter-q">Código o título</label><input id="filter-q" name="q" type="search" maxLength={100} defaultValue={filters.query} placeholder="Buscar actividad" /></div>
@@ -86,8 +88,8 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
     <section className="work-card work-list"><h2>Actividades recientes</h2>
       {active.error ? <p className="error-message">No se pudo cargar la lista de actividades.</p> : items.length === 0 ?
         <p className="work-empty">{activePage > 1 ? "No hay más actividades en esta página." : hasFilters ? "No hay actividades que cumplan estos filtros." : "Aún no hay actividades registradas."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Código</th><th>Actividad</th><th>Área</th><th>Estado</th><th>Prioridad</th><th>Fecha límite</th><th>Cierre</th><th>Acción</th></tr></thead>
-          <tbody>{items.map((item) => <tr key={item.id}><td>{item.code}</td><td>{item.title}</td><td>{areaLabels[item.type] ?? item.type}</td><td><span className="badge">{statusLabels[item.status] ?? item.status}</span></td><td>{priorityLabels[item.priority] ?? item.priority}</td><td>{item.due_date ?? "—"}</td><td>{formatWorkItemDateTime(item.closed_at, timezone)}</td><td className="work-actions"><Link href={`/mi-trabajo/${item.id}`}>Ver ficha e historial</Link>{item.creator_id === access.user.id && <><details><summary>Editar</summary><EditWorkItemForm item={item} /></details><ArchiveWorkItemForm id={item.id} archived={false} /></>}</td></tr>)}</tbody></table></div>}
+        <div className="table-scroll"><table><thead><tr><th>Código</th><th>Actividad</th><th>Área</th><th>Sede</th><th>Estado</th><th>Prioridad</th><th>Fecha límite</th><th>Cierre</th><th>Acción</th></tr></thead>
+          <tbody>{items.map((item) => <tr key={item.id}><td>{item.code}</td><td>{item.title}</td><td>{areaLabels[item.type] ?? item.type}</td><td>{item.site_id ? siteLabels.get(item.site_id) ?? "Sede no disponible" : "—"}</td><td><span className="badge">{statusLabels[item.status] ?? item.status}</span></td><td>{priorityLabels[item.priority] ?? item.priority}</td><td>{item.due_date ?? "—"}</td><td>{formatWorkItemDateTime(item.closed_at, timezone)}</td><td className="work-actions"><Link href={`/mi-trabajo/${item.id}`}>Ver ficha e historial</Link>{item.creator_id === access.user.id && <><details><summary>Editar</summary><EditWorkItemForm item={item} sites={siteOptions} /></details><ArchiveWorkItemForm id={item.id} archived={false} /></>}</td></tr>)}</tbody></table></div>}
       {!active.error && <Pagination page={activePage} hasNext={activeRows.length > PAGE_SIZE} label="actividades" href={activeHref} />}
     </section>
     <section className="work-card work-list"><h2>Archivo</h2>

@@ -29,6 +29,21 @@ describe("parseWorkItemInput", () => {
   it("rejects an invalid calendar date", () => {
     expect(() => parseWorkItemInput({ ...valid, dueDate: "2026-02-30" })).toThrow();
   });
+
+  it("trims an optional description and accepts an organization site UUID", () => {
+    expect(parseWorkItemInput({ ...valid, description: "  Revisar contrato  ", siteId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd" })).toEqual({
+      ...valid, title: "Preparar informe", description: "Revisar contrato", siteId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    });
+  });
+
+  it("rejects an oversized description or malformed site", () => {
+    expect(() => parseWorkItemInput({ ...valid, description: "x".repeat(5001) })).toThrow();
+    expect(() => parseWorkItemInput({ ...valid, siteId: "other-org" })).toThrow();
+  });
+
+  it("normalizes a whitespace-only description to absence", () => {
+    expect(parseWorkItemInput({ ...valid, description: "   " }).description).toBeUndefined();
+  });
 });
 
 describe("parseWorkItemUpdate", () => {
@@ -40,6 +55,12 @@ describe("parseWorkItemUpdate", () => {
 
   it("rejects an invalid state transition value", () => {
     expect(() => parseWorkItemUpdate({ ...update, status: "archived" })).toThrow();
+  });
+
+  it("accepts optional description and site when updating", () => {
+    expect(parseWorkItemUpdate({ ...update, description: "  Respuesta recibida ", siteId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd" })).toEqual({
+      ...update, description: "Respuesta recibida", siteId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    });
   });
 });
 
