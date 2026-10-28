@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 const navigation = [
@@ -18,8 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="app-frame">
       <aside className="sidebar">
         <Link href="/inicio" className="brand" aria-label="UPCO Admin, ir a Inicio">
-          <span className="brand-mark">U</span>
-          <span><strong>UPCO Admin</strong><small>Centro de trabajo</small></span>
+          <Image src="/brand/upco-logo-light.png" alt="" width={226} height={93} className="brand-logo" priority />
         </Link>
         <p className="nav-caption">ESPACIO DE TRABAJO</p>
         <nav aria-label="Navegación principal" className="main-nav">
