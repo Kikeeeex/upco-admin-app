@@ -11,12 +11,12 @@ Estado al 28/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-05 | RNF-02, RNF-13 | hecho | Tres migraciones aplicadas al proyecto Supabase de desarrollo y registradas en historial |
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
 | BL-07 | RNF-08, RNF-16 | parcial | Navegación presente y prueba de render; falta revisión manual móvil |
-| BL-08 | RF-006, RF-007 | hecho | Creación, lista y edición verificadas desde el navegador y en Supabase |
-| BL-09 | RF-008, RF-012 | parcial | Archivo/restauración confirmados en navegador; cierre/reapertura probados en SQL, pendientes en navegador |
+| BL-08 | RF-006, RF-007 | parcial | Creación, lista y edición verificadas; faltan descripción y sede en los formularios |
+| BL-09 | RF-008, RF-012 | hecho | Archivo/restauración y cierre/reapertura confirmados en navegador y Supabase |
 | BL-10 | RF-011, RNF-05 | hecho | Nota e historial conservados tras archivo/restauración, confirmados en navegador y Supabase |
-| BL-11 | RF-009 | parcial | Búsqueda por código/título y filtros combinables implementados; SQL local/remoto probado, falta prueba en navegador con sesión |
+| BL-11 | RF-009 | hecho | Búsqueda y prioridad combinadas confirmadas en navegador; filtros combinados, incluida sede, probados en SQL local/remoto |
 
-**Siguiente historia:** BL-12, panel diario con hoy, vencidas y en espera.
+**Siguientes pendientes:** completar campos de BL-08 y construir BL-12, panel diario con hoy, vencidas y en espera.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -34,4 +34,6 @@ Inicio de Sprint 2 / BL-11: el buscador y los filtros de área, estado, sede, pr
 
 El usuario confirmó desde staging que añadió una nota, archivó y restauró la actividad de prueba y conservó la nota y el historial. La consulta administrativa posterior mostró una actividad activa, cinco eventos en total y una nota. La interfaz de BL-11 todavía no estaba publicada en ese momento.
 
-BL-11 se publicó en `main` (`5133ab1`) y la URL de staging sirvió la nueva hoja de estilos de filtros. Sin sesión, `/login` respondió 200 y las rutas privadas de listado y ficha devolvieron 307 a `/login`. Falta el resultado de la comprobación autenticada de filtros y cierre/reapertura solicitada al usuario.
+BL-11 se publicó en `main` (`5133ab1`) y la URL de staging sirvió la nueva hoja de estilos de filtros. Sin sesión, `/login` respondió 200 y las rutas privadas de listado y ficha devolvieron 307 a `/login`.
+
+El usuario confirmó que buscar «Prueba de integración» con prioridad Alta muestra su actividad y cambiar a Baja la excluye de ambas listas. También confirmó que completar presenta fecha de cierre, reabrir la limpia y ambos cambios permanecen en el historial. La consulta administrativa final mostró una actividad activa en progreso sin fecha de cierre, siete eventos y una nota. BL-09 y BL-11 cumplen sus criterios de verificación; la prueba de sede en navegador depende de disponer de sedes de prueba y una actividad asociada.
