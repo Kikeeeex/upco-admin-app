@@ -1,0 +1,35 @@
+"use client";
+
+import { useActionState } from "react";
+import { createWorkItem, updateWorkItem, type ActionState } from "@/features/work-items/actions";
+
+const initial: ActionState = { kind: "idle", message: "" };
+const priorities = [["low", "Baja"], ["medium", "Media"], ["high", "Alta"], ["critical", "Crítica"]] as const;
+const statuses = [["pending", "Pendiente"], ["in_progress", "En progreso"], ["waiting", "En espera"], ["completed", "Completada"], ["cancelled", "Cancelada"]] as const;
+
+export type ListedWorkItem = {
+  id: string; code: string; type: string; title: string; status: string; priority: string; due_date: string | null;
+};
+
+export function CreateWorkItemForm() {
+  const [state, action, pending] = useActionState(createWorkItem, initial);
+  return <section className="work-card"><h2>Nueva actividad</h2><form action={action} className="work-form">
+    <div className="field"><label htmlFor="new-title">Título</label><input id="new-title" name="title" required maxLength={200} placeholder="¿Qué necesitas hacer?" /></div>
+    <div className="field"><label htmlFor="new-area">Área</label><select id="new-area" name="area" defaultValue="general"><option value="general">General</option><option value="administration">Administración</option><option value="procurement">Procura</option><option value="it">TI</option></select></div>
+    <div className="field"><label htmlFor="new-priority">Prioridad</label><select id="new-priority" name="priority" defaultValue="medium">{priorities.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
+    <div className="field"><label htmlFor="new-due">Fecha límite</label><input id="new-due" name="dueDate" type="date" /></div>
+    <button className="primary-button" disabled={pending} type="submit">{pending ? "Guardando…" : "Guardar actividad"}</button>
+  </form>{state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}</section>;
+}
+
+export function EditWorkItemForm({ item }: { item: ListedWorkItem }) {
+  const [state, action, pending] = useActionState(updateWorkItem, initial);
+  return <form action={action} className="work-form edit-form"><input type="hidden" name="id" value={item.id} />
+    <div className="field"><label htmlFor={`title-${item.id}`}>Título</label><input id={`title-${item.id}`} name="title" defaultValue={item.title} required maxLength={200} /></div>
+    <div className="field"><label htmlFor={`priority-${item.id}`}>Prioridad</label><select id={`priority-${item.id}`} name="priority" defaultValue={item.priority}>{priorities.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
+    <div className="field"><label htmlFor={`status-${item.id}`}>Estado</label><select id={`status-${item.id}`} name="status" defaultValue={item.status}>{statuses.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
+    <div className="field"><label htmlFor={`due-${item.id}`}>Fecha límite</label><input id={`due-${item.id}`} name="dueDate" type="date" defaultValue={item.due_date ?? ""} /></div>
+    <button className="primary-button" type="submit" disabled={pending}>{pending ? "Guardando…" : "Guardar cambios"}</button>
+    {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}
+  </form>;
+}
