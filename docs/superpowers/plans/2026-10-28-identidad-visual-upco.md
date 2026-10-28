@@ -10,7 +10,7 @@
 
 - [x] Copiar las variantes necesarias sin editar el arte original y reemplazar el monograma provisional en acceso y navegación.
 - [x] Leer el manual de marca comprimido; aplicar reglas verificadas de color, tipografía y fondos. El manual exige legibilidad y área de reserva, pero no da tamaño mínimo numérico.
-- [x] Revisar login, panel y móvil; ejecutar 31 pruebas, typecheck, lint y build. Playwright comprobó carga del logo, Satoshi y ausencia de desplazamiento horizontal a 1440 y 390 píxeles.
+- [x] Revisar login, panel y móvil; ejecutar 31 pruebas, typecheck, lint y build. Playwright comprobó carga del logo, Satoshi y ausencia de desplazamiento horizontal a 1440 y 390 píxeles, además del tamaño del logo a 800 píxeles. La revisión independiente motivó un contorno de foco claro sobre fondos oscuros.
 - [ ] Publicar en staging y comprobar recursos estáticos y rutas.
 
 **Límite de esta entrega:** el logo se muestra con su proporción original; no se dibuja un monograma alterno ni se usan versiones deformadas. El usuario eligió fuente del sistema para Helvetica Neue hasta confirmar derechos de publicación en el repositorio público.

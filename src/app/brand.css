@@ -11,6 +11,9 @@
 body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
 h1, h2, h3, .topbar strong { font-family: var(--font-satoshi), "Satoshi", "Helvetica Neue", Helvetica, Arial, sans-serif; }
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline-color: #0b4b32; }
+.sidebar a:focus-visible, .sidebar button:focus-visible,
+.login-side a:focus-visible, .login-side button:focus-visible,
+.welcome-card a:focus-visible, .welcome-card button:focus-visible { outline-color: #ededed; }
 
 .sidebar { width: 300px; background: var(--nav); color: #ededed; }
 .brand { display: block; margin: 0 -17px; padding: 17px 40px 48px; }
@@ -50,8 +53,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 @media (max-width: 1100px) { .welcome-logo { display: none; } }
 @media (max-width: 950px) {
-  .sidebar { width: 250px; }
-  .brand { padding: 15px 38px 42px; }
+  .sidebar { width: 260px; }
+  .brand { padding: 15px 24px 42px; }
 }
 @media (max-width: 640px) {
   .sidebar { width: 100%; }
