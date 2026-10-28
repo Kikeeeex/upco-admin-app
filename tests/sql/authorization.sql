@@ -2,13 +2,15 @@ BEGIN;
 
 INSERT INTO auth.users(id) VALUES
   ('11111111-1111-4111-8111-111111111111'),
-  ('22222222-2222-4222-8222-222222222222');
+  ('22222222-2222-4222-8222-222222222222'),
+  ('33333333-3333-4333-8333-333333333333');
 INSERT INTO organizations(id, name) VALUES
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Organización A'),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Organización B');
 INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_object_id, entra_subject, active) VALUES
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-a', true),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-b', true);
+  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-b', true),
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '33333333-3333-4333-8333-333333333333', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-c', true);
 
 DO $$ BEGIN
   IF has_table_privilege('anon', 'public.work_items', 'SELECT') THEN RAISE EXCEPTION 'anon table privilege remains'; END IF;
@@ -63,6 +65,13 @@ DO $$ BEGIN
     RAISE EXCEPTION 'archiving lost the work item';
   END IF;
   IF (SELECT count(*) FROM activity_log) <> 5 THEN RAISE EXCEPTION 'archive audit failed'; END IF;
+  BEGIN
+    INSERT INTO activity_log(organization_id, work_item_id, action, after_values, actor_id)
+    SELECT organization_id, id, 'note', jsonb_build_object('body', 'Nota tras archivo'), auth.uid()
+    FROM work_items WHERE title = 'Primer registro';
+    RAISE EXCEPTION 'note on archived work item was allowed';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
 END $$;
 UPDATE work_items SET archived_at = NULL WHERE title = 'Primer registro';
 DO $$ BEGIN
@@ -123,6 +132,24 @@ END;
 $$;
 
 SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
+DO $$ BEGIN
+  IF (SELECT count(*) FROM work_items) <> 2 THEN RAISE EXCEPTION 'same organization read failed'; END IF;
+  BEGIN
+    INSERT INTO activity_log(organization_id, work_item_id, action, after_values, actor_id)
+    SELECT organization_id, id, 'note', jsonb_build_object('body', 'Nota de otro miembro'), auth.uid()
+    FROM work_items WHERE title = 'Primer registro';
+    RAISE EXCEPTION 'another member note was allowed';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+DO $$ DECLARE affected bigint;
+BEGIN
+  UPDATE work_items SET archived_at = now() WHERE title = 'Primer registro';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  IF affected <> 0 THEN RAISE EXCEPTION 'another member archive was allowed'; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub', '44444444-4444-4444-8444-444444444444', true);
 DO $$ BEGIN
   IF (SELECT count(*) FROM organizations) <> 0 THEN RAISE EXCEPTION 'unknown user read failed'; END IF;
   IF (SELECT count(*) FROM work_items) <> 0 THEN RAISE EXCEPTION 'unknown user work read failed'; END IF;

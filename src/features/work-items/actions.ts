@@ -51,11 +51,13 @@ export async function updateWorkItem(_previous: ActionState, form: FormData): Pr
     .eq("id", input.id)
     .eq("organization_id", access.organizationId)
     .eq("creator_id", access.user.id)
+    .is("archived_at", null)
     .select("id")
     .maybeSingle();
   if (error || !data) return { kind: "error", message: "No se pudo actualizar la actividad." };
 
   revalidatePath("/mi-trabajo");
+  revalidatePath(`/mi-trabajo/${input.id}`);
   return { kind: "success", message: "Actividad actualizada." };
 }
 
@@ -77,6 +79,7 @@ async function changeArchiveState(form: FormData, archive: boolean): Promise<Act
   if (error || !data) return { kind: "error", message: archive ? "No se pudo archivar la actividad." : "No se pudo restaurar la actividad." };
 
   revalidatePath("/mi-trabajo");
+  revalidatePath(`/mi-trabajo/${id}`);
   return { kind: "success", message: archive ? "Actividad archivada." : "Actividad restaurada." };
 }
 
@@ -106,5 +109,6 @@ export async function addWorkItemNote(_previous: ActionState, form: FormData): P
   if (error) return { kind: "error", message: "No se pudo guardar la nota en esta actividad." };
 
   revalidatePath("/mi-trabajo");
+  revalidatePath(`/mi-trabajo/${input.id}`);
   return { kind: "success", message: "Nota guardada." };
 }

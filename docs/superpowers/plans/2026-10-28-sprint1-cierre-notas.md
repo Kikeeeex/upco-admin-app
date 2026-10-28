@@ -43,6 +43,8 @@
 - [x] Aplicar la migración nueva al Supabase de desarrollo si hay acceso administrativo; verificar esquema, RLS y rollback sintético. Si falta acceso, conservar la migración lista y registrar el bloqueo preciso.
 - [ ] Comprobar el despliegue de staging cuando esté disponible, actualizar progreso y publicar los cambios en `main`.
 
+La revisión previa a publicación añadió paginación de listas e historial por ficha, autor identificable, zona horaria del perfil y rechazo de ediciones iniciadas antes de archivar. La suite SQL se amplió para notas sobre registros archivados y acceso de otro miembro de la organización. La ejecución final local y remota pasó; queda la comprobación del despliegue y del flujo autenticado en navegador.
+
 ## Riesgos a revisar
 
 - Un cambio de estado simultáneo no debe afectar otra actividad ni alterar un registro archivado por accidente.

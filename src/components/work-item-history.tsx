@@ -1,4 +1,5 @@
 import { describeWorkItemEvent, type WorkItemHistoryEvent } from "@/features/work-items/history";
+import { formatWorkItemDateTime } from "@/features/work-items/presentation";
 import { AddWorkItemNoteForm } from "./work-item-forms";
 
 export type ListedHistoryEvent = WorkItemHistoryEvent & {
@@ -8,24 +9,21 @@ export type ListedHistoryEvent = WorkItemHistoryEvent & {
   occurred_at: string;
 };
 
-const dateTime = new Intl.DateTimeFormat("es-VE", {
-  dateStyle: "medium", timeStyle: "short", timeZone: "America/Caracas",
-});
-
-export function WorkItemHistory({ id, events, error, actorId, archived }: {
+export function WorkItemHistory({ id, events, error, actorNames, timezone, canAddNote }: {
   id: string;
   events: ListedHistoryEvent[];
   error: boolean;
-  actorId: string;
-  archived: boolean;
+  actorNames: Record<string, string>;
+  timezone: string;
+  canAddNote: boolean;
 }) {
-  return <details className="history-panel"><summary>Notas e historial reciente</summary>
-    {!archived && <AddWorkItemNoteForm id={id} />}
+  return <section className="history-panel"><h2>Notas e historial</h2>
+    {canAddNote && <AddWorkItemNoteForm id={id} />}
     {error ? <p className="error-message">No se pudo cargar el historial.</p> : events.length === 0 ?
       <p className="work-empty">Aún no hay eventos.</p> :
       <ol className="history-list">{events.map((event) => <li key={event.id}>
-        <small>{dateTime.format(new Date(event.occurred_at))} · {event.actor_id === actorId ? "Tú" : "Miembro"}</small>
+        <small>{formatWorkItemDateTime(event.occurred_at, timezone)} · {actorNames[event.actor_id] ?? `Usuario ${event.actor_id}`}</small>
         <p>{describeWorkItemEvent(event)}</p>
       </li>)}</ol>}
-  </details>;
+  </section>;
 }

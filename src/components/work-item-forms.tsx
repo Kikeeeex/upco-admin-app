@@ -8,7 +8,7 @@ const priorities = [["low", "Baja"], ["medium", "Media"], ["high", "Alta"], ["cr
 const statuses = [["pending", "Pendiente"], ["in_progress", "En progreso"], ["waiting", "En espera"], ["completed", "Completada"], ["cancelled", "Cancelada"]] as const;
 
 export type ListedWorkItem = {
-  id: string; code: string; type: string; title: string; status: string; priority: string;
+  id: string; code: string; type: string; title: string; status: string; priority: string; creator_id: string;
   due_date: string | null; closed_at: string | null; archived_at: string | null;
 };
 
