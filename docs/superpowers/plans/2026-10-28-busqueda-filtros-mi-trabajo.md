@@ -39,8 +39,8 @@
 
 - [x] Aplicar búsqueda y filtros a ambas consultas paginadas; cargar sedes accesibles para el selector.
 - [x] Renderizar formulario GET y conservar parámetros al cambiar de página; añadir estado vacío claro.
-- [ ] Ejecutar tests, typecheck, lint, build y smoke de staging.
-- [ ] Revisar y publicar en `main`; solicitar comprobación autenticada de combinación de filtros.
+- [x] Ejecutar tests, typecheck, lint, build y smoke de staging.
+- [x] Revisar y publicar en `main`; solicitar comprobación autenticada de combinación de filtros.
 
 ## Revisión enfocada
 
