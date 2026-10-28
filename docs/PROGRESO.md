@@ -6,7 +6,7 @@ Estado del corte inicial del 28/10/2026. `hecho` requiere comprobación ejecutad
 |---|---|---|---|
 | BL-01 | RNF-14 | parcial | Repositorio, CI y comandos locales listos; staging responde, CI remoto sin verificar |
 | BL-02 | RNF-15 | bloqueado | Aprobación corporativa de nube y datos |
-| BL-03 | RF-001 | parcial | Azure inicia OAuth hacia el tenant configurado; falta login corporativo completo |
+| BL-03 | RF-001 | parcial | Login corporativo llegó a acceso denegado; falta acceso con membresía activa |
 | BL-04 | RF-002, RF-003 | parcial | Guardas y casos negativos locales; validar claims y sesión reales |
 | BL-05 | RNF-02, RNF-13 | hecho | Dos migraciones aplicadas al proyecto Supabase de desarrollo y registradas en historial |
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
@@ -19,4 +19,6 @@ Estado del corte inicial del 28/10/2026. `hecho` requiere comprobación ejecutad
 
 Comprobación ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. OAuth real, lectura/escritura desde el navegador con una cuenta habilitada, pruebas E2E y CI remoto no ejecutados.
 
-Comprobación de staging del 28/10/2026: `GET /login` devolvió 200 con el botón Microsoft habilitado y sin aviso de configuración pendiente; `GET /mi-trabajo` sin sesión devolvió 307 hacia `/login`; `GET /auth/callback` sin código devolvió 307 hacia `/login`. El endpoint OAuth de Supabase devolvió 302 hacia `login.microsoftonline.com` en el tenant configurado. No se realizó una autenticación con cuenta corporativa.
+Comprobación inicial de staging del 28/10/2026: `GET /login` devolvió 200 con el botón Microsoft habilitado y sin aviso de configuración pendiente; `GET /mi-trabajo` sin sesión devolvió 307 hacia `/login`; `GET /auth/callback` sin código devolvió 307 hacia `/login`. El endpoint OAuth de Supabase devolvió 302 hacia `login.microsoftonline.com` en el tenant configurado. En esa comprobación no se realizó una autenticación con cuenta corporativa.
+
+Después se completó el primer login corporativo y la aplicación respondió con acceso denegado, como exige la lista explícita de acceso. La identidad Azure real usa `custom_claims.tid` y `sub`; se corrigió la validación y se aplicó la tercera migración para guardar el sujeto estable. La suite SQL remota pasó con rollback. Falta comprobar una sesión con membresía activa y persistencia desde la interfaz.

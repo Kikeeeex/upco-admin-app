@@ -14,7 +14,7 @@ export async function getAccessContext() {
 
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
-    .select("user_id, organization_id, entra_tenant_id, entra_object_id, active")
+    .select("user_id, organization_id, entra_tenant_id, entra_subject, active")
     .eq("user_id", user.id)
     .eq("active", true);
   if (membershipError || !memberships) return { kind: "denied" as const };
@@ -23,12 +23,12 @@ export async function getAccessContext() {
     authUserId: user.id,
     provider: "azure",
     tenantId: identity.tenantId,
-    objectId: identity.objectId,
+    subject: identity.subject,
     allowedTenantId: process.env.ENTRA_TENANT_ID ?? null,
     membership: {
       userId: row.user_id,
       tenantId: row.entra_tenant_id,
-      objectId: row.entra_object_id,
+      subject: row.entra_subject,
       active: row.active,
     },
   }));
