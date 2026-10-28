@@ -24,4 +24,8 @@ npm run build
 
 La autenticación real requiere proyecto Supabase autorizado, proveedor Azure configurado, registro de aplicación en Entra, callback de Entra `https://<supabase-project>.supabase.co/auth/v1/callback`, URL de redirección de la aplicación `<origen>/auth/callback`, tenant aprobado y membresía activa provisionada por un administrador. `SUPABASE_PUBLISHABLE_KEY` debe ser solo la clave publicable/anon; nunca una clave `service_role`. Ver [DECISIONES](docs/DECISIONES.md).
 
+## URL de pruebas prevista
+
+Se eligió `https://upco-admin-staging-kikeeeex.vercel.app` como origen del entorno de pruebas. La URL de retorno que debe permitirse en Supabase Auth es `https://upco-admin-staging-kikeeeex.vercel.app/auth/callback`. Esta dirección aún no está publicada ni se ha podido confirmar que el subdominio esté disponible; debe asignarse al proyecto de staging en Vercel antes de registrarla como URL activa. El callback configurado en Entra sigue siendo el de Supabase (`https://<supabase-project>.supabase.co/auth/v1/callback`).
+
 La suite de permisos SQL usa Docker y PostgreSQL 17 descartable: `bash scripts/test-sql.sh`. Las migraciones `supabase/migrations/20261028000000_core.sql` y `20261028000001_restrict_table_privileges.sql` se aplicaron al proyecto Supabase de desarrollo y se registraron en `supabase_migrations.schema_migrations`. La primera cuenta debe autenticarse por Entra y ser habilitada explícitamente en `memberships` antes de probar persistencia desde la interfaz. No hay alta automática de usuarios.
