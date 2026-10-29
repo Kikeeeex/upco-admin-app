@@ -11,7 +11,7 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-05 | RNF-02, RNF-13 | hecho | Tres migraciones aplicadas al proyecto Supabase de desarrollo y registradas en historial |
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
 | BL-07 | RNF-08, RNF-16 | parcial | Navegación presente y prueba de render; falta revisión manual móvil |
-| BL-08 | RF-006, RF-007 | parcial | Descripción de prueba guardada y sedes configuradas; falta comprobar edición, limpieza y filtro por sede desde staging |
+| BL-08 | RF-006, RF-007 | hecho | Creación, edición y limpieza de descripción; asignación y filtro por sede confirmados en staging y Supabase |
 | BL-09 | RF-008, RF-012 | hecho | Archivo/restauración y cierre/reapertura confirmados en navegador y Supabase |
 | BL-10 | RF-011, RNF-05 | hecho | Nota e historial conservados tras archivo/restauración, confirmados en navegador y Supabase |
 | BL-11 | RF-009 | hecho | Búsqueda y prioridad combinadas confirmadas en navegador; filtros combinados, incluida sede, probados en SQL local/remoto |
@@ -19,7 +19,7 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-13 | RF-016, RF-017 | hecho | Creación ADM, ficha, edición documental e historial confirmados en staging y Supabase |
 | BL-14 | RF-018 | hecho | Programación, reprogramación, resultado, historial y agenda confirmados en staging y Supabase |
 
-**Siguientes pendientes:** completar la prueba autenticada de BL-08 con sede y descripción; continuar Sprint 2 con Procura.
+**Siguientes pendientes:** continuar Sprint 2 con Procura y resolver las dependencias generales de CI, revisión móvil y aprobación corporativa de nube.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -55,4 +55,6 @@ BL-14: `follow_ups` guarda fecha, contacto, motivo y resultado vinculados a una 
 
 Revisión de BL-08/BL-12 tras el mensaje «listas ambas pruebas»: la primera consulta mostró `GEN-000002` con una descripción de prueba, pero aún no estaban los registros de los tres grupos. Al repetirla tras la indicación del usuario, Supabase mostró exactamente una actividad abierta con fecha de hoy (`IT-000001`), una vencida (`GEN-000003`) y una en espera sin fecha (`GEN-000004`); el usuario indicó que las pruebas estaban listas. BL-12 queda cerrado junto con la prueba previa de próximos seguimientos. No hay sedes configuradas; BL-08 continúa parcial hasta disponer de una sede autorizada y comprobar la edición/limpieza de la descripción.
 
-El usuario identificó Maracaibo y El Tigre como sedes autorizadas de UPCO y delegó la elección de códigos. Se registraron `MAR` / Maracaibo y `TIG` / El Tigre en la organización de pruebas. Una consulta remota confirmó ambas filas y otra, ejecutada bajo el rol autenticado de la cuenta administradora, confirmó que las dos son visibles conforme a RLS. Falta la comprobación de asignación, filtro y limpieza desde la web; se solicitó al usuario con `GEN-000002`.
+El usuario identificó Maracaibo y El Tigre como sedes autorizadas de UPCO y delegó la elección de códigos. Se registraron `MAR` / Maracaibo y `TIG` / El Tigre en la organización de pruebas. Una consulta remota confirmó ambas filas y otra, ejecutada bajo el rol autenticado de la cuenta administradora, confirmó que las dos son visibles conforme a RLS. Se solicitó la comprobación de asignación, filtro y limpieza desde la web con `GEN-000002`.
+
+BL-08: el usuario confirmó en staging que «Prueba2» permitió editar la descripción, asignar Maracaibo, filtrar por sede y limpiar los campos; El Tigre aparecía como opción. La consulta remota posterior mostró la descripción en `NULL` y la sede final `TIG`. Al aclararlo, el usuario confirmó que dejó El Tigre seleccionada intencionalmente al finalizar. Las 20 pruebas dirigidas de reglas y acciones de trabajo pasaron; el formulario y la acción convierten «Sin sede» a `NULL`. BL-08 queda cerrado.
