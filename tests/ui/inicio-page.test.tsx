@@ -6,6 +6,8 @@ vi.mock("@/features/auth/access", () => ({ getAccessContext: accessContext }));
 vi.mock("@/features/work-items/filters", async () => import("../../src/features/work-items/filters"));
 vi.mock("@/features/work-items/daily", async () => import("../../src/features/work-items/daily"));
 vi.mock("@/components/daily-panel", async () => import("../../src/components/daily-panel"));
+vi.mock("@/features/administration/agenda", async () => import("../../src/features/administration/agenda"));
+vi.mock("@/components/follow-up-list", async () => import("../../src/components/follow-up-list"));
 
 import InicioPage from "../../src/app/(dashboard)/inicio/page";
 
@@ -18,6 +20,10 @@ describe("InicioPage data queries", () => {
         if (table === "user_profiles") return {
           select() { return this; }, eq() { return this; },
           async maybeSingle() { return { data: { timezone: "America/Caracas" }, error: null }; },
+        };
+        if (table === "follow_ups") return {
+          select() { return this; }, eq() { return this; }, is() { return this; }, order() { return this; },
+          async range() { return { data: [{ id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", work_item_id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", scheduled_for: "2026-11-02", contact_name: "Cliente A", reason: "Confirmar entrega", work_items: { id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", code: "ADM-000001", title: "Informe" } }], error: null }; },
         };
         if (table !== "work_items") throw new Error(`Unexpected table ${table}`);
         const call = { select: [] as unknown[], filters: [] as Array<[string, string, unknown]>, range: undefined as [number, number] | undefined };
@@ -52,6 +58,8 @@ describe("InicioPage data queries", () => {
     expect(calls[1].filters.some(([op, column]) => op === "lt" && column === "due_date")).toBe(true);
     expect(calls[2].filters).toContainEqual(["in", "status", ["waiting"]]);
     expect(html.match(/6 actividades/g)).toHaveLength(3);
+    expect(html).toContain("Próximos seguimientos");
+    expect(html).toContain("Confirmar entrega");
 
     fail = true;
     const errorHtml = renderToStaticMarkup(await InicioPage());

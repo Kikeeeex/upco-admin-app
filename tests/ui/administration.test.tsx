@@ -9,6 +9,7 @@ vi.mock("@/components/pending-page", async () => import("../../src/components/pe
 vi.mock("@/features/work-items/presentation", async () => import("../../src/features/work-items/presentation"));
 vi.mock("@/features/work-items/rules", async () => import("../../src/features/work-items/rules"));
 vi.mock("@/components/admin-matter-forms", async () => import("../../src/components/admin-matter-forms"));
+vi.mock("@/components/admin-follow-up-forms", () => ({ AdminFollowUpSection: ({ items }: { items: unknown[] }) => <div>Seguimientos de la gestión: {items.length}</div> }));
 vi.mock("@/components/work-item-forms", async () => import("../../src/components/work-item-forms"));
 
 import AdministrationPage from "../../src/app/(dashboard)/administracion/page";
@@ -48,6 +49,7 @@ describe("Administration pages", () => {
       document_status: "pending", document_reference: "DOC-1", document_url: "https://example.com/documento" };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: (table: string) => {
       if (table === "sites") return { select() { return this; }, eq() { return this; }, order: async () => ({ data: [], error: null }) };
+      if (table === "follow_ups") return { select() { return this; }, eq() { return this; }, order: async () => ({ data: [{ id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", work_item_id: itemId, scheduled_for: "2026-11-01", contact_name: "Cliente A", reason: "Confirmar entrega", status: "pending", outcome: null, performed_at: null }], error: null }) };
       return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: table === "work_items" ? matter : detail, error: null }; } };
     } } });
 
@@ -55,6 +57,7 @@ describe("Administration pages", () => {
     expect(html).toContain("Ficha de gestión administrativa");
     expect(html).toContain("Documentación pendiente");
     expect(html).toContain("Cliente A");
+    expect(html).toContain("Seguimientos de la gestión: 1");
     expect(html).toContain('href="https://example.com/documento"');
     expect(html).toContain('rel="noopener noreferrer"');
   });

@@ -4,6 +4,8 @@ import { getAccessContext } from "@/features/auth/access";
 import { parseWorkItemId } from "@/features/work-items/rules";
 import { formatWorkItemDateTime } from "@/features/work-items/presentation";
 import { EditAdminDetailsForm, type AdminDetail } from "@/components/admin-matter-forms";
+import { AdminFollowUpSection } from "@/components/admin-follow-up-forms";
+import type { AdminFollowUp } from "@/features/administration/follow-ups";
 import { ArchiveWorkItemForm, EditWorkItemForm, type ListedWorkItem } from "@/components/work-item-forms";
 
 const documentLabels: Record<string, string> = { pending: "Documentación pendiente", received: "Documentación recibida", reviewed: "Documentación revisada" };
@@ -19,13 +21,15 @@ export default async function AdminDetailPage({ params }: { params: Promise<{ id
   try { id = parseWorkItemId((await params).id); }
   catch { notFound(); }
 
-  const [matterResult, detailResult, sitesResult, profileResult] = await Promise.all([
+  const [matterResult, detailResult, sitesResult, profileResult, followUpsResult] = await Promise.all([
     access.supabase.from("work_items").select("id, code, type, title, description, site_id, status, priority, due_date, closed_at, archived_at, creator_id, created_at, updated_at")
       .eq("id", id).eq("organization_id", access.organizationId).eq("type", "administration").maybeSingle(),
     access.supabase.from("admin_details").select("work_item_id, procedure_type, counterpart_name, reference, document_status, document_reference, document_url")
       .eq("work_item_id", id).maybeSingle(),
     access.supabase.from("sites").select("id, code, name").eq("organization_id", access.organizationId).order("name"),
     access.supabase.from("user_profiles").select("timezone").eq("user_id", access.user.id).maybeSingle(),
+    access.supabase.from("follow_ups").select("id, work_item_id, scheduled_for, contact_name, reason, status, outcome, performed_at")
+      .eq("work_item_id", id).order("scheduled_for", { ascending: true }),
   ]);
   if (matterResult.error || detailResult.error || !matterResult.data || !detailResult.data) notFound();
   const matter = matterResult.data as Matter;
@@ -57,5 +61,7 @@ export default async function AdminDetailPage({ params }: { params: Promise<{ id
         {matter.archived_at && matter.creator_id === access.user.id && <ArchiveWorkItemForm id={id} archived />}
       </div>
     </section>
+    {followUpsResult.error ? <p role="alert" className="error-message">No se pudieron cargar los seguimientos.</p> :
+      <AdminFollowUpSection workItemId={id} items={(followUpsResult.data ?? []) as AdminFollowUp[]} canEdit={canEdit} />}
   </div>;
 }

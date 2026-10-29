@@ -24,6 +24,12 @@ export function describeWorkItemEvent(event: WorkItemHistoryEvent): string {
   if (event.action === "created") return "Actividad creada";
   if (event.action !== "updated") return "Evento de actividad";
 
+  if (typeof after.follow_up_id === "string") {
+    if (after.follow_up_status === "done") return `Seguimiento realizado: ${typeof after.follow_up_outcome === "string" ? after.follow_up_outcome : "sin resultado"}`;
+    if (before.follow_up_date !== after.follow_up_date && typeof before.follow_up_date === "string") return `Seguimiento reprogramado: ${after.follow_up_date}`;
+    return `Seguimiento programado: ${after.follow_up_date}`;
+  }
+
   if (before.archived_at == null && typeof after.archived_at === "string") return "Actividad archivada";
   if (typeof before.archived_at === "string" && after.archived_at == null) return "Actividad restaurada";
 

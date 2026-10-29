@@ -27,6 +27,18 @@ describe("describeWorkItemEvent", () => {
     })).toBe("Documentación: Recibida · Referencia documental: DOC-1 · Enlace documental actualizado");
   });
 
+  it("describes a scheduled, rescheduled and completed follow-up", () => {
+    expect(describeWorkItemEvent({ action: "updated", before_values: null,
+      after_values: { follow_up_id: "x", follow_up_status: "pending", follow_up_date: "2026-11-02" } }))
+      .toBe("Seguimiento programado: 2026-11-02");
+    expect(describeWorkItemEvent({ action: "updated", before_values: { follow_up_id: "x", follow_up_status: "pending", follow_up_date: "2026-11-02" },
+      after_values: { follow_up_id: "x", follow_up_status: "pending", follow_up_date: "2026-11-03" } }))
+      .toBe("Seguimiento reprogramado: 2026-11-03");
+    expect(describeWorkItemEvent({ action: "updated", before_values: { follow_up_id: "x", follow_up_status: "pending", follow_up_date: "2026-11-03" },
+      after_values: { follow_up_id: "x", follow_up_status: "done", follow_up_date: "2026-11-03", follow_up_outcome: "Entrega recibida" } }))
+      .toBe("Seguimiento realizado: Entrega recibida");
+  });
+
   it("shows a safe fallback for an unknown event", () => {
     expect(describeWorkItemEvent({ action: "created", before_values: null, after_values: {} })).toBe("Actividad creada");
     expect(describeWorkItemEvent({ action: "note", before_values: null, after_values: {} })).toBe("Nota sin contenido");

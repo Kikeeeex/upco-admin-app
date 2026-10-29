@@ -86,4 +86,70 @@ DO $$ BEGIN
   END;
 END $$;
 
+SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
+SELECT id, '2026-11-01', 'Cliente A', 'Confirmar entrega', auth.uid()
+FROM work_items WHERE type = 'administration';
+SELECT set_config('test.admin_id', (SELECT id::text FROM work_items WHERE type = 'administration'), true);
+DO $$ BEGIN
+  IF (SELECT count(*) FROM follow_ups WHERE status = 'pending') <> 1 THEN RAISE EXCEPTION 'follow-up not created'; END IF;
+  IF (SELECT due_date FROM work_items WHERE type = 'administration') <> '2026-11-02' THEN RAISE EXCEPTION 'follow-up changed main commitment'; END IF;
+  IF (SELECT count(*) FROM activity_log WHERE after_values->>'follow_up_status' = 'pending') <> 1 THEN RAISE EXCEPTION 'follow-up creation not audited'; END IF;
+  IF has_table_privilege('anon', 'public.follow_ups', 'SELECT') OR has_table_privilege('authenticated', 'public.follow_ups', 'DELETE') THEN RAISE EXCEPTION 'follow-up grants too broad'; END IF;
+END $$;
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
+DO $$ DECLARE affected integer;
+BEGIN
+  UPDATE follow_ups SET scheduled_for = '2026-11-04';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  IF affected <> 0 THEN RAISE EXCEPTION 'non-owner changed pending follow-up'; END IF;
+  BEGIN
+    INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
+    SELECT id, '2026-11-04', 'Otro miembro', 'Intento', auth.uid() FROM work_items WHERE type = 'administration';
+    RAISE EXCEPTION 'non-owner created follow-up';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+UPDATE follow_ups SET scheduled_for = '2026-11-03' WHERE status = 'pending';
+UPDATE follow_ups SET status = 'done', outcome = 'Entrega confirmada' WHERE status = 'pending';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM follow_ups WHERE status = 'done' AND performed_at IS NOT NULL) <> 1 THEN RAISE EXCEPTION 'follow-up not completed'; END IF;
+  IF (SELECT count(*) FROM activity_log WHERE after_values->>'follow_up_status' = 'done') <> 1 THEN RAISE EXCEPTION 'completion not audited'; END IF;
+  IF (SELECT due_date FROM work_items WHERE type = 'administration') <> '2026-11-02' THEN RAISE EXCEPTION 'main commitment changed'; END IF;
+END $$;
+DO $$ DECLARE affected integer;
+BEGIN
+  UPDATE follow_ups SET scheduled_for = '2026-11-05' WHERE status = 'done';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  IF affected <> 0 THEN RAISE EXCEPTION 'completed follow-up was rescheduled'; END IF;
+END $$;
+UPDATE work_items SET archived_at = now() WHERE id = current_setting('test.admin_id')::uuid;
+DO $$ BEGIN
+  BEGIN
+    INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
+    VALUES (current_setting('test.admin_id')::uuid, '2026-11-06', 'Cliente A', 'Intento archivado', auth.uid());
+    RAISE EXCEPTION 'archived matter accepted follow-up';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
+DO $$ DECLARE affected integer;
+BEGIN
+  IF (SELECT count(*) FROM follow_ups) <> 1 THEN RAISE EXCEPTION 'same org follow-up read blocked'; END IF;
+  UPDATE follow_ups SET scheduled_for = '2026-11-04';
+  GET DIAGNOSTICS affected = ROW_COUNT;
+  IF affected <> 0 THEN RAISE EXCEPTION 'non-owner changed follow-up'; END IF;
+END $$;
+SELECT set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
+DO $$ BEGIN
+  IF (SELECT count(*) FROM follow_ups) <> 0 THEN RAISE EXCEPTION 'cross-org follow-up read'; END IF;
+  BEGIN
+    INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
+    VALUES (current_setting('test.admin_id')::uuid, '2026-11-04', 'Ajeno', 'Intento', auth.uid());
+    RAISE EXCEPTION 'cross-org follow-up created';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+
 ROLLBACK;
