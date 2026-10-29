@@ -11,7 +11,7 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-05 | RNF-02, RNF-13 | hecho | Tres migraciones aplicadas al proyecto Supabase de desarrollo y registradas en historial |
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
 | BL-07 | RNF-08, RNF-16 | parcial | Navegación presente y prueba de render; falta revisión manual móvil |
-| BL-08 | RF-006, RF-007 | parcial | Descripción de prueba guardada en staging; falta comprobar edición/limpieza y sede con un catálogo autorizado |
+| BL-08 | RF-006, RF-007 | parcial | Descripción de prueba guardada y sedes configuradas; falta comprobar edición, limpieza y filtro por sede desde staging |
 | BL-09 | RF-008, RF-012 | hecho | Archivo/restauración y cierre/reapertura confirmados en navegador y Supabase |
 | BL-10 | RF-011, RNF-05 | hecho | Nota e historial conservados tras archivo/restauración, confirmados en navegador y Supabase |
 | BL-11 | RF-009 | hecho | Búsqueda y prioridad combinadas confirmadas en navegador; filtros combinados, incluida sede, probados en SQL local/remoto |
@@ -19,7 +19,7 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-13 | RF-016, RF-017 | hecho | Creación ADM, ficha, edición documental e historial confirmados en staging y Supabase |
 | BL-14 | RF-018 | hecho | Programación, reprogramación, resultado, historial y agenda confirmados en staging y Supabase |
 
-**Siguientes pendientes:** configurar una sede autorizada y completar BL-08 en staging; continuar Sprint 2 con Procura.
+**Siguientes pendientes:** completar la prueba autenticada de BL-08 con sede y descripción; continuar Sprint 2 con Procura.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -54,3 +54,5 @@ BL-13: `admin_details` guarda tipo de gestión, contraparte, referencias y estad
 BL-14: `follow_ups` guarda fecha, contacto, motivo y resultado vinculados a una gestión ADM. Solo el creador de una gestión activa puede programar, reprogramar o cerrar seguimientos; la fecha principal de compromiso no cambia. La ficha muestra los seguimientos y su historial de cambios. Seguimientos presenta los pendientes por páginas de 50, incluidos los vencidos, e Inicio muestra los cinco primeros. La migración `20261029000002_follow_ups.sql` se aplicó y registró en Supabase de desarrollo; RLS está activo, no hay lectura anónima ni DELETE ordinario, y la suite SQL remota con rollback pasó sin dejar filas de prueba. Pasaron 100 pruebas de Vitest, SQL local, typecheck, lint y build. Se publicó `4e78660` en `main`: staging sirvió la nueva hoja de estilos, `/login` devolvió 200 y las rutas privadas `/inicio`, `/seguimientos` y `/administracion` devolvieron 307 a `/login` sin sesión. El usuario confirmó desde la web que programó el seguimiento en ADM-000001, lo vio en Inicio y Seguimientos, lo reprogramó y registró el resultado; la ficha y el historial conservaron los cambios y el seguimiento realizado desapareció de la agenda. Una consulta remota confirmó fecha `2026-10-31`, estado `done`, resultado «Prueba completada», dos eventos pendientes (programación y reprogramación) y uno de cierre.
 
 Revisión de BL-08/BL-12 tras el mensaje «listas ambas pruebas»: la primera consulta mostró `GEN-000002` con una descripción de prueba, pero aún no estaban los registros de los tres grupos. Al repetirla tras la indicación del usuario, Supabase mostró exactamente una actividad abierta con fecha de hoy (`IT-000001`), una vencida (`GEN-000003`) y una en espera sin fecha (`GEN-000004`); el usuario indicó que las pruebas estaban listas. BL-12 queda cerrado junto con la prueba previa de próximos seguimientos. No hay sedes configuradas; BL-08 continúa parcial hasta disponer de una sede autorizada y comprobar la edición/limpieza de la descripción.
+
+El usuario identificó Maracaibo y El Tigre como sedes autorizadas de UPCO y delegó la elección de códigos. Se registraron `MAR` / Maracaibo y `TIG` / El Tigre en la organización de pruebas. Una consulta remota confirmó ambas filas y otra, ejecutada bajo el rol autenticado de la cuenta administradora, confirmó que las dos son visibles conforme a RLS. Falta la comprobación de asignación, filtro y limpieza desde la web; se solicitó al usuario con `GEN-000002`.
