@@ -7,7 +7,7 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-01 | RNF-14 | parcial | Repositorio, CI y comandos locales listos; staging responde, CI remoto sin verificar |
 | BL-02 | RNF-15 | bloqueado | Aprobación corporativa de nube y datos |
 | BL-03 | RF-001 | hecho | El usuario confirmó acceso al panel tras el login corporativo y la membresía activa |
-| BL-04 | RF-002, RF-003 | parcial | Guardas y casos negativos locales; validar claims y sesión reales |
+| BL-04 | RF-002, RF-003 | hecho | Acceso denegado sin membresía y permitido tras habilitarla; rutas privadas protegidas y cierre por inactividad confirmado en staging |
 | BL-05 | RNF-02, RNF-13 | hecho | Tres migraciones aplicadas al proyecto Supabase de desarrollo y registradas en historial |
 | BL-06 | RNF-03 | hecho | RLS y privilegios comprobados en PostgreSQL local y Supabase con transacción sintética reversible |
 | BL-07 | RNF-08, RNF-16 | parcial | Navegación presente y prueba de render; falta revisión manual móvil |
@@ -19,7 +19,7 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-13 | RF-016, RF-017 | hecho | Creación ADM, ficha, edición documental e historial confirmados en staging y Supabase |
 | BL-14 | RF-018 | hecho | Programación, reprogramación, resultado, historial y agenda confirmados en staging y Supabase |
 
-**Siguientes pendientes:** verificar BL-08 y los grupos diarios de BL-12 en staging; completar la prueba de 30 minutos de inactividad; configurar sedes autorizadas y continuar Sprint 2 con Procura.
+**Siguientes pendientes:** verificar BL-08 y los grupos diarios de BL-12 en staging; configurar sedes autorizadas y continuar Sprint 2 con Procura.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -47,7 +47,7 @@ El usuario confirmó que el logo, los colores y los títulos se ven correctos en
 
 Continuación de BL-08 y BL-12: se añadieron descripción opcional (hasta 5000 caracteres) y sede a los formularios, escritura explícita de NULL al limpiar ambos campos, sede visible en lista y ficha, y aviso cuando el catálogo está vacío. La FK compuesta existente mantiene la sede dentro de la organización. Inicio ahora consulta, cuenta y muestra hasta cinco registros de hoy, vencidos y en espera bajo RLS; los enlaces abren los filtros correspondientes. Hoy y vencidas excluyen estados completado/cancelado y el día usa la zona del perfil. Pasaron 47 pruebas, typecheck, ESLint, build y SQL local con rollback. Falta prueba autenticada y visual en staging; no hay sedes configuradas en el proyecto de pruebas.
 
-Límite de sesión del 29/10: se publicó el cierre tras 30 minutos sin actividad o 8 horas desde el ingreso. Pasaron 76 pruebas, typecheck, lint y build; staging sirvió el aviso de expiración y rechazó rutas privadas sin sesión. El usuario hará posteriormente la prueba autenticada de inactividad real.
+Límite de sesión del 29/10: se publicó el cierre tras 30 minutos sin actividad o 8 horas desde el ingreso. Pasaron 76 pruebas, typecheck, lint y build; staging sirvió el aviso de expiración y rechazó rutas privadas sin sesión. El usuario confirmó después que realizó la prueba autenticada de cierre por inactividad y funcionó.
 
 BL-13: `admin_details` guarda tipo de gestión, contraparte, referencias y estado documental en relación 1:1 con `work_items`. Una función SQL invocadora crea la gestión ADM y el detalle de forma atómica; un trigger diferido impide ADM sin ficha incluso mediante inserción directa. RLS restringe las escrituras al creador y la auditoría registra cambios de documentación que el historial ahora describe. Administración tiene formulario, lista y ficha propia. Las migraciones `20261029000000_admin_details.sql` y `20261029000001_enforce_admin_details.sql` se aplicaron y registraron en Supabase de desarrollo; RLS está activo, lectura anónima y borrado ordinario están denegados. Pasaron 88 pruebas, typecheck, lint, build y SQL local. Se publicó `de9d4b0` en `main`; staging cambió sus recursos y devolvió 307 a `/login` tanto para la lista como para una ficha sin sesión. El usuario mostró la ficha de «Prueba administrativa 29-10-2026» con código `ADM-000001` y «Documentación pendiente» sin enlace; luego confirmó que el cambio a «Recibida» se guardó y aparece en el historial. Una consulta remota confirmó el estado `received` y un evento `updated` que pasó de `pending` a `received`.
 
