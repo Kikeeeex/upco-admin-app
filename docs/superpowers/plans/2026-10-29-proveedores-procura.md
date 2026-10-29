@@ -54,4 +54,4 @@
 - [x] Escribir pruebas de render, formulario y paginación; observar falla.
 - [x] Implementar lista y formularios responsive.
 - [x] Correr Vitest, SQL local, typecheck, lint y build; revisar cambio completo.
-- [ ] Publicar en staging, comprobar ruta privada sin sesión y solicitar prueba autenticada.
+- [x] Publicar en staging, comprobar ruta privada sin sesión y solicitar prueba autenticada.
