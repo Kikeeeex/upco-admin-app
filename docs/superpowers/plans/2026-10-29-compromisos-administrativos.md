@@ -54,5 +54,5 @@
 
 - [x] Escribir pruebas de agenda y panel, ejecutar para ver falla.
 - [x] Implementar lista con estados vencido/hoy/próximo y bloque en Inicio.
-- [ ] Ejecutar Vitest, SQL local, typecheck, lint, build y comprobar staging sin sesión.
-- [ ] Documentar resultado, publicar y solicitar prueba autenticada al usuario.
+- [x] Ejecutar Vitest, SQL local, typecheck, lint, build y comprobar staging sin sesión.
+- [x] Documentar resultado, publicar y solicitar prueba autenticada al usuario.
