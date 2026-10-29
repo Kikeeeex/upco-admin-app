@@ -67,5 +67,6 @@
 
 - [x] Ejecutar Vitest completo, TypeScript, ESLint, build y SQL local.
 - [x] Aplicar migración remota al proyecto de desarrollo si el token autorizado funciona; verificar versión y RLS.
-- [ ] Publicar código en `main` solo después de la migración.
-- [ ] Comprobar staging anónimo y registrar la prueba autenticada pendiente.
+- [x] Publicar código en `main` (`de9d4b0`) después de ambas migraciones.
+- [x] Comprobar staging anónimo: lista y ficha redirigen 307 a `/login`.
+- [ ] Comprobar desde una cuenta autenticada la creación, el detalle y la edición documental.
