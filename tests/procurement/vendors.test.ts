@@ -7,21 +7,26 @@ const vendorId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
 describe("vendor validation", () => {
   it("requires a name and normalizes spaces", () => {
-    expect(parseVendorInput({ name: "  Acme   S.A.  ", contactName: " Ana ", email: "" }))
+    expect(parseVendorInput({ name: "  Acme   S.A.  ", associatedArea: "procurement", contactName: " Ana ", email: "" }))
       .toMatchObject({ name: "Acme S.A.", contactName: "Ana", email: undefined });
     expect(() => parseVendorInput({ name: "  " })).toThrow();
   });
   it("rejects invalid email and excessive notes", () => {
     expect(() => parseVendorInput({ name: "Acme", email: "sin-arroba" })).toThrow();
     expect(() => parseVendorInput({ name: "Acme", notes: "x".repeat(2001) })).toThrow();
-    expect(parseVendorUpdate({ id: vendorId, name: "Acme", phone: "" }).phone).toBeUndefined();
+    expect(parseVendorUpdate({ id: vendorId, name: "Acme", associatedArea: "procurement", phone: "" }).phone).toBeUndefined();
+  });
+  it("requires an existing associated area", () => {
+    expect(parseVendorInput({ name: "Acme", associatedArea: "procurement" }).associatedArea).toBe("procurement");
+    expect(() => parseVendorInput({ name: "Acme", associatedArea: "sales" })).toThrow();
+    expect(() => parseVendorInput({ name: "Acme" })).toThrow();
   });
 });
 
 const { accessContext, revalidatePath } = vi.hoisted(() => ({ accessContext: vi.fn(), revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("@/features/auth/access", () => ({ getAccessContext: accessContext }));
-import { createVendor, updateVendor } from "../../src/features/procurement/vendor-actions";
+import { createVendor, updateVendor, archiveVendor, restoreVendor } from "../../src/features/procurement/vendor-actions";
 
 const initial = { kind: "idle" as const, message: "" };
 function form(values: Record<string, string>) { const data = new FormData(); for (const [key, value] of Object.entries(values)) data.set(key, value); return data; }
@@ -31,32 +36,52 @@ describe("vendor actions", () => {
     let inserted: Record<string, unknown> = {};
     const query = { insert(value: Record<string, unknown>) { inserted = value; return this; }, select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
-    const result = await createVendor(initial, form({ name: " Acme  S.A. ", contactName: "Ana", email: "ana@example.com", phone: "", notes: "" }));
+    const result = await createVendor(initial, form({ name: " Acme  S.A. ", associatedArea: "it", contactName: "Ana", email: "ana@example.com", phone: "", notes: "" }));
     expect(result.kind).toBe("success");
-    expect(inserted).toMatchObject({ organization_id: orgId, created_by: userId, name: "Acme S.A.", phone: null, notes: null });
+    expect(inserted).toMatchObject({ organization_id: orgId, created_by: userId, name: "Acme S.A.", associated_area: "it", phone: null, notes: null });
     expect(revalidatePath).toHaveBeenCalledWith("/procura");
   });
 
   it("reports a duplicate name without creating another supplier", async () => {
     const query = { insert() { return this; }, select() { return this; }, async maybeSingle() { return { data: null, error: { code: "23505" } }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
-    expect((await createVendor(initial, form({ name: "ACME S.A." }))).message).toContain("Ya existe");
+    expect((await createVendor(initial, form({ name: "ACME S.A.", associatedArea: "procurement" }))).message).toContain("Ya existe");
   });
 
   it("edits only the requested owned vendor and clears optional fields", async () => {
     let changes: Record<string, unknown> = {};
     const filters: Array<[string, unknown]> = [];
-    const query = { update(value: Record<string, unknown>) { changes = value; return this; }, eq(field: string, value: unknown) { filters.push([field, value]); return this; }, select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
+    const query = { update(value: Record<string, unknown>) { changes = value; return this; }, eq(field: string, value: unknown) { filters.push([field, value]); return this; }, is(field: string, value: unknown) { filters.push([field, value]); return this; }, select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
-    const result = await updateVendor(initial, form({ id: vendorId, name: "Acme S.A.", contactName: "", email: "", phone: "", notes: "" }));
+    const result = await updateVendor(initial, form({ id: vendorId, name: "Acme S.A.", associatedArea: "general", contactName: "", email: "", phone: "", notes: "" }));
     expect(result.kind).toBe("success");
-    expect(changes).toEqual({ name: "Acme S.A.", contact_name: null, email: null, phone: null, notes: null });
+    expect(changes).toEqual({ name: "Acme S.A.", associated_area: "general", contact_name: null, email: null, phone: null, notes: null });
     expect(filters).toContainEqual(["organization_id", orgId]);
     expect(filters).toContainEqual(["created_by", userId]);
+    expect(filters).toContainEqual(["archived_at", null]);
+  });
+
+  it("archives and restores only the creator's vendor", async () => {
+    const changes: Array<Record<string, unknown>> = [];
+    const filters: Array<[string, unknown]> = [];
+    const query = { update(value: Record<string, unknown>) { changes.push(value); return this; },
+      eq(field: string, value: unknown) { filters.push([field, value]); return this; },
+      is(field: string, value: unknown) { filters.push([field, value]); return this; },
+      not(field: string, op: string, value: unknown) { filters.push([field, `${op}:${value}`]); return this; },
+      select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
+    accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
+    expect((await archiveVendor(initial, form({ id: vendorId }))).kind).toBe("success");
+    expect((await restoreVendor(initial, form({ id: vendorId }))).kind).toBe("success");
+    expect(changes[0].archived_at).toEqual(expect.any(String));
+    expect(changes[1]).toEqual({ archived_at: null });
+    expect(filters).toContainEqual(["organization_id", orgId]);
+    expect(filters).toContainEqual(["created_by", userId]);
+    expect(filters).toContainEqual(["archived_at", null]);
+    expect(filters).toContainEqual(["archived_at", "is:null"]);
   });
 
   it("rejects unauthenticated creation", async () => {
     accessContext.mockResolvedValue({ kind: "anonymous" });
-    expect((await createVendor(initial, form({ name: "Acme" }))).kind).toBe("error");
+    expect((await createVendor(initial, form({ name: "Acme", associatedArea: "procurement" }))).kind).toBe("error");
   });
 });

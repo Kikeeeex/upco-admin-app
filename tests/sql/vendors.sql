@@ -56,15 +56,50 @@ END $$;
 UPDATE public.vendors SET contact_name=NULL, email=NULL, notes='Actualizado' WHERE name='Acme S.A.';
 DO $$ BEGIN
   IF (SELECT count(*) FROM public.vendors WHERE name='Acme S.A.' AND contact_name IS NULL AND email IS NULL AND notes='Actualizado') <> 1 THEN RAISE EXCEPTION 'vendor update failed'; END IF;
+  IF (SELECT associated_area FROM public.vendors WHERE name='Acme S.A.') <> 'procurement' THEN RAISE EXCEPTION 'existing vendor area was not backfilled'; END IF;
+  BEGIN
+    UPDATE public.vendors SET associated_area='sales' WHERE name='Acme S.A.';
+    RAISE EXCEPTION 'invalid vendor area accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+END $$;
+UPDATE public.vendors SET associated_area='it' WHERE name='Acme S.A.';
+UPDATE public.vendors SET archived_at='2000-01-01' WHERE name='Acme S.A.';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM public.vendors WHERE name='Acme S.A.' AND associated_area='it'
+    AND archived_at > '2026-01-01') <> 1 THEN RAISE EXCEPTION 'vendor was not archived with server time'; END IF;
+  BEGIN
+    UPDATE public.vendors SET notes='Edición prohibida' WHERE name='Acme S.A.';
+    RAISE EXCEPTION 'archived vendor was editable';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    UPDATE public.vendors SET archived_at=NULL, notes='Edición prohibida' WHERE name='Acme S.A.';
+    RAISE EXCEPTION 'restore and edit was accepted';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO public.vendors(organization_id, name, created_by)
+    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ACME S.A.', auth.uid());
+    RAISE EXCEPTION 'archived duplicate name was accepted';
+  EXCEPTION WHEN unique_violation THEN NULL;
+  END;
 END $$;
 
 SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
 DO $$ DECLARE affected integer;
 BEGIN
   IF (SELECT count(*) FROM public.vendors) <> 1 THEN RAISE EXCEPTION 'same organization cannot read vendor'; END IF;
-  UPDATE public.vendors SET notes='Cambio ajeno';
+  UPDATE public.vendors SET archived_at=NULL;
   GET DIAGNOSTICS affected = ROW_COUNT;
-  IF affected <> 0 THEN RAISE EXCEPTION 'non-creator changed vendor'; END IF;
+  IF affected <> 0 THEN RAISE EXCEPTION 'non-creator restored vendor'; END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
+UPDATE public.vendors SET archived_at=NULL WHERE name='Acme S.A.';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM public.vendors WHERE name='Acme S.A.' AND archived_at IS NULL AND associated_area='it') <> 1
+    THEN RAISE EXCEPTION 'vendor restoration failed'; END IF;
 END $$;
 
 SELECT set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);

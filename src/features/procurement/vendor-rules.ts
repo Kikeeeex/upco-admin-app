@@ -6,6 +6,7 @@ const optionalEmail = z.string().trim().max(254).transform((value) => value || u
 
 const vendor = z.object({
   name: z.string().trim().min(1).max(200).transform((value) => value.replace(/\s+/g, " ")),
+  associatedArea: z.enum(["general", "administration", "procurement", "it"]),
   contactName: optionalText(200),
   email: optionalEmail,
   phone: optionalText(60),
@@ -19,5 +20,10 @@ export function parseVendorUpdate(value: unknown): VendorUpdate { return vendor.
 
 export type VendorRow = {
   id: string; name: string; contact_name: string | null; email: string | null; phone: string | null;
-  notes: string | null; created_by: string; created_at: string; updated_at: string;
+  notes: string | null; associated_area: VendorInput["associatedArea"];
+  archived_at: string | null; created_by: string; created_at: string; updated_at: string;
+};
+
+export const vendorAreaLabels: Record<VendorInput["associatedArea"], string> = {
+  procurement: "Procura", administration: "Administración", it: "TI", general: "General",
 };
