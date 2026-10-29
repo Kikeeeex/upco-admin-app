@@ -1,13 +1,19 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { authorizeIdentity, getAzureIdentity } from "./authorize";
 import { createSupabaseServerClient } from "./supabase-server";
+import { SESSION_ACTIVITY_COOKIE, SESSION_STARTED_COOKIE, sessionExpiryReason } from "./session-policy";
 
-export async function getAccessContext() {
+export async function getAccessContext(options: { allowFreshSession?: boolean } = {}) {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return { kind: "unconfigured" as const };
 
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return { kind: "anonymous" as const };
+  const cookieStore = await cookies();
+  const marker = cookieStore.get(SESSION_ACTIVITY_COOKIE)?.value;
+  const sessionStartedAt = cookieStore.get(SESSION_STARTED_COOKIE)?.value;
+  if (!options.allowFreshSession && sessionExpiryReason(sessionStartedAt, marker, Date.now())) return { kind: "expired" as const };
 
   const identity = getAzureIdentity(user);
   if (!identity) return { kind: "denied" as const };
@@ -34,5 +40,5 @@ export async function getAccessContext() {
   }));
 
   if (!membership) return { kind: "denied" as const };
-  return { kind: "allowed" as const, supabase, user, organizationId: membership.organization_id };
+  return { kind: "allowed" as const, supabase, user, organizationId: membership.organization_id, sessionStartedAt: sessionStartedAt ?? "" };
 }

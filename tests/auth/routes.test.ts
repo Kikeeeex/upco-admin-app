@@ -13,4 +13,8 @@ describe("isProtectedPath", () => {
     expect(isProtectedPath("/auth/callback")).toBe(false);
     expect(isProtectedPath("/mi-trabajo-fake")).toBe(false);
   });
+
+  it("protects activity refresh", () => {
+    expect(isProtectedPath("/auth/activity")).toBe(true);
+  });
 });
