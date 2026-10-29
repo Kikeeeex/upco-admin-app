@@ -1,6 +1,6 @@
 # Progreso verificable
 
-Estado al 28/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica código presente con verificación o dependencia pendiente.
+Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica código presente con verificación o dependencia pendiente.
 
 | Historia | Traza | Estado | Dependencia o criterio pendiente |
 |---|---|---|---|
@@ -16,8 +16,9 @@ Estado al 28/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-10 | RF-011, RNF-05 | hecho | Nota e historial conservados tras archivo/restauración, confirmados en navegador y Supabase |
 | BL-11 | RF-009 | hecho | Búsqueda y prioridad combinadas confirmadas en navegador; filtros combinados, incluida sede, probados en SQL local/remoto |
 | BL-12 | RF-010 | parcial | Panel de hoy, vencidas y en espera implementado; falta comprobación autenticada y próximos seguimientos cuando exista BL-23 |
+| BL-13 | RF-016, RF-017 | parcial | Gestiones y documentación implementadas, migración aplicada; falta prueba autenticada en staging |
 
-**Siguientes pendientes:** verificar BL-08 y BL-12 en staging, configurar sedes autorizadas para la prueba de sede y continuar Sprint 2 con Administración y Procura.
+**Siguientes pendientes:** verificar BL-08, BL-12 y BL-13 en staging; completar la prueba de 30 minutos de inactividad; configurar sedes autorizadas y continuar Sprint 2 con compromisos administrativos y Procura.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -44,3 +45,7 @@ Personalización visual: el manual de UPCO y los tres PNG originales se incorpor
 El usuario confirmó que el logo, los colores y los títulos se ven correctos en acceso y panel. La valoración visual queda cerrada.
 
 Continuación de BL-08 y BL-12: se añadieron descripción opcional (hasta 5000 caracteres) y sede a los formularios, escritura explícita de NULL al limpiar ambos campos, sede visible en lista y ficha, y aviso cuando el catálogo está vacío. La FK compuesta existente mantiene la sede dentro de la organización. Inicio ahora consulta, cuenta y muestra hasta cinco registros de hoy, vencidos y en espera bajo RLS; los enlaces abren los filtros correspondientes. Hoy y vencidas excluyen estados completado/cancelado y el día usa la zona del perfil. Pasaron 47 pruebas, typecheck, ESLint, build y SQL local con rollback. Falta prueba autenticada y visual en staging; no hay sedes configuradas en el proyecto de pruebas.
+
+Límite de sesión del 29/10: se publicó el cierre tras 30 minutos sin actividad o 8 horas desde el ingreso. Pasaron 76 pruebas, typecheck, lint y build; staging sirvió el aviso de expiración y rechazó rutas privadas sin sesión. El usuario hará posteriormente la prueba autenticada de inactividad real.
+
+BL-13: `admin_details` guarda tipo de gestión, contraparte, referencias y estado documental en relación 1:1 con `work_items`. Una función SQL invocadora crea la gestión ADM y el detalle de forma atómica; un trigger diferido impide ADM sin ficha incluso mediante inserción directa. RLS restringe las escrituras al creador y la auditoría registra cambios de documentación que el historial ahora describe. Administración tiene formulario, lista y ficha propia. Las migraciones `20261029000000_admin_details.sql` y `20261029000001_enforce_admin_details.sql` se aplicaron y registraron en Supabase de desarrollo; RLS está activo, lectura anónima y borrado ordinario están denegados. Las pruebas locales, typecheck, lint, build y SQL pasaron; falta la verificación autenticada de la interfaz en staging.

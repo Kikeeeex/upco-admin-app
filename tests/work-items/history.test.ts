@@ -19,6 +19,14 @@ describe("describeWorkItemEvent", () => {
       .toBe("Estado: En progreso · Prioridad: Alta");
   });
 
+  it("describes administrative document changes in the activity history", () => {
+    expect(describeWorkItemEvent({
+      action: "updated",
+      before_values: { document_status: "pending", document_reference: null, document_url: null },
+      after_values: { document_status: "received", document_reference: "DOC-1", document_url: "https://example.com/doc" },
+    })).toBe("Documentación: Recibida · Referencia documental: DOC-1 · Enlace documental actualizado");
+  });
+
   it("shows a safe fallback for an unknown event", () => {
     expect(describeWorkItemEvent({ action: "created", before_values: null, after_values: {} })).toBe("Actividad creada");
     expect(describeWorkItemEvent({ action: "note", before_values: null, after_values: {} })).toBe("Nota sin contenido");

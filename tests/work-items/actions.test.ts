@@ -19,7 +19,7 @@ describe("createWorkItem", () => {
     });
     const form = new FormData();
     form.set("title", "Preparar informe");
-    form.set("area", "administration");
+    form.set("area", "general");
     form.set("priority", "medium");
     form.set("description", "  Revisar contrato  ");
     form.set("siteId", siteId);
@@ -43,6 +43,19 @@ describe("createWorkItem", () => {
 
     expect((await createWorkItem({ kind: "idle", message: "" }, form)).kind).toBe("success");
     expect(saved).toMatchObject({ description: null, site_id: null });
+  });
+
+  it("sends administrative matters to their dedicated form", async () => {
+    const insert = vi.fn();
+    accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => ({ insert }) } });
+    const form = new FormData();
+    form.set("title", "Preparar informe");
+    form.set("area", "administration");
+    form.set("priority", "medium");
+    const result = await createWorkItem({ kind: "idle", message: "" }, form);
+    expect(result.kind).toBe("error");
+    expect(result.message).toContain("Administración");
+    expect(insert).not.toHaveBeenCalled();
   });
 });
 

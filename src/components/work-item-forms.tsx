@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { addWorkItemNote, archiveWorkItem, createWorkItem, restoreWorkItem, updateWorkItem, type ActionState } from "@/features/work-items/actions";
 
 const initial: ActionState = { kind: "idle", message: "" };
@@ -30,7 +31,7 @@ export function CreateWorkItemForm({ sites }: { sites: SiteOption[] }) {
   const [state, action, pending] = useActionState(createWorkItem, initial);
   return <section className="work-card"><h2>Nueva actividad</h2><form action={action} className="work-form">
     <div className="field"><label htmlFor="new-title">Título</label><input id="new-title" name="title" required maxLength={200} placeholder="¿Qué necesitas hacer?" /></div>
-    <div className="field"><label htmlFor="new-area">Área</label><select id="new-area" name="area" defaultValue="general"><option value="general">General</option><option value="administration">Administración</option><option value="procurement">Procura</option><option value="it">TI</option></select></div>
+    <div className="field"><label htmlFor="new-area">Área</label><select id="new-area" name="area" defaultValue="general"><option value="general">General</option><option value="procurement">Procura</option><option value="it">TI</option></select><small>Las gestiones se crean desde <Link href="/administracion">Administración</Link>.</small></div>
     <div className="field"><label htmlFor="new-priority">Prioridad</label><select id="new-priority" name="priority" defaultValue="medium">{priorities.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
     <div className="field"><label htmlFor="new-due">Fecha límite</label><input id="new-due" name="dueDate" type="date" /></div>
     <div className="field description-field"><label htmlFor="new-description">Descripción (opcional)</label><textarea id="new-description" name="description" maxLength={5000} rows={3} placeholder="Añade contexto para esta actividad" /></div>
@@ -39,7 +40,7 @@ export function CreateWorkItemForm({ sites }: { sites: SiteOption[] }) {
   </form>{state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}</section>;
 }
 
-export function EditWorkItemForm({ item, sites }: { item: ListedWorkItem; sites: SiteOption[] }) {
+export function EditWorkItemForm({ item, sites, dueLabel = "Fecha límite" }: { item: ListedWorkItem; sites: SiteOption[]; dueLabel?: string }) {
   const [state, action, pending] = useActionState(updateWorkItem, initial);
   return <form action={action} className="work-form edit-form"><input type="hidden" name="id" value={item.id} />
     <div className="field"><label htmlFor={`title-${item.id}`}>Título</label><input id={`title-${item.id}`} name="title" defaultValue={item.title} required maxLength={200} /></div>
@@ -47,7 +48,7 @@ export function EditWorkItemForm({ item, sites }: { item: ListedWorkItem; sites:
     <SiteField id={`site-${item.id}`} sites={sites} value={item.site_id} />
     <div className="field"><label htmlFor={`priority-${item.id}`}>Prioridad</label><select id={`priority-${item.id}`} name="priority" defaultValue={item.priority}>{priorities.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
     <div className="field"><label htmlFor={`status-${item.id}`}>Estado</label><select id={`status-${item.id}`} name="status" defaultValue={item.status}>{statuses.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
-    <div className="field"><label htmlFor={`due-${item.id}`}>Fecha límite</label><input id={`due-${item.id}`} name="dueDate" type="date" defaultValue={item.due_date ?? ""} /></div>
+    <div className="field"><label htmlFor={`due-${item.id}`}>{dueLabel}</label><input id={`due-${item.id}`} name="dueDate" type="date" defaultValue={item.due_date ?? ""} /></div>
     <button className="primary-button" type="submit" disabled={pending}>{pending ? "Guardando…" : "Guardar cambios"}</button>
     {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}
   </form>;

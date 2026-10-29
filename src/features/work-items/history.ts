@@ -11,6 +11,9 @@ const statuses: Record<string, string> = {
 const priorities: Record<string, string> = {
   low: "Baja", medium: "Media", high: "Alta", critical: "Crítica",
 };
+const documentStatuses: Record<string, string> = {
+  pending: "Pendiente", received: "Recibida", reviewed: "Revisada",
+};
 
 export function describeWorkItemEvent(event: WorkItemHistoryEvent): string {
   const after = event.after_values;
@@ -33,6 +36,24 @@ export function describeWorkItemEvent(event: WorkItemHistoryEvent): string {
   }
   if (before.due_date !== after.due_date) {
     changes.push(`Fecha límite: ${typeof after.due_date === "string" ? after.due_date : "sin fecha"}`);
+  }
+  if (before.procedure_type !== after.procedure_type && typeof after.procedure_type === "string") {
+    changes.push(`Tipo de gestión: ${after.procedure_type}`);
+  }
+  if (before.counterpart_name !== after.counterpart_name && typeof after.counterpart_name === "string") {
+    changes.push(`Contraparte: ${after.counterpart_name}`);
+  }
+  if (before.reference !== after.reference && "reference" in after) {
+    changes.push(`Referencia de gestión: ${typeof after.reference === "string" ? after.reference : "sin referencia"}`);
+  }
+  if (before.document_status !== after.document_status && typeof after.document_status === "string") {
+    changes.push(`Documentación: ${documentStatuses[after.document_status] ?? after.document_status}`);
+  }
+  if (before.document_reference !== after.document_reference && "document_reference" in after) {
+    changes.push(`Referencia documental: ${typeof after.document_reference === "string" ? after.document_reference : "sin referencia"}`);
+  }
+  if (before.document_url !== after.document_url && "document_url" in after) {
+    changes.push(typeof after.document_url === "string" ? "Enlace documental actualizado" : "Enlace documental retirado");
   }
   return changes.join(" · ") || "Actividad actualizada";
 }

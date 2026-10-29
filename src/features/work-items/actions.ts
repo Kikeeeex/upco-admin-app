@@ -24,6 +24,7 @@ export async function createWorkItem(_previous: ActionState, form: FormData): Pr
   let input;
   try { input = parseWorkItemInput(fields(form)); }
   catch { return { kind: "error", message: "Revisa el título, el área, la prioridad, la descripción, la sede y la fecha." }; }
+  if (input.area === "administration") return { kind: "error", message: "Crea las gestiones desde Administración para registrar sus datos documentales." };
 
   const { error } = await access.supabase.from("work_items").insert({
     organization_id: access.organizationId,
@@ -66,6 +67,9 @@ export async function updateWorkItem(_previous: ActionState, form: FormData): Pr
 
   revalidatePath("/mi-trabajo");
   revalidatePath(`/mi-trabajo/${input.id}`);
+  revalidatePath("/administracion");
+  revalidatePath(`/administracion/${input.id}`);
+  revalidatePath("/inicio");
   return { kind: "success", message: "Actividad actualizada." };
 }
 
@@ -88,6 +92,8 @@ async function changeArchiveState(form: FormData, archive: boolean): Promise<Act
 
   revalidatePath("/mi-trabajo");
   revalidatePath(`/mi-trabajo/${id}`);
+  revalidatePath("/administracion");
+  revalidatePath(`/administracion/${id}`);
   return { kind: "success", message: archive ? "Actividad archivada." : "Actividad restaurada." };
 }
 
