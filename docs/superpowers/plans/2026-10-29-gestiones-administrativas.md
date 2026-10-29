@@ -69,4 +69,5 @@
 - [x] Aplicar migración remota al proyecto de desarrollo si el token autorizado funciona; verificar versión y RLS.
 - [x] Publicar código en `main` (`de9d4b0`) después de ambas migraciones.
 - [x] Comprobar staging anónimo: lista y ficha redirigen 307 a `/login`.
-- [ ] Comprobar desde una cuenta autenticada la creación, el detalle y la edición documental.
+- [x] Comprobar desde una cuenta autenticada la creación ADM y la ficha con documentación pendiente.
+- [ ] Comprobar desde una cuenta autenticada la edición documental y su evento de historial.
