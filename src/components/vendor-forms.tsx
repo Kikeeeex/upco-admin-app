@@ -10,7 +10,8 @@ function VendorFields({ vendor }: { vendor?: VendorRow }) {
   const prefix = vendor ? `vendor-${vendor.id}` : "new-vendor";
   return <>
     <div className="field"><label htmlFor={`${prefix}-name`}>Nombre del proveedor</label><input id={`${prefix}-name`} name="name" required maxLength={200} defaultValue={vendor?.name} /></div>
-    <div className="field"><label htmlFor={`${prefix}-area`}>Área asociada</label><select id={`${prefix}-area`} name="associatedArea" required defaultValue={vendor?.associated_area ?? "procurement"}>
+    <div className="field"><label htmlFor={`${prefix}-area`}>Área asociada</label><select id={`${prefix}-area`} name="associatedArea" required defaultValue={vendor?.associated_area ?? ""}>
+      <option value="" disabled>Selecciona un área</option>
       {Object.entries(vendorAreaLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
     </select></div>
     <div className="field"><label htmlFor={`${prefix}-contact`}>Contacto</label><input id={`${prefix}-contact`} name="contactName" maxLength={200} defaultValue={vendor?.contact_name ?? ""} /></div>

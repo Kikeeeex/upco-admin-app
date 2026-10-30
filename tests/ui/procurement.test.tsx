@@ -13,7 +13,7 @@ import ProcurementPage from "../../src/app/(dashboard)/procura/page";
 const orgId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const userId = "11111111-1111-4111-8111-111111111111";
 const row = { id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", name: "Acme S.A.", contact_name: "Ana",
-  email: "ana@example.com", phone: null, notes: "Entrega local", associated_area: "procurement", archived_at: null, created_by: userId,
+  email: "ana@example.com", phone: null, notes: "Entrega local", associated_area: null, archived_at: null, created_by: userId,
   created_at: "2026-10-29T12:00:00Z", updated_at: "2026-10-29T12:00:00Z" };
 
 describe("Procura vendor catalog", () => {
@@ -31,7 +31,9 @@ describe("Procura vendor catalog", () => {
     expect(html).toContain("Editar proveedor");
     expect(html).toContain("Área asociada");
     expect(html).toContain("Eliminar proveedor");
-    expect(html).toContain("Procura");
+    expect(html).toContain("Sin asignar");
+    for (const [code, label] of [["siaho", "SIAHO"], ["products_services", "Productos y Servicios"], ["operations", "Operaciones"], ["administration", "Administración"], ["finance", "Finanzas"], ["it", "TI"]])
+      expect(html).toContain(`<option value="${code}">${label}</option>`);
   });
 
   it("paginates after 50 vendors without hiding the next page", async () => {

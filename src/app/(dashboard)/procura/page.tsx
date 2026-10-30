@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getAccessContext } from "@/features/auth/access";
 import { parsePageNumber, formatWorkItemDateTime } from "@/features/work-items/presentation";
 import { CreateVendorForm, EditVendorForm, VendorArchiveForm } from "@/components/vendor-forms";
-import { vendorAreaLabels, type VendorRow } from "@/features/procurement/vendor-rules";
+import { vendorAreaLabel, type VendorRow } from "@/features/procurement/vendor-rules";
 
 const PAGE_SIZE = 50;
 
@@ -36,7 +36,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
         <p className="work-empty">{page > 1 ? "No hay más proveedores en esta página." : "Aún no hay proveedores registrados."}</p> :
         <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Contacto</th><th>Correo</th><th>Teléfono</th><th>Observaciones</th><th>Creado</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
           {rows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
-            <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabels[vendor.associated_area]}</td><td>{vendor.contact_name ?? "—"}</td><td>{vendor.email ?? "—"}</td><td>{vendor.phone ?? "—"}</td><td className="vendor-notes">{vendor.notes ?? "—"}</td>
+            <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabel(vendor.associated_area)}</td><td>{vendor.contact_name ?? "—"}</td><td>{vendor.email ?? "—"}</td><td>{vendor.phone ?? "—"}</td><td className="vendor-notes">{vendor.notes ?? "—"}</td>
             <td>{formatWorkItemDateTime(vendor.created_at, timezone)}</td><td>{formatWorkItemDateTime(vendor.updated_at, timezone)}</td>
             <td className="work-actions">{vendor.created_by === access.user.id && <>
               <details><summary>Editar proveedor</summary><EditVendorForm vendor={vendor} /></details>
@@ -54,7 +54,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
         <p className="work-empty">{archivePage > 1 ? "No hay más proveedores eliminados en esta página." : "No hay proveedores eliminados."}</p> :
         <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Eliminado</th><th>Acción</th></tr></thead><tbody>
           {archivedRows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
-            <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabels[vendor.associated_area]}</td>
+            <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabel(vendor.associated_area)}</td>
             <td>{vendor.archived_at ? formatWorkItemDateTime(vendor.archived_at, timezone) : "—"}</td>
             <td>{vendor.created_by === access.user.id && <VendorArchiveForm vendor={vendor} restoring />}</td>
           </tr>)}
