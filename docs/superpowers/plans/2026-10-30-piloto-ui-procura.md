@@ -54,4 +54,4 @@
 - [x] Ejecutar Vitest, typecheck, ESLint, build y SQL si el entorno lo permite.
 - [x] Revisar visualmente escritorio/móvil, foco y reducción de movimiento.
 - [x] Registrar resultados, diferencias y propuestas pendientes en la auditoría.
-- [ ] Revisar diff, registrar commit y publicar staging según el flujo vigente.
+- [x] Revisar diff, registrar commit y publicar staging según el flujo vigente.
