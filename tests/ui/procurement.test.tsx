@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const { accessContext } = vi.hoisted(() => ({ accessContext: vi.fn() }));
 vi.mock("@/features/auth/access", () => ({ getAccessContext: accessContext }));
-vi.mock("@/features/procurement/vendor-actions", () => ({ createVendor: async () => ({}), updateVendor: async () => ({}), archiveVendor: async () => ({}), restoreVendor: async () => ({}) }));
+vi.mock("@/features/procurement/vendor-actions", () => ({ createVendor: async () => ({}), updateVendor: async () => ({}), archiveVendor: async () => ({}), restoreVendor: async () => ({}), deleteVendorPermanently: async () => ({}) }));
 vi.mock("@/features/procurement/vendor-rules", async () => import("../../src/features/procurement/vendor-rules"));
 vi.mock("@/features/work-items/presentation", async () => import("../../src/features/work-items/presentation"));
 vi.mock("@/components/pending-page", async () => import("../../src/components/pending-page"));
@@ -20,7 +20,7 @@ describe("Procura vendor catalog", () => {
   it("renders creation and editable vendors scoped to the authorized organization", async () => {
     const filters: Array<[string, unknown]> = [];
     const vendors = { select() { return this; }, eq(key: string, value: unknown) { filters.push([key, value]); return this; },
-      is() { return this; }, not() { return this; }, order() { return this; }, async range() { return { data: [row], error: null }; } };
+      is() { return this; }, not() { return this; }, gte() { return this; }, order() { return this; }, async range() { return { data: [row], error: null }; } };
     const profile = { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { timezone: "America/Caracas" }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: (table: string) => table === "vendors" ? vendors : profile } });
     const html = renderToStaticMarkup(await ProcurementPage({ searchParams: Promise.resolve({}) }));
@@ -38,7 +38,7 @@ describe("Procura vendor catalog", () => {
 
   it("paginates after 50 vendors without hiding the next page", async () => {
     const ranges: Array<[number, number]> = [];
-    const vendors = { select() { return this; }, eq() { return this; }, is() { return this; }, not() { return this; }, order() { return this; },
+    const vendors = { select() { return this; }, eq() { return this; }, is() { return this; }, not() { return this; }, gte() { return this; }, order() { return this; },
       async range(start: number, end: number) { ranges.push([start, end]); return { data: Array.from({ length: 51 }, (_, i) => ({ ...row, id: String(i), name: `Proveedor ${i}` })), error: null }; } };
     const profile = { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { timezone: "America/Caracas" }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: (table: string) => table === "vendors" ? vendors : profile } });
@@ -53,11 +53,13 @@ describe("Procura vendor catalog", () => {
   it("lists archived vendors with a restore action", async () => {
     const archived = { ...row, archived_at: "2026-10-29T13:00:00Z" };
     const vendors = { select() { return this; }, eq() { return this; }, is() { return this; },
-      not() { return this; }, order() { return this; }, async range() { return { data: [archived], error: null }; } };
+      not() { return this; }, gte() { return this; }, order() { return this; }, async range() { return { data: [archived], error: null }; } };
     const profile = { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { timezone: "America/Caracas" }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: (table: string) => table === "vendors" ? vendors : profile } });
     const html = renderToStaticMarkup(await ProcurementPage({ searchParams: Promise.resolve({}) }));
     expect(html).toContain("Proveedores eliminados");
     expect(html).toContain("Restaurar proveedor");
+    expect(html).toContain("Eliminar permanentemente");
+    expect(html).toContain("Se eliminará permanentemente a partir del");
   });
 });

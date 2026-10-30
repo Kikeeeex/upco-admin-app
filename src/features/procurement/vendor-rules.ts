@@ -32,3 +32,11 @@ export const vendorAreaLabels: Record<VendorInput["associatedArea"], string> = {
 export function vendorAreaLabel(area: VendorRow["associated_area"]): string {
   return area ? vendorAreaLabels[area] : "Sin asignar";
 }
+
+const RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+export function vendorArchiveCutoff(now = new Date()): string {
+  return new Date(now.getTime() - RETENTION_MS).toISOString();
+}
+export function vendorArchiveExpiry(archivedAt: string): string {
+  return new Date(new Date(archivedAt).getTime() + RETENTION_MS).toISOString();
+}

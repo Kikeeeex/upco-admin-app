@@ -18,7 +18,8 @@ INSERT INTO public.vendors(organization_id, name, associated_area, contact_name,
 VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Acme S.A.', 'products_services', 'Ana', 'ana@example.com', NULL, NULL, auth.uid());
 DO $$ DECLARE invalid_email text; BEGIN
   IF (SELECT count(*) FROM public.vendors WHERE name='Acme S.A.') <> 1 THEN RAISE EXCEPTION 'vendor not created'; END IF;
-  IF has_table_privilege('anon','public.vendors','SELECT') OR has_table_privilege('authenticated','public.vendors','DELETE')
+  IF has_table_privilege('anon','public.vendors','SELECT') OR has_table_privilege('anon','public.vendors','DELETE')
+    OR NOT has_table_privilege('authenticated','public.vendors','DELETE')
     OR has_column_privilege('authenticated','public.vendors','organization_id','UPDATE') THEN RAISE EXCEPTION 'vendor grants too broad'; END IF;
   BEGIN
     INSERT INTO public.vendors(organization_id, name, associated_area, created_by)

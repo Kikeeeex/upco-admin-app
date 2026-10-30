@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { createVendor, updateVendor, archiveVendor, restoreVendor, type VendorActionState } from "@/features/procurement/vendor-actions";
+import { createVendor, updateVendor, archiveVendor, restoreVendor, deleteVendorPermanently, type VendorActionState } from "@/features/procurement/vendor-actions";
 import { vendorAreaLabels, type VendorRow } from "@/features/procurement/vendor-rules";
 
 const initial: VendorActionState = { kind: "idle", message: "" };
@@ -48,4 +48,17 @@ export function VendorArchiveForm({ vendor, restoring = false }: { vendor: Vendo
     </button>
     {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}
   </form>;
+}
+
+export function VendorPermanentDeleteForm({ vendor }: { vendor: VendorRow }) {
+  const [state, action, pending] = useActionState(deleteVendorPermanently, initial);
+  return <details className="vendor-delete"><summary>Eliminar permanentemente</summary>
+    <p>Esta acción no se puede deshacer. Se perderán todos los datos de este proveedor.</p>
+    <form action={action} className="vendor-archive-form"><input type="hidden" name="id" value={vendor.id} />
+      <button type="submit" className="danger-button" disabled={pending}>
+        {pending ? "Eliminando…" : "Confirmar eliminación permanente"}
+      </button>
+      {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message}</p>}
+    </form>
+  </details>;
 }

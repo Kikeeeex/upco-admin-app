@@ -1,11 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
-import { parseVendorInput, parseVendorUpdate } from "../../src/features/procurement/vendor-rules";
+import { parseVendorInput, parseVendorUpdate, vendorArchiveCutoff, vendorArchiveExpiry } from "../../src/features/procurement/vendor-rules";
 
 const orgId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const userId = "11111111-1111-4111-8111-111111111111";
 const vendorId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
 describe("vendor validation", () => {
+  it("uses an exact 30-day retention window", () => {
+    expect(vendorArchiveCutoff(new Date("2026-10-30T12:00:00Z"))).toBe("2026-09-30T12:00:00.000Z");
+    expect(vendorArchiveExpiry("2026-10-01T12:00:00Z")).toBe("2026-10-31T12:00:00.000Z");
+  });
   it("requires a name and normalizes spaces", () => {
     expect(parseVendorInput({ name: "  Acme   S.A.  ", associatedArea: "products_services", contactName: " Ana ", email: "" }))
       .toMatchObject({ name: "Acme S.A.", contactName: "Ana", email: undefined });
@@ -28,7 +32,7 @@ describe("vendor validation", () => {
 const { accessContext, revalidatePath } = vi.hoisted(() => ({ accessContext: vi.fn(), revalidatePath: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("@/features/auth/access", () => ({ getAccessContext: accessContext }));
-import { createVendor, updateVendor, archiveVendor, restoreVendor } from "../../src/features/procurement/vendor-actions";
+import { createVendor, updateVendor, archiveVendor, restoreVendor, deleteVendorPermanently } from "../../src/features/procurement/vendor-actions";
 
 const initial = { kind: "idle" as const, message: "" };
 function form(values: Record<string, string>) { const data = new FormData(); for (const [key, value] of Object.entries(values)) data.set(key, value); return data; }
@@ -69,6 +73,7 @@ describe("vendor actions", () => {
     const query = { update(value: Record<string, unknown>) { changes.push(value); return this; },
       eq(field: string, value: unknown) { filters.push([field, value]); return this; },
       is(field: string, value: unknown) { filters.push([field, value]); return this; },
+      gte(field: string, value: unknown) { filters.push([field, value]); return this; },
       not(field: string, op: string, value: unknown) { filters.push([field, `${op}:${value}`]); return this; },
       select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
@@ -80,6 +85,22 @@ describe("vendor actions", () => {
     expect(filters).toContainEqual(["created_by", userId]);
     expect(filters).toContainEqual(["archived_at", null]);
     expect(filters).toContainEqual(["archived_at", "is:null"]);
+  });
+
+  it("permanently deletes only an owned archived vendor", async () => {
+    const filters: Array<[string, unknown]> = [];
+    const query = { delete() { return this; }, eq(field: string, value: unknown) { filters.push([field, value]); return this; },
+      gte(field: string, value: unknown) { filters.push([field, value]); return this; },
+      not(field: string, op: string, value: unknown) { filters.push([field, `${op}:${value}`]); return this; },
+      select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
+    accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
+    expect((await deleteVendorPermanently(initial, form({ id: vendorId }))).kind).toBe("success");
+    expect(filters).toContainEqual(["id", vendorId]);
+    expect(filters).toContainEqual(["organization_id", orgId]);
+    expect(filters).toContainEqual(["created_by", userId]);
+    expect(filters).toContainEqual(["archived_at", "is:null"]);
+    expect(filters).toContainEqual(["archived_at", expect.stringMatching(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/)]);
+    expect(revalidatePath).toHaveBeenCalledWith("/procura");
   });
 
   it("rejects unauthenticated creation", async () => {

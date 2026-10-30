@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAccessContext } from "@/features/auth/access";
-import { parseVendorInput, parseVendorUpdate } from "./vendor-rules";
+import { parseVendorInput, parseVendorUpdate, vendorArchiveCutoff } from "./vendor-rules";
 import { z } from "zod";
 
 export type VendorActionState = { kind: "idle" | "success" | "error"; message: string };
@@ -58,7 +58,7 @@ async function changeArchiveState(form: FormData, restoring: boolean): Promise<V
   if (!parsed.success) return { kind: "error", message: "Proveedor no válido." };
   let query = access.supabase.from("vendors").update({ archived_at: restoring ? null : new Date().toISOString() })
     .eq("id", parsed.data).eq("organization_id", access.organizationId).eq("created_by", access.user.id);
-  query = restoring ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+  query = restoring ? query.not("archived_at", "is", null).gte("archived_at", vendorArchiveCutoff()) : query.is("archived_at", null);
   const { data, error } = await query.select("id").maybeSingle();
   if (error || !data) return { kind: "error", message: restoring ? "No se pudo restaurar el proveedor." : "No se pudo eliminar el proveedor." };
   revalidatePath("/procura");
@@ -71,4 +71,19 @@ export async function archiveVendor(_previous: VendorActionState, form: FormData
 
 export async function restoreVendor(_previous: VendorActionState, form: FormData): Promise<VendorActionState> {
   return changeArchiveState(form, true);
+}
+
+export async function deleteVendorPermanently(_previous: VendorActionState, form: FormData): Promise<VendorActionState> {
+  const access = await getAccessContext();
+  if (access.kind !== "allowed") return { kind: "error", message: "Tu sesión no está autorizada." };
+  const parsed = z.uuid().safeParse(form.get("id"));
+  if (!parsed.success) return { kind: "error", message: "Proveedor no válido." };
+  const { data, error } = await access.supabase.from("vendors").delete()
+    .eq("id", parsed.data).eq("organization_id", access.organizationId).eq("created_by", access.user.id)
+    .not("archived_at", "is", null).gte("archived_at", vendorArchiveCutoff())
+    .select("id").maybeSingle();
+  if (error?.code === "23503") return { kind: "error", message: "El proveedor tiene registros asociados y no se puede eliminar permanentemente." };
+  if (error || !data) return { kind: "error", message: "No se pudo eliminar permanentemente el proveedor." };
+  revalidatePath("/procura");
+  return { kind: "success", message: "Proveedor eliminado permanentemente." };
 }

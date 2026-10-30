@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getAccessContext } from "@/features/auth/access";
 import { parsePageNumber, formatWorkItemDateTime } from "@/features/work-items/presentation";
-import { CreateVendorForm, EditVendorForm, VendorArchiveForm } from "@/components/vendor-forms";
-import { vendorAreaLabel, type VendorRow } from "@/features/procurement/vendor-rules";
+import { CreateVendorForm, EditVendorForm, VendorArchiveForm, VendorPermanentDeleteForm } from "@/components/vendor-forms";
+import { vendorAreaLabel, vendorArchiveCutoff, vendorArchiveExpiry, type VendorRow } from "@/features/procurement/vendor-rules";
 
 const PAGE_SIZE = 50;
 
@@ -19,7 +19,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     access.supabase.from("vendors")
       .select("id, name, associated_area, contact_name, email, phone, notes, archived_at, created_by, created_at, updated_at")
-      .eq("organization_id", access.organizationId).not("archived_at", "is", null)
+      .eq("organization_id", access.organizationId).not("archived_at", "is", null).gte("archived_at", vendorArchiveCutoff())
       .order("archived_at", { ascending: false }).order("id")
       .range((archivePage - 1) * PAGE_SIZE, archivePage * PAGE_SIZE),
     access.supabase.from("user_profiles").select("timezone").eq("user_id", access.user.id).maybeSingle(),
@@ -40,7 +40,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
             <td>{formatWorkItemDateTime(vendor.created_at, timezone)}</td><td>{formatWorkItemDateTime(vendor.updated_at, timezone)}</td>
             <td className="work-actions">{vendor.created_by === access.user.id && <>
               <details><summary>Editar proveedor</summary><EditVendorForm vendor={vendor} /></details>
-              <details className="vendor-delete"><summary>Eliminar proveedor</summary><p>Se retirará del catálogo activo. Podrás restaurarlo desde abajo.</p><VendorArchiveForm vendor={vendor} /></details>
+              <details className="vendor-delete"><summary>Eliminar proveedor</summary><p>Se retirará del catálogo activo. Podrás restaurarlo durante 30 días desde abajo.</p><VendorArchiveForm vendor={vendor} /></details>
             </>}</td>
           </tr>)}
         </tbody></table></div>}
@@ -49,14 +49,15 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
         {rows.length > PAGE_SIZE && <Link href={`/procura?pagina=${page + 1}${archivePage > 1 ? `&archivoPagina=${archivePage}` : ""}`}>Siguiente →</Link>}
       </nav>}
     </section>
-    <section className="work-card work-list"><h2>Proveedores eliminados</h2>
+    <section className="work-card work-list"><h2>Proveedores eliminados</h2><p className="vendor-retention-note">Puedes restaurarlos durante 30 días. Después se eliminan permanentemente.</p>
       {archivedVendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores eliminados.</p> : archivedRows.length === 0 ?
         <p className="work-empty">{archivePage > 1 ? "No hay más proveedores eliminados en esta página." : "No hay proveedores eliminados."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Eliminado</th><th>Acción</th></tr></thead><tbody>
+        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Eliminado</th><th>Eliminación definitiva</th><th>Acción</th></tr></thead><tbody>
           {archivedRows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
             <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabel(vendor.associated_area)}</td>
             <td>{vendor.archived_at ? formatWorkItemDateTime(vendor.archived_at, timezone) : "—"}</td>
-            <td>{vendor.created_by === access.user.id && <VendorArchiveForm vendor={vendor} restoring />}</td>
+            <td>{vendor.archived_at ? `Se eliminará permanentemente a partir del ${formatWorkItemDateTime(vendorArchiveExpiry(vendor.archived_at), timezone)}` : "—"}</td>
+            <td className="work-actions">{vendor.created_by === access.user.id && <><VendorArchiveForm vendor={vendor} restoring /><VendorPermanentDeleteForm vendor={vendor} /></>}</td>
           </tr>)}
         </tbody></table></div>}
       {!archivedVendors.error && (archivePage > 1 || archivedRows.length > PAGE_SIZE) && <nav className="pagination" aria-label="Páginas de proveedores eliminados">
