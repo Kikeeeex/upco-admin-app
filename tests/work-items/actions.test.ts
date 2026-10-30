@@ -57,6 +57,19 @@ describe("createWorkItem", () => {
     expect(result.message).toContain("Administración");
     expect(insert).not.toHaveBeenCalled();
   });
+
+  it("sends procurement requests to their dedicated form", async () => {
+    const insert = vi.fn();
+    accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => ({ insert }) } });
+    const form = new FormData();
+    form.set("title", "Guantes");
+    form.set("area", "procurement");
+    form.set("priority", "medium");
+    const result = await createWorkItem({ kind: "idle", message: "" }, form);
+    expect(result.kind).toBe("error");
+    expect(result.message).toContain("Procura");
+    expect(insert).not.toHaveBeenCalled();
+  });
 });
 
 describe("updateWorkItem", () => {

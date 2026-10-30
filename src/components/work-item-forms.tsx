@@ -16,10 +16,10 @@ export type ListedWorkItem = {
 
 export type SiteOption = { id: string; code: string; name: string };
 
-function SiteField({ id, sites, value }: { id: string; sites: SiteOption[]; value?: string | null }) {
+function SiteField({ id, sites, value, required = false }: { id: string; sites: SiteOption[]; value?: string | null; required?: boolean }) {
   return <div className="field"><label htmlFor={id}>Sede</label>
-    <select id={id} name="siteId" defaultValue={value ?? ""}>
-      <option value="">Sin sede</option>
+    <select id={id} name="siteId" required={required} defaultValue={value ?? ""}>
+      <option value="">{required ? "Selecciona una sede" : "Sin sede"}</option>
       {sites.map((site) => <option key={site.id} value={site.id}>{site.code} · {site.name}</option>)}
       {value && !sites.some((site) => site.id === value) && <option value={value}>Sede no disponible</option>}
     </select>
@@ -31,7 +31,7 @@ export function CreateWorkItemForm({ sites }: { sites: SiteOption[] }) {
   const [state, action, pending] = useActionState(createWorkItem, initial);
   return <section className="work-card"><h2>Nueva actividad</h2><form action={action} className="work-form">
     <div className="field"><label htmlFor="new-title">Título</label><input id="new-title" name="title" required maxLength={200} placeholder="¿Qué necesitas hacer?" /></div>
-    <div className="field"><label htmlFor="new-area">Área</label><select id="new-area" name="area" defaultValue="general"><option value="general">General</option><option value="procurement">Procura</option><option value="it">TI</option></select><small>Las gestiones se crean desde <Link href="/administracion">Administración</Link>.</small></div>
+    <div className="field"><label htmlFor="new-area">Área</label><select id="new-area" name="area" defaultValue="general"><option value="general">General</option><option value="it">TI</option></select><small>Las gestiones se crean desde <Link href="/administracion">Administración</Link> y las solicitudes desde <Link href="/procura">Procura</Link>.</small></div>
     <div className="field"><label htmlFor="new-priority">Prioridad</label><select id="new-priority" name="priority" defaultValue="medium">{priorities.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
     <div className="field"><label htmlFor="new-due">Fecha límite</label><input id="new-due" name="dueDate" type="date" /></div>
     <div className="field description-field"><label htmlFor="new-description">Descripción (opcional)</label><textarea id="new-description" name="description" maxLength={5000} rows={3} placeholder="Añade contexto para esta actividad" /></div>
@@ -45,7 +45,7 @@ export function EditWorkItemForm({ item, sites, dueLabel = "Fecha límite" }: { 
   return <form action={action} className="work-form edit-form"><input type="hidden" name="id" value={item.id} />
     <div className="field"><label htmlFor={`title-${item.id}`}>Título</label><input id={`title-${item.id}`} name="title" defaultValue={item.title} required maxLength={200} /></div>
     <div className="field description-field"><label htmlFor={`description-${item.id}`}>Descripción (opcional)</label><textarea id={`description-${item.id}`} name="description" defaultValue={item.description ?? ""} maxLength={5000} rows={3} /></div>
-    <SiteField id={`site-${item.id}`} sites={sites} value={item.site_id} />
+    <SiteField id={`site-${item.id}`} sites={sites} value={item.site_id} required={item.type === "procurement"} />
     <div className="field"><label htmlFor={`priority-${item.id}`}>Prioridad</label><select id={`priority-${item.id}`} name="priority" defaultValue={item.priority}>{priorities.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
     <div className="field"><label htmlFor={`status-${item.id}`}>Estado</label><select id={`status-${item.id}`} name="status" defaultValue={item.status}>{statuses.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
     <div className="field"><label htmlFor={`due-${item.id}`}>{dueLabel}</label><input id={`due-${item.id}`} name="dueDate" type="date" defaultValue={item.due_date ?? ""} /></div>
