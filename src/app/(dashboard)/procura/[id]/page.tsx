@@ -4,6 +4,8 @@ import { getAccessContext } from "@/features/auth/access";
 import { parseWorkItemId } from "@/features/work-items/rules";
 import { formatWorkItemDateTime } from "@/features/work-items/presentation";
 import type { ProcurementDetail } from "@/features/procurement/request-rules";
+import { vendorAreaLabels } from "@/features/procurement/vendor-rules";
+import { EditProcurementRequesterForm } from "@/components/procurement-request-form";
 import { ArchiveWorkItemForm, EditWorkItemForm, type ListedWorkItem } from "@/components/work-item-forms";
 
 type RequestItem = ListedWorkItem & { created_at: string; updated_at: string };
@@ -19,7 +21,7 @@ export default async function ProcurementRequestDetailPage({ params }: { params:
   const [itemResult, detailResult, sitesResult, profileResult] = await Promise.all([
     access.supabase.from("work_items").select("id, code, type, title, description, site_id, status, priority, due_date, closed_at, archived_at, creator_id, created_at, updated_at")
       .eq("id", id).eq("organization_id", access.organizationId).eq("type", "procurement").maybeSingle(),
-    access.supabase.from("procurement_details").select("work_item_id, quantity, unit, need, reference, vendor_id, vendor_name")
+    access.supabase.from("procurement_details").select("work_item_id, quantity, unit, need, reference, vendor_id, vendor_name, part_number, requester_first_name, requester_last_name, requester_area")
       .eq("work_item_id", id).maybeSingle(),
     access.supabase.from("sites").select("id, code, name").eq("organization_id", access.organizationId).order("name"),
     access.supabase.from("user_profiles").select("timezone").eq("user_id", access.user.id).maybeSingle(),
@@ -38,13 +40,16 @@ export default async function ProcurementRequestDetailPage({ params }: { params:
       <div><dt>Cantidad</dt><dd>{Number(detail.quantity).toLocaleString("es-VE", { maximumFractionDigits: 3 })} {detail.unit}</dd></div>
       <div><dt>Sede de destino</dt><dd>{site ? `${site.code} · ${site.name}` : "Sede no disponible"}</dd></div>
       <div><dt>Proveedor</dt><dd>{detail.vendor_name ?? "Por definir"}{detail.vendor_name && !detail.vendor_id ? " (eliminado del catálogo)" : ""}</dd></div>
+      <div><dt>Número de parte</dt><dd>{detail.part_number ?? "—"}</dd></div>
+      <div><dt>Solicitante</dt><dd>{[detail.requester_first_name, detail.requester_last_name].filter(Boolean).join(" ") || "No registrado"}</dd></div>
+      <div><dt>Área solicitante</dt><dd>{detail.requester_area ? vendorAreaLabels[detail.requester_area] : "No registrada"}</dd></div>
       <div><dt>Referencia</dt><dd>{detail.reference ?? "—"}</dd></div>
       <div><dt>Estado</dt><dd>{statusLabels[item.status] ?? item.status}</dd></div>
       <div><dt>Creada</dt><dd>{formatWorkItemDateTime(item.created_at, timezone)}</dd></div>
       <div><dt>Actualizada</dt><dd>{formatWorkItemDateTime(item.updated_at, timezone)}</dd></div>
     </dl><h3>Necesidad</h3><p className="detail-description">{detail.need}</p>
       <div className="detail-actions"><Link className="text-link" href={`/mi-trabajo/${id}`}>Ver historial, notas y archivo</Link>
-        {canEdit && <><h3>Editar estado de trabajo</h3><EditWorkItemForm item={item} sites={sites} /><ArchiveWorkItemForm id={id} archived={false} /></>}
+        {canEdit && <><h3>Editar solicitante y número de parte</h3><EditProcurementRequesterForm detail={detail} /><h3>Editar estado de trabajo</h3><EditWorkItemForm item={item} sites={sites} /><ArchiveWorkItemForm id={id} archived={false} /></>}
         {item.archived_at && item.creator_id === access.user.id && <ArchiveWorkItemForm id={id} archived />}
       </div>
     </section>

@@ -27,6 +27,13 @@ describe("describeWorkItemEvent", () => {
     })).toBe("Documentación: Recibida · Referencia documental: DOC-1 · Enlace documental actualizado");
   });
 
+  it("describes part number and requester changes in the PRC history", () => {
+    expect(describeWorkItemEvent({ action: "updated",
+      before_values: { part_number: "PART-123", requester_first_name: "Ana", requester_last_name: "Pérez", requester_area: "operations" },
+      after_values: { part_number: null, requester_first_name: "Ana", requester_last_name: "García", requester_area: "finance" },
+    })).toBe("Número de parte: sin número · Solicitante: Ana García · Área solicitante: Finanzas");
+  });
+
   it("describes a scheduled, rescheduled and completed follow-up", () => {
     expect(describeWorkItemEvent({ action: "updated", before_values: null,
       after_values: { follow_up_id: "x", follow_up_status: "pending", follow_up_date: "2026-11-02" } }))

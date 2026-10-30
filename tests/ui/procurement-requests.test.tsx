@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 const { accessContext } = vi.hoisted(() => ({ accessContext: vi.fn() }));
 vi.mock("@/features/auth/access", () => ({ getAccessContext: accessContext }));
 vi.mock("@/features/procurement/vendor-actions", () => ({ createVendor: async () => ({}), updateVendor: async () => ({}), archiveVendor: async () => ({}), restoreVendor: async () => ({}), deleteVendorPermanently: async () => ({}) }));
-vi.mock("@/features/procurement/request-actions", () => ({ createProcurementRequest: async () => ({}) }));
+vi.mock("@/features/procurement/request-actions", () => ({ createProcurementRequest: async () => ({}), updateProcurementRequester: async () => ({}) }));
 vi.mock("@/features/work-items/actions", () => ({ updateWorkItem: async () => ({}), archiveWorkItem: async () => ({}), restoreWorkItem: async () => ({}) }));
 vi.mock("@/features/work-items/presentation", async () => import("../../src/features/work-items/presentation"));
 vi.mock("@/features/work-items/rules", async () => import("../../src/features/work-items/rules"));
@@ -23,7 +23,8 @@ const itemId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const site = { id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", code: "MAR", name: "Maracaibo" };
 const vendor = { id: "ffffffff-ffff-4fff-8fff-ffffffffffff", name: "Proveedor A", associated_area: "it", contact_name: null, email: null, phone: null, notes: null, archived_at: null, created_by: userId, created_at: "2026-10-30T10:00:00Z", updated_at: "2026-10-30T10:00:00Z" };
 const item = { id: itemId, code: "PRC-000001", type: "procurement", title: "Guantes", description: null, site_id: site.id, status: "pending", priority: "medium", due_date: null, closed_at: null, archived_at: null, creator_id: userId, created_at: "2026-10-30T10:00:00Z", updated_at: "2026-10-30T10:00:00Z" };
-const detail = { work_item_id: itemId, quantity: 2.5, unit: "cajas", need: "Reponer inventario", reference: "REF-1", vendor_id: vendor.id, vendor_name: vendor.name };
+const detail = { work_item_id: itemId, quantity: 2.5, unit: "cajas", need: "Reponer inventario", reference: "REF-1", vendor_id: vendor.id, vendor_name: vendor.name,
+  part_number: "PART-123", requester_first_name: "Ana", requester_last_name: "Pérez", requester_area: "operations" };
 
 function client() {
   return { from: (table: string) => ({
@@ -41,6 +42,10 @@ describe("procurement request pages", () => {
     expect(html).toContain("Nueva solicitud");
     expect(html).toContain('name="quantity"');
     expect(html).toContain('name="siteId"');
+    expect(html).toContain('name="partNumber"');
+    expect(html).toContain('name="requesterFirstName"');
+    expect(html).toContain('name="requesterLastName"');
+    expect(html).toContain('name="requesterArea"');
     expect(html).toContain("Proveedor A");
     expect(html).toContain("PRC-000001");
     expect(html).toContain(`/procura/${itemId}`);
@@ -49,8 +54,9 @@ describe("procurement request pages", () => {
   it("shows quantity, destination, need and supplier snapshot on its ficha", async () => {
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: client() });
     const html = renderToStaticMarkup(await RequestDetailPage({ params: Promise.resolve({ id: itemId }) }));
-    for (const value of ["PRC-000001", "2,5", "cajas", "Maracaibo", "Reponer inventario", "Proveedor A", "REF-1"])
+    for (const value of ["PRC-000001", "2,5", "cajas", "Maracaibo", "Reponer inventario", "Proveedor A", "REF-1", "PART-123", "Ana Pérez", "Operaciones"])
       expect(html).toContain(value);
+    expect(html).toContain("Editar solicitante y número de parte");
     expect(html).toContain(`<select id="site-${itemId}" name="siteId" required=""`);
   });
 

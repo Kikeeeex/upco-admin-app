@@ -9,7 +9,7 @@ vi.mock("@/features/work-items/presentation", async () => import("../../src/feat
 vi.mock("@/components/pending-page", async () => import("../../src/components/pending-page"));
 vi.mock("@/components/vendor-forms", async () => import("../../src/components/vendor-forms"));
 vi.mock("@/components/procurement-request-form", async () => import("../../src/components/procurement-request-form"));
-vi.mock("@/features/procurement/request-actions", () => ({ createProcurementRequest: async () => ({}) }));
+vi.mock("@/features/procurement/request-actions", () => ({ createProcurementRequest: async () => ({}), updateProcurementRequester: async () => ({}) }));
 import ProcurementPage from "../../src/app/(dashboard)/procura/page";
 
 const orgId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";

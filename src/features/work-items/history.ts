@@ -1,3 +1,5 @@
+import { vendorAreaLabels } from "../procurement/vendor-rules";
+
 export type WorkItemHistoryEvent = {
   action: string;
   before_values: Record<string, unknown> | null;
@@ -60,6 +62,17 @@ export function describeWorkItemEvent(event: WorkItemHistoryEvent): string {
   }
   if (before.document_url !== after.document_url && "document_url" in after) {
     changes.push(typeof after.document_url === "string" ? "Enlace documental actualizado" : "Enlace documental retirado");
+  }
+  if (before.part_number !== after.part_number && "part_number" in after) {
+    changes.push(`Número de parte: ${typeof after.part_number === "string" ? after.part_number : "sin número"}`);
+  }
+  if ((before.requester_first_name !== after.requester_first_name || before.requester_last_name !== after.requester_last_name)
+    && ("requester_first_name" in after || "requester_last_name" in after)) {
+    changes.push(`Solicitante: ${[after.requester_first_name, after.requester_last_name].filter((value) => typeof value === "string").join(" ") || "sin registrar"}`);
+  }
+  if (before.requester_area !== after.requester_area && "requester_area" in after) {
+    const area = after.requester_area;
+    changes.push(`Área solicitante: ${typeof area === "string" ? vendorAreaLabels[area as keyof typeof vendorAreaLabels] ?? area : "sin registrar"}`);
   }
   return changes.join(" · ") || "Actividad actualizada";
 }
