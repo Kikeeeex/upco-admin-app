@@ -44,6 +44,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .field textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 11px; background: #fff; color: var(--ink); resize: vertical; }
 .field small { color: var(--muted); font-size: .75rem; }
 .work-form .description-field { grid-column: 1 / -1; }
+.request-lines { grid-column: 1 / -1; display: grid; gap: 12px; }
+.request-line { border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.request-line legend { color: #0b4b32; font-weight: 800; padding: 0 6px; }
+.request-line-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; }
+.request-line .request-remove, .request-lines .request-add { grid-column: auto; width: max-content; margin-top: 12px; }
 .work-form.edit-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .work-form.edit-form button { grid-column: 2; }
 .work-actions .edit-form { min-width: 320px; }
@@ -80,4 +85,5 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .brand-logo { width: 210px; }
   .work-form.edit-form { grid-template-columns: 1fr; }
   .work-form.edit-form button { grid-column: auto; }
+  .request-line-grid { grid-template-columns: 1fr; }
 }

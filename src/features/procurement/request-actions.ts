@@ -8,11 +8,21 @@ export type ProcurementRequestState = { kind: "idle" | "success" | "error"; mess
 
 function requesterFields(form: FormData) {
   return {
-    partNumber: form.get("partNumber") || undefined,
     requesterFirstName: form.get("requesterFirstName"),
     requesterLastName: form.get("requesterLastName"),
     requesterArea: form.get("requesterArea"),
   };
+}
+
+function lineFields(form: FormData) {
+  const articles = form.getAll("article");
+  const parts = form.getAll("partNumber");
+  const quantities = form.getAll("quantity");
+  const units = form.getAll("unit");
+  if (articles.length !== parts.length || articles.length !== quantities.length || articles.length !== units.length) return null;
+  return articles.map((article, index) => ({
+    article, partNumber: parts[index] || undefined, quantity: quantities[index], unit: units[index],
+  }));
 }
 
 export async function createProcurementRequest(_previous: ProcurementRequestState, form: FormData): Promise<ProcurementRequestState> {
@@ -23,22 +33,21 @@ export async function createProcurementRequest(_previous: ProcurementRequestStat
   try {
     input = parseProcurementRequestInput({
       ...requesterFields(form),
-      title: form.get("title"), quantity: form.get("quantity"), unit: form.get("unit"),
+      items: lineFields(form),
       siteId: form.get("siteId"), need: form.get("need"),
       reference: form.get("reference") || undefined, vendorId: form.get("vendorId") || undefined,
     });
   } catch {
-    return { kind: "error", message: "Revisa el artículo o servicio, cantidad, unidad, sede, necesidad y solicitante." };
+    return { kind: "error", message: "Revisa los artículos, cantidades, unidades, sede, necesidad y solicitante." };
   }
 
-  const { data: id, error } = await access.supabase.rpc("create_procurement_request", {
-    p_organization_id: access.organizationId, p_title: input.title, p_quantity: input.quantity,
-    p_unit: input.unit, p_site_id: input.siteId, p_need: input.need,
+  const { data: id, error } = await access.supabase.rpc("create_procurement_request_multi", {
+    p_organization_id: access.organizationId, p_site_id: input.siteId, p_need: input.need,
     p_reference: input.reference ?? null, p_vendor_id: input.vendorId ?? null,
-    p_part_number: input.partNumber ?? null,
     p_requester_first_name: input.requesterFirstName,
     p_requester_last_name: input.requesterLastName,
     p_requester_area: input.requesterArea,
+    p_items: input.items.map((item) => ({ article: item.article, partNumber: item.partNumber ?? null, quantity: item.quantity, unit: item.unit })),
   });
   if (error || typeof id !== "string") {
     return { kind: "error", message: "No se pudo guardar la solicitud. Comprueba que la sede y el proveedor sigan activos." };
@@ -54,7 +63,7 @@ export async function updateProcurementRequester(_previous: ProcurementRequestSt
   const access = await getAccessContext();
   if (access.kind !== "allowed") return { kind: "error", message: "Tu sesión no está autorizada." };
   let input;
-  try { input = parseProcurementRequesterUpdate({ id: form.get("id"), ...requesterFields(form) }); }
+  try { input = parseProcurementRequesterUpdate({ id: form.get("id"), partNumber: form.get("partNumber") || undefined, ...requesterFields(form) }); }
   catch { return { kind: "error", message: "Revisa el número de parte y los datos del solicitante." }; }
 
   const { data: item, error: itemError } = await access.supabase.from("work_items")

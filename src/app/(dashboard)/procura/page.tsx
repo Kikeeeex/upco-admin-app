@@ -49,7 +49,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
   const archivedRows = (archivedVendors.data ?? []) as VendorRow[];
   const requestRows = (requests.data ?? []) as RequestRow[];
   const requestDetailsResult = requestRows.length ? await access.supabase.from("procurement_details")
-    .select("work_item_id, quantity, unit, need, reference, vendor_id, vendor_name, part_number, requester_first_name, requester_last_name, requester_area")
+    .select("work_item_id, quantity, unit, need, reference, vendor_id, vendor_name, part_number, requester_first_name, requester_last_name, requester_area, item_count")
     .in("work_item_id", requestRows.map((item) => item.id)) : { data: [] as ProcurementDetail[], error: null };
   const requestDetails = new Map(((requestDetailsResult.data ?? []) as ProcurementDetail[]).map((detail) => [detail.work_item_id, detail]));
   const siteLabels = new Map((sites.data ?? []).map((site) => [site.id, `${site.code} · ${site.name}`]));
@@ -63,9 +63,9 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
     <section className="work-card work-list"><h2>Solicitudes activas</h2>
       {requests.error || requestDetailsResult.error ? <p role="alert" className="error-message">No se pudieron cargar las solicitudes.</p> : requestRows.length === 0 ?
         <p className="work-empty">{requestPage > 1 ? "No hay más solicitudes en esta página." : "Aún no hay solicitudes registradas."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Código</th><th>Artículo o servicio</th><th>Número de parte</th><th>Cantidad</th><th>Sede de destino</th><th>Solicitante</th><th>Proveedor</th><th>Estado</th><th>Ficha</th></tr></thead><tbody>
+        <div className="table-scroll"><table><thead><tr><th>Código</th><th>Primer artículo o servicio</th><th>Artículos</th><th>Número de parte</th><th>Cantidad</th><th>Sede de destino</th><th>Solicitante</th><th>Proveedor</th><th>Estado</th><th>Ficha</th></tr></thead><tbody>
           {requestRows.slice(0, PAGE_SIZE).map((item) => { const detail = requestDetails.get(item.id); return <tr key={item.id}>
-            <td>{item.code}</td><td>{item.title}</td><td>{detail?.part_number ?? "—"}</td><td>{detail ? `${Number(detail.quantity).toLocaleString("es-VE", { maximumFractionDigits: 3 })} ${detail.unit}` : "—"}</td>
+            <td>{item.code}</td><td>{item.title}</td><td>{detail ? `${detail.item_count} ${detail.item_count === 1 ? "artículo" : "artículos"}` : "—"}</td><td>{detail?.part_number ?? "—"}</td><td>{detail ? `${Number(detail.quantity).toLocaleString("es-VE", { maximumFractionDigits: 3 })} ${detail.unit}` : "—"}</td>
             <td>{item.site_id ? siteLabels.get(item.site_id) ?? "Sede no disponible" : "—"}</td><td>{[detail?.requester_first_name, detail?.requester_last_name].filter(Boolean).join(" ") || "No registrado"}</td><td>{detail?.vendor_name ?? "Por definir"}</td><td>{item.status === "pending" ? "Pendiente" : item.status}</td>
             <td><Link className="text-link" href={`/procura/${item.id}`}>Ver ficha</Link></td>
           </tr>; })}

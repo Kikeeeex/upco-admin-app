@@ -34,6 +34,13 @@ DO $$ DECLARE direct_item_id uuid; BEGIN
         AND d.requester_last_name = 'Pérez' AND d.requester_area = 'operations') <> 1 THEN
     RAISE EXCEPTION 'procurement request incomplete';
   END IF;
+  IF (SELECT count(*) FROM procurement_details WHERE item_count = 1) <> 1 THEN
+    RAISE EXCEPTION 'legacy request count incorrect';
+  END IF;
+  IF (SELECT count(*) FROM procurement_request_items WHERE position = 1 AND article = 'Servicio de prueba'
+        AND part_number = 'PART-123' AND quantity = 2.5 AND unit = 'horas') <> 1 THEN
+    RAISE EXCEPTION 'legacy RPC did not create a line';
+  END IF;
   BEGIN
     PERFORM public.create_procurement_request('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Cero', 0, 'unidad', NULL, 'Necesidad', NULL, NULL, NULL, 'Ana', 'Pérez', 'operations');
     RAISE EXCEPTION 'zero quantity accepted';
@@ -98,6 +105,15 @@ DO $$ BEGIN
   END IF;
   IF (SELECT count(*) FROM activity_log WHERE after_values->>'requester_area' = 'finance') <> 1 THEN
     RAISE EXCEPTION 'requester change was not audited';
+  END IF;
+  IF (SELECT count(*) FROM procurement_request_items WHERE position = 1 AND part_number IS NULL) <> 1 THEN
+    RAISE EXCEPTION 'first part number did not synchronize';
+  END IF;
+END $$;
+UPDATE work_items SET title = 'Servicio actualizado' WHERE code = 'PRC-000001';
+DO $$ BEGIN
+  IF (SELECT count(*) FROM procurement_request_items WHERE position = 1 AND article = 'Servicio actualizado') <> 1 THEN
+    RAISE EXCEPTION 'first article did not synchronize';
   END IF;
 END $$;
 

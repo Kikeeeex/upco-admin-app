@@ -19,3 +19,4 @@ docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/admi
 docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/vendors.sql
 docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/vendor_retention.sql
 docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/procurement_requests.sql
+docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/procurement_multi_items.sql

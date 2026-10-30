@@ -24,14 +24,18 @@ const site = { id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", code: "MAR", name: "M
 const vendor = { id: "ffffffff-ffff-4fff-8fff-ffffffffffff", name: "Proveedor A", associated_area: "it", contact_name: null, email: null, phone: null, notes: null, archived_at: null, created_by: userId, created_at: "2026-10-30T10:00:00Z", updated_at: "2026-10-30T10:00:00Z" };
 const item = { id: itemId, code: "PRC-000001", type: "procurement", title: "Guantes", description: null, site_id: site.id, status: "pending", priority: "medium", due_date: null, closed_at: null, archived_at: null, creator_id: userId, created_at: "2026-10-30T10:00:00Z", updated_at: "2026-10-30T10:00:00Z" };
 const detail = { work_item_id: itemId, quantity: 2.5, unit: "cajas", need: "Reponer inventario", reference: "REF-1", vendor_id: vendor.id, vendor_name: vendor.name,
-  part_number: "PART-123", requester_first_name: "Ana", requester_last_name: "Pérez", requester_area: "operations" };
+  part_number: "PART-123", requester_first_name: "Ana", requester_last_name: "Pérez", requester_area: "operations", item_count: 2 };
+const lines = [
+  { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", work_item_id: itemId, position: 1, article: "Guantes", part_number: "PART-123", quantity: 2.5, unit: "cajas" },
+  { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", work_item_id: itemId, position: 2, article: "Casco", part_number: null, quantity: 3, unit: "unidades" },
+];
 
 function client() {
   return { from: (table: string) => ({
     select() { return this; }, eq() { return this; }, is() { return this; }, not() { return this; }, gte() { return this; }, order() { return this; }, in() { return Promise.resolve({ data: [detail], error: null }); },
     range() { return Promise.resolve({ data: table === "work_items" ? [item] : table === "vendors" ? [vendor] : [], error: null }); },
     maybeSingle() { return Promise.resolve({ data: table === "work_items" ? item : table === "procurement_details" ? detail : { timezone: "America/Caracas" }, error: null }); },
-    then(resolve: (value: unknown) => void) { return Promise.resolve({ data: table === "sites" ? [site] : [], error: null }).then(resolve); },
+    then(resolve: (value: unknown) => void) { return Promise.resolve({ data: table === "sites" ? [site] : table === "procurement_request_items" ? lines : [], error: null }).then(resolve); },
   }) };
 }
 
@@ -48,14 +52,17 @@ describe("procurement request pages", () => {
     expect(html).toContain('name="requesterArea"');
     expect(html).toContain("Proveedor A");
     expect(html).toContain("PRC-000001");
+    expect(html).toContain("2 artículos");
     expect(html).toContain(`/procura/${itemId}`);
   });
 
   it("shows quantity, destination, need and supplier snapshot on its ficha", async () => {
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: client() });
     const html = renderToStaticMarkup(await RequestDetailPage({ params: Promise.resolve({ id: itemId }) }));
-    for (const value of ["PRC-000001", "2,5", "cajas", "Maracaibo", "Reponer inventario", "Proveedor A", "REF-1", "PART-123", "Ana Pérez", "Operaciones"])
+    for (const value of ["PRC-000001", "2,5", "cajas", "3", "unidades", "Casco", "Maracaibo", "Reponer inventario", "Proveedor A", "REF-1", "PART-123", "Ana Pérez", "Operaciones"])
       expect(html).toContain(value);
+    expect(html).toContain("Artículos solicitados");
+    expect(html).toContain("2 artículos");
     expect(html).toContain("Editar solicitante y número de parte");
     expect(html).toContain(`<select id="site-${itemId}" name="siteId" required=""`);
   });
