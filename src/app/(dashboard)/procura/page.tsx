@@ -57,10 +57,17 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
 
   return <div className="page-content">
     <div className="page-heading"><span className="eyebrow">PROCURA</span><h1>Procura</h1><p>Registra solicitudes y proveedores para organizar tus compras.</p></div>
+    <nav className="procurement-sections" aria-label="Secciones de Procura">
+      <Link href="#nueva-solicitud">Nueva solicitud</Link>
+      <Link href="#solicitudes-activas">Solicitudes activas</Link>
+      <Link href="#nuevo-proveedor">Nuevo proveedor</Link>
+      <Link href="#proveedores">Proveedores</Link>
+      <Link href="#proveedores-eliminados">Proveedores eliminados</Link>
+    </nav>
     {sites.error && <p role="alert" className="error-message">No se pudieron cargar las sedes.</p>}
     {vendorOptions.error && <p role="alert" className="error-message">No se pudieron cargar los proveedores para la solicitud.</p>}
     <CreateProcurementRequestForm sites={sites.data ?? []} vendors={vendorOptions.data ?? []} />
-    <section className="work-card work-list"><h2>Solicitudes activas</h2>
+    <section id="solicitudes-activas" className="work-card work-list"><h2>Solicitudes activas</h2>
       {requests.error || requestDetailsResult.error ? <p role="alert" className="error-message">No se pudieron cargar las solicitudes.</p> : requestRows.length === 0 ?
         <p className="work-empty">{requestPage > 1 ? "No hay más solicitudes en esta página." : "Aún no hay solicitudes registradas."}</p> :
         <div className="table-scroll"><table><thead><tr><th>Código</th><th>Primer artículo o servicio</th><th>Artículos</th><th>Número de parte</th><th>Cantidad</th><th>Sede de destino</th><th>Solicitante</th><th>Proveedor</th><th>Estado</th><th>Ficha</th></tr></thead><tbody>
@@ -76,7 +83,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
       </nav>}
     </section>
     <CreateVendorForm />
-    <section className="work-card work-list"><h2>Proveedores</h2>
+    <section id="proveedores" className="work-card work-list"><h2>Proveedores</h2>
       {vendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores.</p> : rows.length === 0 ?
         <p className="work-empty">{page > 1 ? "No hay más proveedores en esta página." : "Aún no hay proveedores registrados."}</p> :
         <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Contacto</th><th>Correo</th><th>Teléfono</th><th>Observaciones</th><th>Creado</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
@@ -94,7 +101,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
         {rows.length > PAGE_SIZE && <Link href={`/procura?pagina=${page + 1}${archivePage > 1 ? `&archivoPagina=${archivePage}` : ""}`}>Siguiente →</Link>}
       </nav>}
     </section>
-    <section className="work-card work-list"><h2>Proveedores eliminados</h2><p className="vendor-retention-note">Puedes restaurarlos durante 30 días. Después se eliminan permanentemente.</p>
+    <section id="proveedores-eliminados" className="work-card work-list"><h2>Proveedores eliminados</h2><p className="vendor-retention-note">Puedes restaurarlos durante 30 días. Después se eliminan permanentemente.</p>
       {archivedVendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores eliminados.</p> : archivedRows.length === 0 ?
         <p className="work-empty">{archivePage > 1 ? "No hay más proveedores eliminados en esta página." : "No hay proveedores eliminados."}</p> :
         <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Eliminado</th><th>Eliminación definitiva</th><th>Acción</th></tr></thead><tbody>

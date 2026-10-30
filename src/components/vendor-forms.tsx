@@ -23,7 +23,7 @@ function VendorFields({ vendor }: { vendor?: VendorRow }) {
 
 export function CreateVendorForm() {
   const [state, action, pending] = useActionState(createVendor, initial);
-  return <section className="work-card"><h2>Nuevo proveedor</h2>
+  return <section id="nuevo-proveedor" className="work-card"><h2>Nuevo proveedor</h2>
     <form action={action} className="work-form vendor-form"><VendorFields />
       <button type="submit" className="primary-button" disabled={pending}>{pending ? "Guardando…" : "Guardar proveedor"}</button>
     </form>

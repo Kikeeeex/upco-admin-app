@@ -54,6 +54,11 @@ describe("procurement request pages", () => {
     expect(html).toContain("PRC-000001");
     expect(html).toContain("2 artículos");
     expect(html).toContain(`/procura/${itemId}`);
+    expect(html).toContain('aria-label="Secciones de Procura"');
+    for (const id of ["nueva-solicitud", "solicitudes-activas", "nuevo-proveedor", "proveedores", "proveedores-eliminados"]) {
+      expect(html).toContain(`href="#${id}"`);
+      expect(html).toContain(`id="${id}"`);
+    }
   });
 
   it("shows quantity, destination, need and supplier snapshot on its ficha", async () => {

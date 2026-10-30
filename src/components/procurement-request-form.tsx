@@ -25,8 +25,9 @@ export function CreateProcurementRequestForm({ sites, vendors }: { sites: SiteOp
   const [state, action, pending] = useActionState(createProcurementRequest, initial);
   const [rows, setRows] = useState([0]);
   const nextRow = useRef(1);
-  return <section className="work-card"><h2>Nueva solicitud</h2><form action={action} className="work-form">
-    <div className="request-lines" aria-label="Artículos solicitados">
+  return <section id="nueva-solicitud" className="work-card"><h2>Nueva solicitud</h2><form action={action} className="work-form request-form">
+    <fieldset className="request-group request-lines"><legend>Artículos solicitados</legend>
+      <p className="request-count" role="status" aria-live="polite">{rows.length} {rows.length === 1 ? "artículo" : "artículos"}</p>
       {rows.map((rowId, index) => <fieldset className="request-line" key={rowId}><legend>Artículo {index + 1}</legend>
         <div className="request-line-grid">
           <div className="field"><label htmlFor={`new-prc-article-${rowId}`}>Artículo o servicio</label><input id={`new-prc-article-${rowId}`} name="article" required maxLength={200} placeholder="¿Qué necesitas adquirir?" /></div>
@@ -37,13 +38,17 @@ export function CreateProcurementRequestForm({ sites, vendors }: { sites: SiteOp
         {rows.length > 1 && <button className="quiet-button request-remove" type="button" aria-label={`Quitar artículo ${index + 1}`} onClick={() => setRows((current) => current.filter((id) => id !== rowId))}>Quitar artículo</button>}
       </fieldset>)}
       <button className="quiet-button request-add" type="button" disabled={rows.length >= 50} onClick={() => setRows((current) => [...current, nextRow.current++])}>Agregar artículo</button>
-    </div>
-    <div className="field"><label htmlFor="new-prc-site">Sede de destino</label><select id="new-prc-site" name="siteId" required defaultValue=""><option value="" disabled>Selecciona una sede</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.code} · {site.name}</option>)}</select></div>
-    <div className="field"><label htmlFor="new-prc-vendor">Proveedor (opcional)</label><select id="new-prc-vendor" name="vendorId" defaultValue=""><option value="">Por definir</option>{vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}</select><small>Si aún no existe, créalo en «Nuevo proveedor» y vuelve a la solicitud.</small></div>
-    <div className="field"><label htmlFor="new-prc-reference">Referencia (opcional)</label><input id="new-prc-reference" name="reference" maxLength={200} /></div>
-    <RequesterFields prefix="new-prc" />
-    <div className="field description-field"><label htmlFor="new-prc-need">Necesidad</label><textarea id="new-prc-need" name="need" rows={3} maxLength={5000} required placeholder="Explica para qué se necesita" /></div>
-    <button className="primary-button" disabled={pending || sites.length === 0} type="submit">{pending ? "Guardando…" : "Guardar solicitud"}</button>
+    </fieldset>
+    <fieldset className="request-group"><legend>Destino y proveedor</legend><div className="request-group-grid">
+      <div className="field"><label htmlFor="new-prc-site">Sede de destino</label><select id="new-prc-site" name="siteId" required defaultValue=""><option value="" disabled>Selecciona una sede</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.code} · {site.name}</option>)}</select></div>
+      <div className="field"><label htmlFor="new-prc-vendor">Proveedor (opcional)</label><select id="new-prc-vendor" name="vendorId" defaultValue=""><option value="">Por definir</option>{vendors.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.name}</option>)}</select><small>Si aún no existe, créalo en «Nuevo proveedor» y vuelve a la solicitud.</small></div>
+      <div className="field"><label htmlFor="new-prc-reference">Referencia (opcional)</label><input id="new-prc-reference" name="reference" maxLength={200} /></div>
+    </div></fieldset>
+    <fieldset className="request-group"><legend>Solicitante y necesidad</legend><div className="request-group-grid">
+      <RequesterFields prefix="new-prc" />
+      <div className="field description-field"><label htmlFor="new-prc-need">Necesidad</label><textarea id="new-prc-need" name="need" rows={3} maxLength={5000} required placeholder="Explica para qué se necesita" /></div>
+    </div></fieldset>
+    <button className="primary-button request-submit" disabled={pending || sites.length === 0} type="submit">{pending ? "Guardando…" : "Guardar solicitud"}</button>
   </form>{sites.length === 0 && <p className="error-message">No hay sedes disponibles. Configura una sede antes de crear solicitudes.</p>}
     {state.message && <p role="status" className={state.kind === "error" ? "error-message" : "success-message"}>{state.message} {state.href && <Link href={state.href}>Ver ficha</Link>}</p>}
   </section>;
