@@ -1,6 +1,6 @@
 # Progreso verificable
 
-Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica código presente con verificación o dependencia pendiente.
+Estado al 30/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica código presente con verificación o dependencia pendiente.
 
 | Historia | Traza | Estado | Dependencia o criterio pendiente |
 |---|---|---|---|
@@ -18,9 +18,9 @@ Estado al 29/10/2026. `hecho` requiere comprobación ejecutada; `parcial` indica
 | BL-12 | RF-010 | hecho | Inicio y sus grupos hoy, vencidas, en espera y próximos seguimientos confirmados en staging; conteos contrastados con Supabase |
 | BL-13 | RF-016, RF-017 | hecho | Creación ADM, ficha, edición documental e historial confirmados en staging y Supabase |
 | BL-14 | RF-018 | hecho | Programación, reprogramación, resultado, historial y agenda confirmados en staging y Supabase |
-| BL-15 | RF-021 | parcial | Alta, edición y duplicado confirmados en staging; falta selección desde solicitud (BL-16) y comprobar la ampliación de área y eliminación reversible |
+| BL-15 | RF-021 | parcial | Catálogo, áreas, archivo/restauración y eliminación permanente confirmados en staging; falta selección desde solicitud (BL-16) |
 
-**Siguientes pendientes:** completar la ampliación del catálogo de proveedores y continuar Procura con solicitudes (BL-16); resolver las dependencias generales de CI, revisión móvil y aprobación corporativa de nube.
+**Siguientes pendientes:** continuar Procura con solicitudes (BL-16); resolver las dependencias generales de CI, revisión móvil y aprobación corporativa de nube.
 
 Comprobación inicial ejecutada: `npm ci`, Vitest (16 pruebas), typecheck, ESLint, build Next.js, `scripts/test-sql.sh` y petición HTTP al servidor de producción local (login 200; ruta privada sin sesión 307 hacia login; callback sin código 307 hacia login). En Supabase se verificaron ocho tablas con RLS, nueve políticas, permisos restrictivos y la suite SQL sintética con rollback. En ese corte aún no se habían ejecutado OAuth real, lectura/escritura desde el navegador, pruebas E2E ni CI remoto.
 
@@ -71,3 +71,5 @@ El usuario confirmó en staging que pudo asignar Finanzas a `Jarbo`, archivarlo 
 La migración `20261030000000_vendor_retention.sql` se aplicó y registró en Supabase de desarrollo. `pg_cron` 1.6.4 creó el trabajo activo `upco_purge_expired_vendors` con frecuencia de un minuto. Las suites SQL de proveedores y retención pasaron remotamente con rollback: el creador eliminó un proveedor archivado, otro miembro no pudo y la función purgó un registro sintético de 31 días sin borrar uno de 29 días. Antes de aplicar la migración había dos proveedores reales, uno archivado y ninguno vencido. Pasaron 113 pruebas de Vitest, typecheck, lint, build y SQL local. Falta publicar la interfaz y comprobar el botón desde el navegador.
 
 La interfaz se publicó en `main` (`e83cbf1`); staging sirvió la hoja de estilos de retención, `/login` respondió 200 y `/procura` sin sesión redirigió 307 a `/login`. El trabajo `pg_cron` terminó correctamente en dos ejecuciones consecutivas a las 13:21 y 13:22 UTC del 30/10/2026. Una consulta posterior confirmó los mismos dos proveedores reales, uno archivado y ninguno vencido. Se solicitó al usuario una prueba autenticada del botón y la fecha de eliminación desde la web.
+
+El usuario confirmó desde staging que creó un proveedor de prueba, lo archivó, vio la fecha y el control de eliminación permanente, lo eliminó definitivamente y pudo volver a registrar el mismo nombre. La validación de interfaz de la ampliación queda cerrada. BL-15 continúa parcial únicamente por la selección de proveedores desde una solicitud, prevista en BL-16.
