@@ -50,4 +50,4 @@
 
 - [x] Aplicar la migración al proyecto de desarrollo y registrar su versión.
 - [x] Ejecutar prueba SQL remota con rollback y comprobar ausencia de filas sintéticas.
-- [ ] Publicar en `main`, comprobar rutas y registrar resultados y límite de prueba autenticada.
+- [x] Publicar en `main`, comprobar rutas y registrar resultados y límite de prueba autenticada.
