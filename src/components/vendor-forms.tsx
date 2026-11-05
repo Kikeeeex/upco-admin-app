@@ -2,22 +2,23 @@
 
 import { useActionState } from "react";
 import { createVendor, updateVendor, archiveVendor, restoreVendor, deleteVendorPermanently, type VendorActionState } from "@/features/procurement/vendor-actions";
-import { vendorAreaLabels, type VendorRow } from "@/features/procurement/vendor-rules";
+import type { VendorRow } from "@/features/procurement/vendor-rules";
 
 const initial: VendorActionState = { kind: "idle", message: "" };
 
 function VendorFields({ vendor }: { vendor?: VendorRow }) {
   const prefix = vendor ? `vendor-${vendor.id}` : "new-vendor";
   return <>
-    <div className="field"><label htmlFor={`${prefix}-name`}>Nombre del proveedor</label><input id={`${prefix}-name`} name="name" required maxLength={200} defaultValue={vendor?.name} /></div>
-    <div className="field"><label htmlFor={`${prefix}-area`}>Área asociada</label><select id={`${prefix}-area`} name="associatedArea" required defaultValue={vendor?.associated_area ?? ""}>
-      <option value="" disabled>Selecciona un área</option>
-      {Object.entries(vendorAreaLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-    </select></div>
-    <div className="field"><label htmlFor={`${prefix}-contact`}>Contacto</label><input id={`${prefix}-contact`} name="contactName" maxLength={200} defaultValue={vendor?.contact_name ?? ""} /></div>
-    <div className="field"><label htmlFor={`${prefix}-email`}>Correo</label><input id={`${prefix}-email`} name="email" type="email" maxLength={254} defaultValue={vendor?.email ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-name`}>Proveedor</label><input id={`${prefix}-name`} name="name" required maxLength={200} defaultValue={vendor?.name} /></div>
+    <div className="field"><label htmlFor={`${prefix}-country`}>País</label><input id={`${prefix}-country`} name="country" maxLength={100} defaultValue={vendor?.country ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-tax`}>RIF / identificación fiscal</label><input id={`${prefix}-tax`} name="taxIdentifier" maxLength={100} defaultValue={vendor?.tax_identifier ?? ""} /></div>
     <div className="field"><label htmlFor={`${prefix}-phone`}>Teléfono</label><input id={`${prefix}-phone`} name="phone" type="tel" maxLength={60} defaultValue={vendor?.phone ?? ""} /></div>
-    <div className="field description-field"><label htmlFor={`${prefix}-notes`}>Observaciones</label><textarea id={`${prefix}-notes`} name="notes" maxLength={2000} rows={3} defaultValue={vendor?.notes ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-email`}>Correo electrónico</label><input id={`${prefix}-email`} name="email" type="email" maxLength={254} defaultValue={vendor?.email ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-sales`}>Área de venta</label><input id={`${prefix}-sales`} name="salesArea" maxLength={200} defaultValue={vendor?.sales_area ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-contact`}>Persona de contacto</label><input id={`${prefix}-contact`} name="contactPerson" maxLength={200} defaultValue={vendor?.contact_name ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-website`}>Sitio web</label><input id={`${prefix}-website`} name="website" maxLength={500} defaultValue={vendor?.website ?? ""} /></div>
+    <div className="field"><label htmlFor={`${prefix}-city`}>Ciudad</label><input id={`${prefix}-city`} name="city" maxLength={150} defaultValue={vendor?.city ?? ""} /></div>
+    <div className="field description-field"><label htmlFor={`${prefix}-detail`}>Detalle de productos y servicios</label><textarea id={`${prefix}-detail`} name="productsServicesDetail" rows={4} defaultValue={vendor?.products_services_detail ?? ""} /></div>
   </>;
 }
 

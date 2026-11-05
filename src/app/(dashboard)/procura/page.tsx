@@ -2,7 +2,8 @@ import Link from "next/link";
 import { getAccessContext } from "@/features/auth/access";
 import { parsePageNumber, formatWorkItemDateTime } from "@/features/work-items/presentation";
 import { CreateVendorForm, EditVendorForm, VendorArchiveForm, VendorPermanentDeleteForm } from "@/components/vendor-forms";
-import { vendorAreaLabel, vendorArchiveCutoff, vendorArchiveExpiry, type VendorRow } from "@/features/procurement/vendor-rules";
+import { parseVendorFilters, vendorListHref, vendorArchiveCutoff, vendorArchiveExpiry, type VendorRow } from "@/features/procurement/vendor-rules";
+import { escapeLikePattern } from "@/features/work-items/filters";
 import { CreateProcurementRequestForm } from "@/components/procurement-request-form";
 import type { ProcurementDetail } from "@/features/procurement/request-rules";
 
@@ -10,20 +11,25 @@ const PAGE_SIZE = 50;
 
 type RequestRow = { id: string; code: string; title: string; site_id: string | null; status: string; created_at: string };
 
-export default async function ProcurementPage({ searchParams }: { searchParams: Promise<{ pagina?: string | string[]; archivoPagina?: string | string[]; solicitudesPagina?: string | string[] }> }) {
+export default async function ProcurementPage({ searchParams }: { searchParams: Promise<{ pagina?: string | string[]; archivoPagina?: string | string[]; solicitudesPagina?: string | string[]; buscarProveedor?: string | string[]; pais?: string | string[]; areaVenta?: string | string[] }> }) {
   const access = await getAccessContext();
   if (access.kind !== "allowed") return null;
   const params = await searchParams;
   const page = parsePageNumber(params.pagina);
   const archivePage = parsePageNumber(params.archivoPagina);
   const requestPage = parsePageNumber(params.solicitudesPagina);
+  const filters = parseVendorFilters(params);
+  let vendorQuery = access.supabase.from("vendors")
+    .select("id, name, country, tax_identifier, phone, email, sales_area, contact_name, website, city, products_services_detail, notes, associated_area, archived_at, created_by, created_at, updated_at")
+    .eq("organization_id", access.organizationId).is("archived_at", null);
+  if (filters.query) vendorQuery = vendorQuery.textSearch("search_document", filters.query, { type: "plain", config: "simple" });
+  if (filters.country) vendorQuery = vendorQuery.ilike("country", escapeLikePattern(filters.country));
+  if (filters.salesArea) vendorQuery = vendorQuery.ilike("sales_area", escapeLikePattern(filters.salesArea));
   const [vendors, archivedVendors, profile, requests, sites, vendorOptions] = await Promise.all([
-    access.supabase.from("vendors")
-      .select("id, name, associated_area, contact_name, email, phone, notes, archived_at, created_by, created_at, updated_at")
-      .eq("organization_id", access.organizationId).is("archived_at", null).order("name").order("id")
+    vendorQuery.order("name").order("id")
       .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
     access.supabase.from("vendors")
-      .select("id, name, associated_area, contact_name, email, phone, notes, archived_at, created_by, created_at, updated_at")
+      .select("id, name, country, tax_identifier, phone, email, sales_area, contact_name, website, city, products_services_detail, notes, associated_area, archived_at, created_by, created_at, updated_at")
       .eq("organization_id", access.organizationId).not("archived_at", "is", null).gte("archived_at", vendorArchiveCutoff())
       .order("archived_at", { ascending: false }).order("id")
       .range((archivePage - 1) * PAGE_SIZE, archivePage * PAGE_SIZE),
@@ -84,12 +90,19 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
     </section>
     <CreateVendorForm />
     <section id="proveedores" className="work-card work-list"><h2>Proveedores</h2>
+      <p><Link className="text-link" href="/procura/importar">Importar proveedores →</Link></p>
+      <form method="get" action="/procura" className="vendor-filter-form filter-grid" role="search" aria-label="Buscar proveedores">
+        <div className="field filter-search"><label htmlFor="vendor-search">Buscar proveedor, país, RIF, contacto o detalle</label><input id="vendor-search" name="buscarProveedor" maxLength={100} defaultValue={filters.query} /></div>
+        <div className="field"><label htmlFor="vendor-country">País</label><input id="vendor-country" name="pais" maxLength={100} defaultValue={filters.country} /></div>
+        <div className="field"><label htmlFor="vendor-sales-area">Área de venta</label><input id="vendor-sales-area" name="areaVenta" maxLength={200} defaultValue={filters.salesArea} /></div>
+        <div className="filter-actions"><button className="quiet-button" type="submit">Aplicar filtros</button><Link className="text-link" href="/procura#proveedores">Limpiar</Link></div>
+      </form>
       {vendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores.</p> : rows.length === 0 ?
-        <p className="work-empty">{page > 1 ? "No hay más proveedores en esta página." : "Aún no hay proveedores registrados."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Contacto</th><th>Correo</th><th>Teléfono</th><th>Observaciones</th><th>Creado</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody>
+        <p className="work-empty">{page > 1 ? "No hay más proveedores en esta página." : filters.query || filters.country || filters.salesArea ? "No hay proveedores que coincidan con los filtros." : "Aún no hay proveedores registrados. Puedes crear uno o importar un archivo."}</p> :
+        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>País</th><th>Área de venta</th><th>Persona de contacto</th><th>Teléfono</th><th>Correo electrónico</th><th>Ficha</th><th>Acción</th></tr></thead><tbody>
           {rows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
-            <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabel(vendor.associated_area)}</td><td>{vendor.contact_name ?? "—"}</td><td>{vendor.email ?? "—"}</td><td>{vendor.phone ?? "—"}</td><td className="vendor-notes">{vendor.notes ?? "—"}</td>
-            <td>{formatWorkItemDateTime(vendor.created_at, timezone)}</td><td>{formatWorkItemDateTime(vendor.updated_at, timezone)}</td>
+            <td><strong>{vendor.name}</strong></td><td>{vendor.country ?? "—"}</td><td>{vendor.sales_area ?? "—"}</td><td>{vendor.contact_name ?? "—"}</td><td>{vendor.phone ?? "—"}</td><td>{vendor.email ?? "—"}</td>
+            <td><Link className="text-link" href={`/procura/proveedores/${vendor.id}`}>Ver ficha</Link></td>
             <td className="work-actions">{vendor.created_by === access.user.id && <>
               <details><summary>Editar proveedor</summary><EditVendorForm vendor={vendor} /></details>
               <details className="vendor-delete"><summary>Eliminar proveedor</summary><p>Se retirará del catálogo activo. Podrás restaurarlo durante 30 días desde abajo.</p><VendorArchiveForm vendor={vendor} /></details>
@@ -97,16 +110,16 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
           </tr>)}
         </tbody></table></div>}
       {!vendors.error && (page > 1 || rows.length > PAGE_SIZE) && <nav className="pagination" aria-label="Páginas de proveedores">
-        {page > 1 && <Link href={`/procura?pagina=${page - 1}${archivePage > 1 ? `&archivoPagina=${archivePage}` : ""}`}>← Anterior</Link>}<span>Página {page}</span>
-        {rows.length > PAGE_SIZE && <Link href={`/procura?pagina=${page + 1}${archivePage > 1 ? `&archivoPagina=${archivePage}` : ""}`}>Siguiente →</Link>}
+        {page > 1 && <Link href={vendorListHref(filters, page - 1, archivePage)}>← Anterior</Link>}<span>Página {page}</span>
+        {rows.length > PAGE_SIZE && <Link href={vendorListHref(filters, page + 1, archivePage)}>Siguiente →</Link>}
       </nav>}
     </section>
     <section id="proveedores-eliminados" className="work-card work-list"><h2>Proveedores eliminados</h2><p className="vendor-retention-note">Puedes restaurarlos durante 30 días. Después se eliminan permanentemente.</p>
       {archivedVendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores eliminados.</p> : archivedRows.length === 0 ?
         <p className="work-empty">{archivePage > 1 ? "No hay más proveedores eliminados en esta página." : "No hay proveedores eliminados."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>Área asociada</th><th>Eliminado</th><th>Eliminación definitiva</th><th>Acción</th></tr></thead><tbody>
+        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>País</th><th>Eliminado</th><th>Eliminación definitiva</th><th>Acción</th></tr></thead><tbody>
           {archivedRows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
-            <td><strong>{vendor.name}</strong></td><td>{vendorAreaLabel(vendor.associated_area)}</td>
+            <td><strong>{vendor.name}</strong></td><td>{vendor.country ?? "—"}</td>
             <td>{vendor.archived_at ? formatWorkItemDateTime(vendor.archived_at, timezone) : "—"}</td>
             <td>{vendor.archived_at ? `Se eliminará permanentemente a partir del ${formatWorkItemDateTime(vendorArchiveExpiry(vendor.archived_at), timezone)}` : "—"}</td>
             <td className="work-actions">{vendor.created_by === access.user.id && <><VendorArchiveForm vendor={vendor} restoring /><VendorPermanentDeleteForm vendor={vendor} /></>}</td>

@@ -49,3 +49,28 @@ export function vendorArchiveCutoff(now = new Date()): string {
 export function vendorArchiveExpiry(archivedAt: string): string {
   return new Date(new Date(archivedAt).getTime() + RETENTION_MS).toISOString();
 }
+
+type RawFilter = string | string[] | undefined;
+export type VendorFilters = { query: string; country: string; salesArea: string };
+export function parseVendorFilters(raw: { buscarProveedor?: RawFilter; pais?: RawFilter; areaVenta?: RawFilter }): VendorFilters {
+  const value = (input: RawFilter, max: number) => typeof input === "string" && input.trim().length <= max && !input.includes("*") ? input.trim() : "";
+  return { query: value(raw.buscarProveedor, 100), country: value(raw.pais, 100), salesArea: value(raw.areaVenta, 200) };
+}
+
+export function vendorListHref(filters: VendorFilters, page: number, archivePage = 1): string {
+  const params = new URLSearchParams();
+  if (filters.query) params.set("buscarProveedor", filters.query);
+  if (filters.country) params.set("pais", filters.country);
+  if (filters.salesArea) params.set("areaVenta", filters.salesArea);
+  params.set("pagina", String(page));
+  if (archivePage > 1) params.set("archivoPagina", String(archivePage));
+  return `/procura?${params.toString()}#proveedores`;
+}
+
+export function safeVendorWebsiteUrl(raw: string | null): string | null {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    return (url.protocol === "https:" || url.protocol === "http:") && !url.username && !url.password && url.hostname.includes(".") ? url.href : null;
+  } catch { return null; }
+}

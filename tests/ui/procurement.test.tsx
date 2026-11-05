@@ -21,6 +21,19 @@ const emptyTable = { select() { return this; }, eq() { return this; }, is() { re
   range: async () => ({ data: [], error: null }), then(resolve: (value: unknown) => void) { return Promise.resolve({ data: [], error: null }).then(resolve); } };
 
 describe("Procura vendor catalog", () => {
+  it("applies server-side search and country/sales-area filters before paging", async () => {
+    const applied: Array<[string, unknown]> = [];
+    const vendors = { select() { return this; }, eq() { return this; }, is() { return this; }, not() { return this; }, gte() { return this; }, order() { return this; },
+      textSearch(field: string, value: string) { applied.push([field, value]); return this; },
+      ilike(field: string, value: string) { applied.push([field, value]); return this; },
+      async range() { return { data: [], error: null }; } };
+    const profile = { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { timezone: "America/Caracas" }, error: null }; } };
+    accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: (table: string) => table === "vendors" ? vendors : table === "user_profiles" ? profile : emptyTable } });
+    await ProcurementPage({ searchParams: Promise.resolve({ buscarProveedor: "válvulas", pais: "Venezuela", areaVenta: "Por clasificar" }) });
+    expect(applied).toContainEqual(["search_document", "válvulas"]);
+    expect(applied).toContainEqual(["country", "Venezuela"]);
+    expect(applied).toContainEqual(["sales_area", "Por clasificar"]);
+  });
   it("renders creation and editable vendors scoped to the authorized organization", async () => {
     const filters: Array<[string, unknown]> = [];
     const vendors = { select() { return this; }, eq(key: string, value: unknown) { filters.push([key, value]); return this; },
@@ -33,11 +46,14 @@ describe("Procura vendor catalog", () => {
     expect(html).toContain("Acme S.A.");
     expect(html).toContain("ana@example.com");
     expect(html).toContain("Editar proveedor");
-    expect(html).toContain("Área asociada");
+    for (const label of ["Proveedor", "País", "RIF / identificación fiscal", "Teléfono", "Correo electrónico", "Área de venta", "Persona de contacto", "Sitio web", "Ciudad", "Detalle de productos y servicios"])
+      expect(html).toContain(label);
     expect(html).toContain("Eliminar proveedor");
-    expect(html).toContain("Sin asignar");
-    for (const [code, label] of [["siaho", "SIAHO"], ["products_services", "Productos y Servicios"], ["operations", "Operaciones"], ["administration", "Administración"], ["finance", "Finanzas"], ["it", "TI"]])
-      expect(html).toContain(`<option value="${code}">${label}</option>`);
+    expect(html).toContain("Importar proveedores");
+    expect(html).toContain('name="buscarProveedor"');
+    expect(html).toContain('name="pais"');
+    expect(html).toContain('name="areaVenta"');
+    expect(html).toContain(`/procura/proveedores/${row.id}`);
   });
 
   it("paginates after 50 vendors without hiding the next page", async () => {
@@ -49,8 +65,8 @@ describe("Procura vendor catalog", () => {
     const html = renderToStaticMarkup(await ProcurementPage({ searchParams: Promise.resolve({ pagina: "2", archivoPagina: "3" }) }));
     expect(ranges).toContainEqual([50, 100]);
     expect(ranges).toContainEqual([100, 150]);
-    expect(html).toContain("/procura?pagina=1&amp;archivoPagina=3");
-    expect(html).toContain("/procura?pagina=3&amp;archivoPagina=3");
+    expect(html).toContain("/procura?pagina=1&amp;archivoPagina=3#proveedores");
+    expect(html).toContain("/procura?pagina=3&amp;archivoPagina=3#proveedores");
     expect(html).not.toContain("<strong>Proveedor 50</strong>");
   });
 
