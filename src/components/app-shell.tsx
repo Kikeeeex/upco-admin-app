@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 
 const navigation = [
@@ -14,16 +17,44 @@ const navigation = [
   { href: "/configuracion", label: "Configuración", icon: "⚙" },
 ] as const;
 
+const sidebarStorageKey = "upco-sidebar-collapsed";
+const sidebarChangeEvent = "upco-sidebar-change";
+let fallbackCollapsed = false;
+
+function sidebarSnapshot() {
+  try { return window.localStorage.getItem(sidebarStorageKey) === "true"; }
+  catch { return fallbackCollapsed; }
+}
+
+function subscribeSidebar(notify: () => void) {
+  window.addEventListener("storage", notify);
+  window.addEventListener(sidebarChangeEvent, notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener(sidebarChangeEvent, notify);
+  };
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
+  const collapsed = useSyncExternalStore(subscribeSidebar, sidebarSnapshot, () => false);
+  const toggleSidebar = () => {
+    const next = !collapsed;
+    try { window.localStorage.setItem(sidebarStorageKey, String(next)); }
+    catch { fallbackCollapsed = next; }
+    window.dispatchEvent(new Event(sidebarChangeEvent));
+  };
   return (
     <div className="app-frame">
-      <aside className="sidebar">
+      <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`}>
         <Link href="/inicio" className="brand" aria-label="UPCO Admin, ir a Inicio">
           <Image src="/brand/upco-logo-light.png" alt="" width={226} height={93} className="brand-logo" priority />
         </Link>
+        <button type="button" className="sidebar-toggle" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú lateral" : "Contraer menú lateral"} aria-expanded={!collapsed} aria-controls="main-navigation">
+          <span aria-hidden="true">{collapsed ? "›" : "‹"}</span><span className="sidebar-toggle-label">{collapsed ? "Expandir" : "Contraer"}</span>
+        </button>
         <p className="nav-caption">ESPACIO DE TRABAJO</p>
-        <nav aria-label="Navegación principal" className="main-nav">
-          {navigation.map(({ href, label, icon }) => <Link key={href} href={href}><span aria-hidden="true">{icon}</span>{label}</Link>)}
+        <nav id="main-navigation" aria-label="Navegación principal" className="main-nav">
+          {navigation.map(({ href, label, icon }) => <Link key={href} href={href} aria-label={collapsed ? label : undefined} title={collapsed ? label : undefined}><span aria-hidden="true">{icon}</span><span className="nav-label">{label}</span></Link>)}
         </nav>
         <div className="sidebar-footer"><span className="status-dot" /> Entorno de trabajo</div>
       </aside>
