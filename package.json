@@ -14,9 +14,12 @@
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
+    "csv-parse": "^6.1.0",
+    "exceljs": "^4.4.0",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "yauzl": "^3.2.0",
     "zod": "4.1.12"
   },
   "devDependencies": {
@@ -26,6 +29,7 @@
     "@types/node": "24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/yauzl": "^2.10.3",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "jsdom": "27.0.1",

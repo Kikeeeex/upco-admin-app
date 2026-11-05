@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { parseVendorInput, parseVendorUpdate, vendorArchiveCutoff, vendorArchiveExpiry } from "../../src/features/procurement/vendor-rules";
+import { parseVendorInput, parseVendorUpdate, vendorArchiveCutoff, vendorArchiveExpiry, parseVendorFilters, vendorListHref, safeVendorWebsiteUrl } from "../../src/features/procurement/vendor-rules";
 
 const orgId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const userId = "11111111-1111-4111-8111-111111111111";
@@ -37,6 +37,14 @@ describe("vendor validation", () => {
     for (const area of ["sales", "procurement", "general", ""])
       expect(() => parseVendorInput({ name: "Acme", associatedArea: area })).toThrow();
     expect(parseVendorInput({ name: "Acme", salesArea: "Nueva categoría" }).salesArea).toBe("Nueva categoría");
+  });
+  it("preserves directory filters across pagination and validates website links", () => {
+    const filters = parseVendorFilters({ buscarProveedor: "  válvulas  ", pais: " Venezuela ", areaVenta: " Por clasificar " });
+    expect(filters).toEqual({ query: "válvulas", country: "Venezuela", salesArea: "Por clasificar" });
+    expect(vendorListHref(filters, 2)).toBe("/procura?buscarProveedor=v%C3%A1lvulas&pais=Venezuela&areaVenta=Por+clasificar&pagina=2#proveedores");
+    expect(safeVendorWebsiteUrl("https://example.com/catalogo")).toBe("https://example.com/catalogo");
+    expect(safeVendorWebsiteUrl("www.example.com")).toBeNull();
+    expect(safeVendorWebsiteUrl("javascript:alert(1)")).toBeNull();
   });
 });
 
