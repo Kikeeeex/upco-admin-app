@@ -47,7 +47,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="app-frame">
       <aside className={`sidebar${collapsed ? " is-collapsed" : ""}`}>
         <Link href="/inicio" className="brand" aria-label="UPCO Admin, ir a Inicio">
-          <Image src="/brand/upco-logo-light.png" alt="" width={226} height={93} className="brand-logo" priority />
+          <Image src="/brand/upco-logo-light.png" alt="" width={226} height={93} className="brand-logo brand-logo-expanded" priority />
+          <Image src="/brand/logo-upco-blanco.png" alt="" width={863} height={1260} className="brand-logo brand-logo-collapsed" loading="lazy" />
         </Link>
         <button type="button" className="sidebar-toggle" onClick={toggleSidebar} aria-label={collapsed ? "Expandir menú lateral" : "Contraer menú lateral"} aria-expanded={!collapsed} aria-controls="main-navigation">
           <span aria-hidden="true">{collapsed ? "›" : "‹"}</span><span className="sidebar-toggle-label">{collapsed ? "Expandir" : "Contraer"}</span>

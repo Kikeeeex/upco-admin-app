@@ -94,3 +94,5 @@ Cambio solicitado el 05/11/2026: se amplió el catálogo de proveedores con los 
 Mejora de navegación solicitada posteriormente: la barra lateral de escritorio pasa de 300 a 228 px (208 px en pantallas medianas) y ofrece un botón para contraerla a 72 px. El estado se conserva en el navegador, los enlaces siguen identificados por nombre y la navegación móvil permanece horizontal.
 
 La mejora se publicó en `main` (`256ba50`). GitHub confirmó el despliegue de Vercel y la URL de pruebas sirvió la nueva regla CSS de la barra lateral. `/login` respondió 200 y `/inicio` sin sesión redirigió 307 al acceso. Pasaron 152 pruebas, typecheck, lint y build. El usuario confirmó desde una sesión autenticada que pudo contraer el menú, navegar a Procura, recargar con el menú aún contraído y volver a expandirlo.
+
+Personalización posterior: UPCO entregó `logo-upco-blanco.png` en un RAR. Se incorporó el PNG original para la barra contraída, conservando el logo horizontal al expandirla y en móvil. Se revisó visualmente sobre el fondo oscuro; pasaron 153 pruebas, typecheck, lint y build. Pendiente de comprobar el nuevo logo en staging autenticado tras publicar.

@@ -18,13 +18,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .sidebar { width: 228px; padding: 20px 12px 16px; background: var(--nav); color: #ededed; transition: width .18s ease; }
 .brand { display: block; margin: 0; padding: 12px 12px 24px; }
 .brand-logo { display: block; width: 100%; max-width: 174px; height: auto; }
+.brand-logo-collapsed { display: none; }
 .sidebar-toggle { display: flex; align-items: center; gap: 9px; width: calc(100% - 10px); min-height: 38px; margin: 0 5px 16px; padding: 6px 12px; border: 1px solid rgba(237, 237, 237, .28); border-radius: 8px; background: transparent; color: #ededed; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
 .sidebar-toggle:hover { background: rgba(237, 237, 237, .13); }
 .sidebar-toggle > span:first-child { font-size: 1.3rem; line-height: 1; }
 @media (min-width: 641px) {
   .sidebar.is-collapsed { width: 72px; padding-left: 9px; padding-right: 9px; }
   .sidebar.is-collapsed .brand { padding: 12px 0 20px; }
-  .sidebar.is-collapsed .brand-logo { width: 54px; }
+  .sidebar.is-collapsed .brand-logo-expanded { display: none; }
+  .sidebar.is-collapsed .brand-logo-collapsed { display: block; width: 54px; max-height: 82px; object-fit: contain; }
   .sidebar.is-collapsed .sidebar-toggle { width: 54px; justify-content: center; margin: 0 0 12px; padding: 5px; }
   .sidebar.is-collapsed .sidebar-toggle-label, .sidebar.is-collapsed .nav-caption,
   .sidebar.is-collapsed .sidebar-footer, .sidebar.is-collapsed .nav-label { display: none; }
