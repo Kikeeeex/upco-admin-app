@@ -71,7 +71,10 @@ export async function inspectVendorImport(form: FormData): Promise<ErrorResult |
   const access = await getAccessContext();
   if (access.kind !== "allowed") return fail("Tu sesión no está autorizada.");
   try {
-    const { parsed, mapping } = await readForm(form);
+    const file = form.get("file");
+    if (!(file instanceof File)) throw new Error("Selecciona un archivo XLSX o CSV.");
+    const parsed = await readVendorFile(file, stringField(form, "sheet"));
+    const mapping = guessVendorMapping(parsed.headers);
     return { kind: "success", fileName: parsed.fileName, format: parsed.format, sheets: parsed.sheets,
       sheetName: parsed.sheetName, headers: parsed.headers, mapping, rowsRead: parsed.rows.length, blankRows: parsed.blankRows };
   } catch (error) { return fail(error instanceof Error ? error.message : "No se pudo leer el archivo."); }
@@ -121,12 +124,22 @@ export async function commitVendorImport(form: FormData): Promise<ErrorResult | 
       p_organization_id: access.organizationId, p_format: parsed.format, p_rows: plan,
     });
     if (error || !data || typeof data !== "object") return fail("No se pudo guardar el lote. No se importó ninguna fila de este intento.");
+    const outcomes: unknown = data.results;
+    if (!Array.isArray(outcomes) || outcomes.length !== analyzed.length || outcomes.some((item, index) =>
+      !item || typeof item !== "object" || item.sourceRow !== analyzed[index].sourceRow ||
+      !["created", "updated", "skipped", "rejected"].includes(item.status))) {
+      return fail("El lote se procesó, pero la base no devolvió el detalle completo. Consulta el catálogo antes de repetir la carga.");
+    }
     revalidatePath("/procura");
     return { kind: "success", batchId: String(data.batchId), counts: { created: Number(data.created), updated: Number(data.updated),
       skipped: Number(data.skipped), rejected: Number(data.rejected) },
     incidents: analyzed.flatMap((row, index) => {
-      if (plan[index].mode === "create" || plan[index].mode === "update") return [];
-      return [{ sourceRow: row.sourceRow, status: row.status, reason: row.errors.join(" ") || row.reason || "Fila omitida." }];
+      const status = outcomes[index].status;
+      if (status === "created" || status === "updated") return [];
+      const reason = row.errors.join(" ") || (plan[index].mode === "create" || plan[index].mode === "update"
+        ? "La base de datos omitió la fila por una coincidencia o un cambio posterior a la vista previa."
+        : row.reason || "Fila omitida.");
+      return [{ sourceRow: row.sourceRow, status, reason }];
     }) };
   } catch (error) { return fail(error instanceof Error ? error.message : "No se pudo completar la importación."); }
 }

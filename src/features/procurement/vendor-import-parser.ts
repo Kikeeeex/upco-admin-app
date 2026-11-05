@@ -104,7 +104,7 @@ function csvDelimiter(text: string): string {
   const header = text.split(/\r?\n/, 1)[0];
   const commas = (header.match(/,/g) ?? []).length;
   const semicolons = (header.match(/;/g) ?? []).length;
-  if (commas === 0 && semicolons === 0) throw new Error("No se reconoció el delimitador CSV.");
+  if (commas === 0 && semicolons === 0) return ",";
   return semicolons > commas ? ";" : ",";
 }
 

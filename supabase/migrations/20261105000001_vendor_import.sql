@@ -30,6 +30,7 @@ DECLARE
   item jsonb;
   data jsonb;
   row_mode text;
+  source_row integer;
   vendor_name text;
   vendor_country text;
   vendor_tax text;
@@ -41,6 +42,7 @@ DECLARE
   skipped integer := 0;
   rejected integer := 0;
   batch_id uuid;
+  outcomes jsonb := '[]'::jsonb;
 BEGIN
   IF actor IS NULL OR NOT EXISTS (SELECT 1 FROM public.memberships m
     WHERE m.organization_id=p_organization_id AND m.user_id=actor AND m.active) THEN
@@ -53,8 +55,18 @@ BEGIN
   PERFORM pg_advisory_xact_lock(hashtextextended(p_organization_id::text, 0));
   FOR item IN SELECT value FROM jsonb_array_elements(p_rows) LOOP
     row_mode := item->>'mode';
-    IF row_mode = 'reject' THEN rejected := rejected + 1; CONTINUE; END IF;
-    IF row_mode = 'skip' THEN skipped := skipped + 1; CONTINUE; END IF;
+    source_row := (item->>'sourceRow')::integer;
+    IF source_row IS NULL OR source_row < 2 THEN RAISE EXCEPTION 'invalid source row' USING ERRCODE = '23514'; END IF;
+    IF row_mode = 'reject' THEN
+      rejected := rejected + 1;
+      outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','rejected'));
+      CONTINUE;
+    END IF;
+    IF row_mode = 'skip' THEN
+      skipped := skipped + 1;
+      outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','skipped'));
+      CONTINUE;
+    END IF;
     data := item->'data';
     IF jsonb_typeof(data) IS DISTINCT FROM 'object' THEN
       RAISE EXCEPTION 'vendor row lacks data' USING ERRCODE = '23514';
@@ -72,6 +84,7 @@ BEGIN
           AND (v.country IS NULL OR vendor_country IS NULL OR lower(btrim(regexp_replace(v.country, '[[:space:]]+', ' ', 'g'))) = lower(btrim(regexp_replace(vendor_country, '[[:space:]]+', ' ', 'g')))))
       )) THEN
         skipped := skipped + 1;
+        outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','skipped'));
         CONTINUE;
       END IF;
       vendor_id := NULL;
@@ -80,7 +93,13 @@ BEGIN
         nullif(btrim(data->>'email'),''),nullif(btrim(data->>'salesArea'),''),nullif(btrim(data->>'contactPerson'),''),
         nullif(btrim(data->>'website'),''),nullif(btrim(data->>'city'),''),nullif(btrim(data->>'productsServicesDetail'),''))
       ON CONFLICT DO NOTHING RETURNING id INTO vendor_id;
-      IF vendor_id IS NULL THEN skipped := skipped + 1; ELSE inserted := inserted + 1; END IF;
+      IF vendor_id IS NULL THEN
+        skipped := skipped + 1;
+        outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','skipped'));
+      ELSE
+        inserted := inserted + 1;
+        outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','created'));
+      END IF;
     ELSIF row_mode = 'update' THEN
       IF jsonb_typeof(item->'fields') IS DISTINCT FROM 'array' OR jsonb_array_length(item->'fields') = 0 THEN
         RAISE EXCEPTION 'update fields are required' USING ERRCODE = '23514';
@@ -92,7 +111,9 @@ BEGIN
         END IF;
       END LOOP;
       IF NOT EXISTS (SELECT 1 FROM unnest(selected_fields) f WHERE nullif(btrim(data->>f),'') IS NOT NULL) THEN
-        skipped := skipped + 1; CONTINUE;
+        skipped := skipped + 1;
+        outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','skipped'));
+        CONTINUE;
       END IF;
       BEGIN vendor_id := (item->>'vendorId')::uuid;
       EXCEPTION WHEN invalid_text_representation THEN RAISE EXCEPTION 'invalid vendor ID' USING ERRCODE = '23514'; END;
@@ -108,7 +129,13 @@ BEGIN
         city = CASE WHEN 'city'=ANY(selected_fields) THEN coalesce(nullif(btrim(data->>'city'),''),v.city) ELSE v.city END,
         products_services_detail = CASE WHEN 'productsServicesDetail'=ANY(selected_fields) THEN coalesce(nullif(btrim(data->>'productsServicesDetail'),''),v.products_services_detail) ELSE v.products_services_detail END
       WHERE v.id=vendor_id AND v.organization_id=p_organization_id AND v.created_by=actor AND v.archived_at IS NULL;
-      IF FOUND THEN updated := updated + 1; ELSE skipped := skipped + 1; END IF;
+      IF FOUND THEN
+        updated := updated + 1;
+        outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','updated'));
+      ELSE
+        skipped := skipped + 1;
+        outcomes := outcomes || jsonb_build_array(jsonb_build_object('sourceRow',source_row,'status','skipped'));
+      END IF;
     ELSE
       RAISE EXCEPTION 'invalid vendor import action' USING ERRCODE = '23514';
     END IF;
@@ -116,7 +143,7 @@ BEGIN
   INSERT INTO public.vendor_import_batches(organization_id,created_by,format,rows_read,created_count,updated_count,skipped_count,rejected_count)
   VALUES (p_organization_id,actor,p_format,jsonb_array_length(p_rows),inserted,updated,skipped,rejected)
   RETURNING id INTO batch_id;
-  RETURN jsonb_build_object('batchId',batch_id,'created',inserted,'updated',updated,'skipped',skipped,'rejected',rejected);
+  RETURN jsonb_build_object('batchId',batch_id,'created',inserted,'updated',updated,'skipped',skipped,'rejected',rejected,'results',outcomes);
 END;
 $$;
 REVOKE ALL ON FUNCTION public.import_vendor_directory(uuid,text,jsonb) FROM PUBLIC, anon, authenticated;

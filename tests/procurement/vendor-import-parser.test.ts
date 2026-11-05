@@ -34,6 +34,10 @@ describe("vendor directory file parser", () => {
     expect(mapped[0].data?.productsServicesDetail).toBe("Válvulas; y\nservicios");
     expect(mapped[1].data?.name).toBe("Proveedor Dos");
   });
+  it("accepts a valid single-column CSV with only provider names", async () => {
+    const parsed = await readVendorFile(csvFile("Proveedor\nProveedor Uno\nProveedor Dos"));
+    expect(mapVendorRows(parsed, guessVendorMapping(parsed.headers)).map((row) => row.data?.name)).toEqual(["Proveedor Uno", "Proveedor Dos"]);
+  });
 
   it("rejects unsupported extensions, corrupt XLSX and formulas in mapped cells", async () => {
     await expect(readVendorFile(csvFile("Proveedor\nUno", "datos.xlx"))).rejects.toThrow();

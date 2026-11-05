@@ -62,6 +62,6 @@
 **Files:** `docs/PROGRESO.md`, `docs/DECISIONES.md`, guía de uso y este plan.
 
 - [x] Ejecutar Vitest, typecheck, lint, build y SQL local.
-- [ ] Revisar cambios, documentar reversión y verificar permisos.
-- [ ] Si el token de Supabase está renovado, aplicar migración y SQL remoto antes de publicar `main`; comprobar staging.
+- [x] Revisar cambios, documentar reversión y verificar permisos.
+- [ ] Aplicar migración y SQL remoto antes de publicar `main`; comprobar staging. Migración y SQL remotos hechos; staging pendiente.
 - [ ] Registrar comprobaciones pendientes de navegador y resultado real de cada paso.
