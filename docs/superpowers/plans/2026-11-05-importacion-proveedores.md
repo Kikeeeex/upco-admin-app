@@ -63,5 +63,5 @@
 
 - [x] Ejecutar Vitest, typecheck, lint, build y SQL local.
 - [x] Revisar cambios, documentar reversión y verificar permisos.
-- [ ] Aplicar migración y SQL remoto antes de publicar `main`; comprobar staging. Migración y SQL remotos hechos; staging pendiente.
+- [x] Aplicar migración y SQL remoto antes de publicar `main`; comprobar staging.
 - [ ] Registrar comprobaciones pendientes de navegador y resultado real de cada paso.
