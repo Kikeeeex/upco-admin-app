@@ -3,14 +3,21 @@ import { z } from "zod";
 const optionalText = (max: number) => z.string().trim().max(max).transform((value) => value || undefined).optional();
 const optionalEmail = z.string().trim().max(254).transform((value) => value || undefined)
   .refine((value) => !value || z.email().safeParse(value).success, { message: "Correo no válido." }).optional();
+const legacyVendorAreas = ["siaho", "products_services", "operations", "administration", "finance", "it"] as const;
+export type LegacyVendorArea = typeof legacyVendorAreas[number];
 
 const vendor = z.object({
   name: z.string().trim().min(1).max(200).transform((value) => value.replace(/\s+/g, " ")),
-  associatedArea: z.enum(["siaho", "products_services", "operations", "administration", "finance", "it"]),
-  contactName: optionalText(200),
+  country: optionalText(100),
+  taxIdentifier: optionalText(100),
+  salesArea: optionalText(200),
+  contactPerson: optionalText(200),
+  website: optionalText(500),
+  city: optionalText(150),
+  productsServicesDetail: z.string().trim().transform((value) => value || undefined).optional(),
   email: optionalEmail,
   phone: optionalText(60),
-  notes: optionalText(2000),
+  associatedArea: z.enum(legacyVendorAreas).optional(),
 });
 
 export type VendorInput = z.infer<typeof vendor>;
@@ -19,12 +26,14 @@ export function parseVendorInput(value: unknown): VendorInput { return vendor.pa
 export function parseVendorUpdate(value: unknown): VendorUpdate { return vendor.extend({ id: z.uuid() }).parse(value); }
 
 export type VendorRow = {
-  id: string; name: string; contact_name: string | null; email: string | null; phone: string | null;
-  notes: string | null; associated_area: VendorInput["associatedArea"] | null;
+  id: string; name: string; country: string | null; tax_identifier: string | null;
+  contact_name: string | null; email: string | null; phone: string | null; sales_area: string | null;
+  website: string | null; city: string | null; products_services_detail: string | null;
+  notes: string | null; associated_area: LegacyVendorArea | null;
   archived_at: string | null; created_by: string; created_at: string; updated_at: string;
 };
 
-export const vendorAreaLabels: Record<VendorInput["associatedArea"], string> = {
+export const vendorAreaLabels: Record<LegacyVendorArea, string> = {
   siaho: "SIAHO", products_services: "Productos y Servicios", operations: "Operaciones",
   administration: "Administración", finance: "Finanzas", it: "TI",
 };

@@ -9,9 +9,11 @@ export type VendorActionState = { kind: "idle" | "success" | "error"; message: s
 
 function fields(form: FormData) {
   return {
-    name: form.get("name"), associatedArea: form.get("associatedArea"), contactName: form.get("contactName") || undefined,
-    email: form.get("email") || undefined, phone: form.get("phone") || undefined,
-    notes: form.get("notes") || undefined,
+    name: form.get("name"), country: form.get("country") || undefined,
+    taxIdentifier: form.get("taxIdentifier") || undefined, phone: form.get("phone") || undefined,
+    email: form.get("email") || undefined, salesArea: form.get("salesArea") || undefined,
+    contactPerson: form.get("contactPerson") || undefined, website: form.get("website") || undefined,
+    city: form.get("city") || undefined, productsServicesDetail: form.get("productsServicesDetail") || undefined,
   };
 }
 
@@ -20,14 +22,15 @@ export async function createVendor(_previous: VendorActionState, form: FormData)
   if (access.kind !== "allowed") return { kind: "error", message: "Tu sesión no está autorizada." };
   let input;
   try { input = parseVendorInput(fields(form)); }
-  catch { return { kind: "error", message: "Revisa el nombre, área, correo y datos de contacto del proveedor." }; }
+  catch { return { kind: "error", message: "Revisa los datos del proveedor y el formato del correo electrónico." }; }
   const { data, error } = await access.supabase.from("vendors").insert({
     organization_id: access.organizationId, created_by: access.user.id, name: input.name,
-    associated_area: input.associatedArea,
-    contact_name: input.contactName ?? null, email: input.email ?? null,
-    phone: input.phone ?? null, notes: input.notes ?? null,
+    country: input.country ?? null, tax_identifier: input.taxIdentifier ?? null,
+    phone: input.phone ?? null, email: input.email ?? null, sales_area: input.salesArea ?? null,
+    contact_name: input.contactPerson ?? null, website: input.website ?? null, city: input.city ?? null,
+    products_services_detail: input.productsServicesDetail ?? null,
   }).select("id").maybeSingle();
-  if (error?.code === "23505") return { kind: "error", message: "Ya existe un proveedor con ese nombre." };
+  if (error?.code === "23505") return { kind: "error", message: "Ya existe un proveedor con esos datos de identificación." };
   if (error || !data) return { kind: "error", message: "No se pudo guardar el proveedor." };
   revalidatePath("/procura");
   return { kind: "success", message: "Proveedor guardado." };
@@ -38,14 +41,15 @@ export async function updateVendor(_previous: VendorActionState, form: FormData)
   if (access.kind !== "allowed") return { kind: "error", message: "Tu sesión no está autorizada." };
   let input;
   try { input = parseVendorUpdate({ ...fields(form), id: form.get("id") }); }
-  catch { return { kind: "error", message: "Revisa el nombre, área, correo y datos de contacto del proveedor." }; }
+  catch { return { kind: "error", message: "Revisa los datos del proveedor y el formato del correo electrónico." }; }
   const { data, error } = await access.supabase.from("vendors").update({
-    name: input.name, associated_area: input.associatedArea,
-    contact_name: input.contactName ?? null, email: input.email ?? null,
-    phone: input.phone ?? null, notes: input.notes ?? null,
+    name: input.name, country: input.country ?? null, tax_identifier: input.taxIdentifier ?? null,
+    phone: input.phone ?? null, email: input.email ?? null, sales_area: input.salesArea ?? null,
+    contact_name: input.contactPerson ?? null, website: input.website ?? null, city: input.city ?? null,
+    products_services_detail: input.productsServicesDetail ?? null,
   }).eq("id", input.id).eq("organization_id", access.organizationId)
     .eq("created_by", access.user.id).is("archived_at", null).select("id").maybeSingle();
-  if (error?.code === "23505") return { kind: "error", message: "Ya existe un proveedor con ese nombre." };
+  if (error?.code === "23505") return { kind: "error", message: "Ya existe un proveedor con esos datos de identificación." };
   if (error || !data) return { kind: "error", message: "No se pudo actualizar el proveedor." };
   revalidatePath("/procura");
   return { kind: "success", message: "Proveedor actualizado." };

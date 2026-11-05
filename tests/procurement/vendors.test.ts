@@ -6,26 +6,37 @@ const userId = "11111111-1111-4111-8111-111111111111";
 const vendorId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
 describe("vendor validation", () => {
+  it("accepts the ten commercial fields with only Proveedor required", () => {
+    expect(parseVendorInput({ name: " Acme ", country: " Venezuela ", taxIdentifier: " J-001 ",
+      phone: "+58 0414-000", email: "ventas@example.com", salesArea: " Por clasificar ",
+      contactPerson: " Ana ", website: "www.example.com", city: " Caracas ",
+      productsServicesDetail: " Válvulas y equipos " })).toMatchObject({
+      name: "Acme", country: "Venezuela", taxIdentifier: "J-001", phone: "+58 0414-000",
+      salesArea: "Por clasificar", contactPerson: "Ana", website: "www.example.com",
+      city: "Caracas", productsServicesDetail: "Válvulas y equipos",
+    });
+    expect(parseVendorInput({ name: "Solo nombre" }).name).toBe("Solo nombre");
+  });
   it("uses an exact 30-day retention window", () => {
     expect(vendorArchiveCutoff(new Date("2026-10-30T12:00:00Z"))).toBe("2026-09-30T12:00:00.000Z");
     expect(vendorArchiveExpiry("2026-10-01T12:00:00Z")).toBe("2026-10-31T12:00:00.000Z");
   });
   it("requires a name and normalizes spaces", () => {
-    expect(parseVendorInput({ name: "  Acme   S.A.  ", associatedArea: "products_services", contactName: " Ana ", email: "" }))
-      .toMatchObject({ name: "Acme S.A.", contactName: "Ana", email: undefined });
-    expect(() => parseVendorInput({ name: "  ", associatedArea: "siaho" })).toThrow();
+    expect(parseVendorInput({ name: "  Acme   S.A.  ", contactPerson: " Ana ", email: "" }))
+      .toMatchObject({ name: "Acme S.A.", contactPerson: "Ana", email: undefined });
+    expect(() => parseVendorInput({ name: "  " })).toThrow();
   });
-  it("rejects invalid email and excessive notes", () => {
-    expect(() => parseVendorInput({ name: "Acme", associatedArea: "it", email: "sin-arroba" })).toThrow();
-    expect(() => parseVendorInput({ name: "Acme", associatedArea: "it", notes: "x".repeat(2001) })).toThrow();
-    expect(parseVendorUpdate({ id: vendorId, name: "Acme", associatedArea: "finance", phone: "" }).phone).toBeUndefined();
+  it("rejects invalid email and permits a long product description", () => {
+    expect(() => parseVendorInput({ name: "Acme", email: "sin-arroba" })).toThrow();
+    expect(parseVendorInput({ name: "Acme", productsServicesDetail: "x".repeat(3000) }).productsServicesDetail).toHaveLength(3000);
+    expect(parseVendorUpdate({ id: vendorId, name: "Acme", phone: "" }).phone).toBeUndefined();
   });
-  it("requires an existing associated area", () => {
+  it("keeps legacy areas optional and accepts arbitrary sales areas", () => {
     for (const area of ["siaho", "products_services", "operations", "administration", "finance", "it"])
       expect(parseVendorInput({ name: "Acme", associatedArea: area }).associatedArea).toBe(area);
     for (const area of ["sales", "procurement", "general", ""])
       expect(() => parseVendorInput({ name: "Acme", associatedArea: area })).toThrow();
-    expect(() => parseVendorInput({ name: "Acme" })).toThrow();
+    expect(parseVendorInput({ name: "Acme", salesArea: "Nueva categoría" }).salesArea).toBe("Nueva categoría");
   });
 });
 
@@ -42,16 +53,16 @@ describe("vendor actions", () => {
     let inserted: Record<string, unknown> = {};
     const query = { insert(value: Record<string, unknown>) { inserted = value; return this; }, select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
-    const result = await createVendor(initial, form({ name: " Acme  S.A. ", associatedArea: "it", contactName: "Ana", email: "ana@example.com", phone: "", notes: "" }));
+    const result = await createVendor(initial, form({ name: " Acme  S.A. ", country: "Venezuela", taxIdentifier: "J-001", salesArea: "Por clasificar", contactPerson: "Ana", email: "ana@example.com", phone: "" }));
     expect(result.kind).toBe("success");
-    expect(inserted).toMatchObject({ organization_id: orgId, created_by: userId, name: "Acme S.A.", associated_area: "it", phone: null, notes: null });
+    expect(inserted).toMatchObject({ organization_id: orgId, created_by: userId, name: "Acme S.A.", country: "Venezuela", tax_identifier: "J-001", sales_area: "Por clasificar", contact_name: "Ana", phone: null });
     expect(revalidatePath).toHaveBeenCalledWith("/procura");
   });
 
   it("reports a duplicate name without creating another supplier", async () => {
     const query = { insert() { return this; }, select() { return this; }, async maybeSingle() { return { data: null, error: { code: "23505" } }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
-    expect((await createVendor(initial, form({ name: "ACME S.A.", associatedArea: "operations" }))).message).toContain("Ya existe");
+    expect((await createVendor(initial, form({ name: "ACME S.A.", country: "Venezuela" }))).message).toContain("Ya existe");
   });
 
   it("edits only the requested owned vendor and clears optional fields", async () => {
@@ -59,9 +70,9 @@ describe("vendor actions", () => {
     const filters: Array<[string, unknown]> = [];
     const query = { update(value: Record<string, unknown>) { changes = value; return this; }, eq(field: string, value: unknown) { filters.push([field, value]); return this; }, is(field: string, value: unknown) { filters.push([field, value]); return this; }, select() { return this; }, async maybeSingle() { return { data: { id: vendorId }, error: null }; } };
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => query } });
-    const result = await updateVendor(initial, form({ id: vendorId, name: "Acme S.A.", associatedArea: "siaho", contactName: "", email: "", phone: "", notes: "" }));
+    const result = await updateVendor(initial, form({ id: vendorId, name: "Acme S.A.", country: "", taxIdentifier: "", salesArea: "", contactPerson: "", email: "", phone: "", website: "", city: "", productsServicesDetail: "" }));
     expect(result.kind).toBe("success");
-    expect(changes).toEqual({ name: "Acme S.A.", associated_area: "siaho", contact_name: null, email: null, phone: null, notes: null });
+    expect(changes).toEqual({ name: "Acme S.A.", country: null, tax_identifier: null, sales_area: null, contact_name: null, email: null, phone: null, website: null, city: null, products_services_detail: null });
     expect(filters).toContainEqual(["organization_id", orgId]);
     expect(filters).toContainEqual(["created_by", userId]);
     expect(filters).toContainEqual(["archived_at", null]);
@@ -105,6 +116,6 @@ describe("vendor actions", () => {
 
   it("rejects unauthenticated creation", async () => {
     accessContext.mockResolvedValue({ kind: "anonymous" });
-    expect((await createVendor(initial, form({ name: "Acme", associatedArea: "products_services" }))).kind).toBe("error");
+    expect((await createVendor(initial, form({ name: "Acme" }))).kind).toBe("error");
   });
 });

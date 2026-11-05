@@ -21,12 +21,6 @@ DO $$ DECLARE invalid_email text; BEGIN
   IF has_table_privilege('anon','public.vendors','SELECT') OR has_table_privilege('anon','public.vendors','DELETE')
     OR NOT has_table_privilege('authenticated','public.vendors','DELETE')
     OR has_column_privilege('authenticated','public.vendors','organization_id','UPDATE') THEN RAISE EXCEPTION 'vendor grants too broad'; END IF;
-  BEGIN
-    INSERT INTO public.vendors(organization_id, name, associated_area, created_by)
-    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '  ACME   s.a. ', 'finance', auth.uid());
-    RAISE EXCEPTION 'duplicate normalized vendor accepted';
-  EXCEPTION WHEN unique_violation THEN NULL;
-  END;
   FOREACH invalid_email IN ARRAY ARRAY['a@b.c.', 'a@b..c'] LOOP
     BEGIN
       INSERT INTO public.vendors(organization_id, name, associated_area, email, created_by)
@@ -35,12 +29,6 @@ DO $$ DECLARE invalid_email text; BEGIN
     EXCEPTION WHEN check_violation THEN NULL;
     END;
   END LOOP;
-  BEGIN
-    INSERT INTO public.vendors(organization_id, name, associated_area, created_by)
-    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', E'\tACME S.A.', 'it', auth.uid());
-    RAISE EXCEPTION 'tab-prefixed duplicate vendor accepted';
-  EXCEPTION WHEN unique_violation THEN NULL;
-  END;
   BEGIN
     INSERT INTO public.vendors(organization_id, name, associated_area, created_by)
     VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', E'\t', 'it', auth.uid());
@@ -59,25 +47,12 @@ DO $$ BEGIN
   IF (SELECT count(*) FROM public.vendors WHERE name='Acme S.A.' AND contact_name IS NULL AND email IS NULL AND notes='Actualizado') <> 1 THEN RAISE EXCEPTION 'vendor update failed'; END IF;
   IF (SELECT associated_area FROM public.vendors WHERE name='Acme S.A.') <> 'products_services' THEN RAISE EXCEPTION 'vendor area was not stored'; END IF;
   BEGIN
-    INSERT INTO public.vendors(organization_id, name, created_by)
-    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Sin área', auth.uid());
-    RAISE EXCEPTION 'vendor without area was accepted';
-  EXCEPTION WHEN check_violation THEN NULL;
-  END;
-  BEGIN
     UPDATE public.vendors SET associated_area='sales' WHERE name='Acme S.A.';
     RAISE EXCEPTION 'invalid vendor area accepted';
   EXCEPTION WHEN check_violation THEN NULL;
   END;
 END $$;
 UPDATE public.vendors SET associated_area='it' WHERE name='Acme S.A.';
-DO $$ BEGIN
-  BEGIN
-    UPDATE public.vendors SET associated_area=NULL WHERE name='Acme S.A.';
-    RAISE EXCEPTION 'existing area was cleared';
-  EXCEPTION WHEN check_violation THEN NULL;
-  END;
-END $$;
 UPDATE public.vendors SET archived_at='2000-01-01' WHERE name='Acme S.A.';
 DO $$ BEGIN
   IF (SELECT count(*) FROM public.vendors WHERE name='Acme S.A.' AND associated_area='it'
@@ -91,12 +66,6 @@ DO $$ BEGIN
     UPDATE public.vendors SET archived_at=NULL, notes='Edición prohibida' WHERE name='Acme S.A.';
     RAISE EXCEPTION 'restore and edit was accepted';
   EXCEPTION WHEN check_violation THEN NULL;
-  END;
-  BEGIN
-    INSERT INTO public.vendors(organization_id, name, associated_area, created_by)
-    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ACME S.A.', 'finance', auth.uid());
-    RAISE EXCEPTION 'archived duplicate name was accepted';
-  EXCEPTION WHEN unique_violation THEN NULL;
   END;
 END $$;
 
