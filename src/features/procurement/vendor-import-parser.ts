@@ -3,18 +3,12 @@ import ExcelJS from "exceljs";
 import yauzl from "yauzl";
 import { parse as parseCsv } from "csv-parse/sync";
 import { parseVendorInput, safeVendorWebsiteUrl, type VendorInput } from "./vendor-rules";
+import { vendorImportFields, type VendorImportMapping } from "./vendor-import-fields";
+export { vendorImportFields } from "./vendor-import-fields";
+export type { VendorImportField, VendorImportMapping } from "./vendor-import-fields";
 
-export const MAX_VENDOR_FILE_BYTES = 10 * 1024 * 1024;
+export const MAX_VENDOR_FILE_BYTES = 4 * 1024 * 1024;
 export const MAX_VENDOR_ROWS = 10_000;
-export const vendorImportFields = [
-  { key: "name", label: "Proveedor" }, { key: "country", label: "País" },
-  { key: "taxIdentifier", label: "RIF / identificación fiscal" }, { key: "phone", label: "Teléfono" },
-  { key: "email", label: "Correo electrónico" }, { key: "salesArea", label: "Área de venta" },
-  { key: "contactPerson", label: "Persona de contacto" }, { key: "website", label: "Sitio web" },
-  { key: "city", label: "Ciudad" }, { key: "productsServicesDetail", label: "Detalle de productos y servicios" },
-] as const;
-export type VendorImportField = typeof vendorImportFields[number]["key"];
-export type VendorImportMapping = Partial<Record<VendorImportField, number>>;
 export type VendorFileRow = { sourceRow: number; cells: Array<{ text: string; formula: boolean }> };
 export type ParsedVendorFile = { fileName: string; format: "xlsx" | "csv"; sheetName: string | null; sheets: string[];
   headers: string[]; rows: VendorFileRow[]; blankRows: number };
@@ -39,8 +33,8 @@ function validateMapping(headers: string[], mapping: VendorImportMapping): void 
   const used = new Set<number>();
   for (const index of Object.values(mapping)) {
     if (index === undefined) continue;
-    if (!Number.isInteger(index) || index < 0 || index >= headers.length || !headers[index]?.trim() || used.has(index))
-      throw new Error("El mapeo contiene columnas inexistentes, vacías o repetidas.");
+    if (!Number.isInteger(index) || index < 0 || index >= headers.length || used.has(index))
+      throw new Error("El mapeo contiene columnas inexistentes o repetidas.");
     used.add(index);
   }
 }
@@ -88,8 +82,9 @@ async function readXlsx(buffer: Buffer, fileName: string, requestedSheet?: strin
   if (!sheet) throw new Error("La hoja seleccionada no existe en el archivo.");
   if (sheet.rowCount < 1 || sheet.rowCount - 1 > MAX_VENDOR_ROWS) throw new Error("La hoja no tiene encabezados o excede 10 000 filas.");
   const headerRow = sheet.getRow(1);
-  if (headerRow.cellCount > 100) throw new Error("El archivo tiene demasiadas columnas.");
-  const headers = Array.from({ length: headerRow.cellCount }, (_, i) => {
+  const columnCount = Math.max(headerRow.cellCount, sheet.columnCount);
+  if (columnCount > 100) throw new Error("El archivo tiene demasiadas columnas.");
+  const headers = Array.from({ length: columnCount }, (_, i) => {
     const cell = excelCell(headerRow.getCell(i + 1));
     if (cell.formula) throw new Error("Los encabezados no pueden contener fórmulas.");
     return cell.text;
@@ -122,8 +117,9 @@ function readCsv(buffer: Buffer, fileName: string): ParsedVendorFile {
   try { records = parseCsv(text, { bom: true, delimiter: csvDelimiter(text), info: true, relax_column_count: true, skip_empty_lines: false, max_record_size: 100_000 }) as unknown as typeof records; }
   catch { throw new Error("El CSV no es legible o contiene comillas sin cerrar."); }
   if (records.length < 1 || records.length - 1 > MAX_VENDOR_ROWS) throw new Error("El CSV no tiene encabezados o excede 10 000 filas.");
-  const headers = records[0].record;
-  if (headers.length > 100) throw new Error("El archivo tiene demasiadas columnas.");
+  const width = Math.max(...records.map((item) => item.record.length));
+  if (width > 100) throw new Error("El archivo tiene demasiadas columnas.");
+  const headers = Array.from({ length: width }, (_, index) => records[0].record[index] ?? "");
   const rows: VendorFileRow[] = [];
   let blankRows = 0;
   let previousEndLine = records[0].info.lines;
@@ -139,7 +135,7 @@ function readCsv(buffer: Buffer, fileName: string): ParsedVendorFile {
 
 export async function readVendorFile(file: File, requestedSheet?: string): Promise<ParsedVendorFile> {
   if (!(file instanceof File) || file.size === 0 || file.size > MAX_VENDOR_FILE_BYTES)
-    throw new Error("Selecciona un archivo de hasta 10 MB.");
+    throw new Error("Selecciona un archivo de hasta 4 MB.");
   const extension = file.name.split(".").at(-1)?.toLowerCase();
   if (extension !== "xlsx" && extension !== "csv") throw new Error("Formato no compatible. Usa .xlsx o .csv.");
   const allowedMime = extension === "xlsx"

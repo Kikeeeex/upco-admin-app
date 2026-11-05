@@ -16,7 +16,7 @@ Se añaden `country`, `tax_identifier`, `sales_area`, `website`, `city`, `produc
 
 Next.js sigue con acciones de servidor y el cliente Supabase del usuario. El navegador conserva el archivo hasta confirmar; el servidor lo lee en inspección, vista previa y confirmación. No se almacena el original ni se envía a terceros. La confirmación recalcula validación y coincidencias y llama a una función SQL invocadora que escribe el lote en una transacción; cada fila recibe número de origen. La política normal omite coincidencias y filas de revisión, y el resultado presenta conteos e incidencias. Un registro de lote guarda solo metadatos y conteos.
 
-El parser acepta XLSX y CSV (UTF-8/BOM, coma o punto y coma), hasta 10 MB y 10 000 filas. Comprueba firma/estructura, rechaza fórmulas en campos importables y no lee la columna M salvo mapeo explícito. La hoja del directorio se preselecciona. El usuario puede ajustar el mapeo de los diez campos; solo «Proveedor» es obligatorio. El texto se trata como dato inerte. Sitio web se conserva como texto y solo se enlaza si forma una URL segura.
+El parser acepta XLSX y CSV (UTF-8/BOM, coma o punto y coma), hasta 4 MB y 10 000 filas. El límite es configurable y deja margen bajo el tope de carga de Vercel de 4,5 MB por petición. Comprueba firma/estructura, rechaza fórmulas en campos importables y no lee la columna M salvo mapeo explícito. La hoja del directorio se preselecciona. El usuario puede ajustar el mapeo de los diez campos; solo «Proveedor» es obligatorio. El texto se trata como dato inerte. Sitio web se conserva como texto y solo se enlaza si forma una URL segura.
 
 ## Coincidencias y actualización
 
@@ -30,6 +30,6 @@ El directorio muestra columnas principales, búsqueda por los cinco campos pedid
 
 - Parsear solo en el navegador ahorra cargas repetidas, pero no satisface la validación del servidor y aumenta el código cliente.
 - Guardar el Excel en Supabase entre pasos reduce la segunda carga, pero conserva contactos innecesariamente.
-- Releer el archivo al confirmar mantiene el estado temporal en el navegador y permite volver a validar con un costo de lectura aceptable para 81 filas y el límite de 10 MB. **Elegido**.
+- Releer el archivo al confirmar mantiene el estado temporal en el navegador y permite volver a validar con un costo de lectura aceptable para 81 filas y el límite de 4 MB. **Elegido**.
 
 La migración SQL y el código pueden probarse localmente. El token de administración de Supabase presente al iniciar devolvió 401, por lo que la aplicación remota de la migración requiere renovar esa variable antes de publicar una interfaz que consulte las columnas nuevas.

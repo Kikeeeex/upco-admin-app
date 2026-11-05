@@ -29,39 +29,39 @@
 
 **Files:** `supabase/migrations/20261105000000_vendor_directory.sql`, `tests/sql/vendor_directory.sql`, `scripts/test-sql.sh`, `src/features/procurement/vendor-rules.ts`, `tests/procurement/vendors.test.ts`.
 
-- [ ] Escribir pruebas fallidas para diez campos, solo nombre obligatorio y preservación de datos legados/relaciones.
-- [ ] Implementar migración, permisos y reglas de validación; conservar disparadores de archivo.
-- [ ] Ejecutar pruebas dirigidas y SQL local.
+- [x] Escribir pruebas fallidas para diez campos, solo nombre obligatorio y preservación de datos legados/relaciones.
+- [x] Implementar migración, permisos y reglas de validación; conservar disparadores de archivo.
+- [x] Ejecutar pruebas dirigidas y SQL local.
 
 ### Task 2: Directorio y ficha
 
 **Files:** `src/components/vendor-forms.tsx`, `src/features/procurement/vendor-actions.ts`, `src/app/(dashboard)/procura/page.tsx`, `src/app/(dashboard)/procura/proveedores/[id]/page.tsx`, estilos y pruebas UI.
 
-- [ ] Escribir pruebas fallidas de alta/edición/lista/ficha/búsqueda/filtros.
-- [ ] Implementar los diez campos y consultas paginadas sin tocar el selector de solicitudes.
-- [ ] Ejecutar pruebas dirigidas.
+- [x] Escribir pruebas fallidas de alta/edición/lista/ficha/búsqueda/filtros.
+- [x] Implementar los diez campos y consultas paginadas sin tocar el selector de solicitudes.
+- [x] Ejecutar pruebas dirigidas.
 
 ### Task 3: Parser y vista previa
 
 **Files:** `src/features/procurement/vendor-import-parser.ts`, `vendor-import-rules.ts`, tests sintéticos, `next.config.ts`.
 
-- [ ] Escribir pruebas fallidas para XLSX/CSV, BOM, delimitadores, mapeo, columna M, límites, fórmulas, validación y duplicados.
-- [ ] Instalar únicamente las dependencias de lectura necesarias e implementar parser y análisis.
-- [ ] Ejecutar pruebas dirigidas y comprobar lectura local del Excel real sin publicar datos.
+- [x] Escribir pruebas fallidas para XLSX/CSV, BOM, delimitadores, mapeo, columna M, límites, fórmulas, validación y duplicados.
+- [x] Instalar únicamente las dependencias de lectura necesarias e implementar parser y análisis.
+- [x] Ejecutar pruebas dirigidas y comprobar lectura local del Excel real sin publicar datos.
 
 ### Task 4: Confirmación atómica y asistente
 
 **Files:** migración SQL, `src/features/procurement/vendor-import-actions.ts`, `src/components/vendor-import-wizard.tsx`, `src/app/(dashboard)/procura/importar/page.tsx`, pruebas de acciones/UI/SQL.
 
-- [ ] Escribir pruebas fallidas de autorización, omisión, actualización seleccionada, confirmación y conteos.
-- [ ] Implementar función SQL invocadora, acciones y asistente Archivo → Mapeo → Vista previa → Resultado.
-- [ ] Ejecutar pruebas dirigidas y SQL local.
+- [x] Escribir pruebas fallidas de autorización, omisión, actualización seleccionada, confirmación y conteos.
+- [x] Implementar función SQL de lote atómico, acciones y asistente Archivo → Mapeo → Vista previa → Resultado.
+- [x] Ejecutar pruebas dirigidas y SQL local.
 
 ### Task 5: Cierre y publicación
 
 **Files:** `docs/PROGRESO.md`, `docs/DECISIONES.md`, guía de uso y este plan.
 
-- [ ] Ejecutar Vitest, typecheck, lint, build y SQL local.
+- [x] Ejecutar Vitest, typecheck, lint, build y SQL local.
 - [ ] Revisar cambios, documentar reversión y verificar permisos.
 - [ ] Si el token de Supabase está renovado, aplicar migración y SQL remoto antes de publicar `main`; comprobar staging.
 - [ ] Registrar comprobaciones pendientes de navegador y resultado real de cada paso.

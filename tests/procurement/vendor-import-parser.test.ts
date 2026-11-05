@@ -23,6 +23,7 @@ describe("vendor directory file parser", () => {
     const mapped = mapVendorRows(parsed, mapping);
     expect(mapped[0].data).toMatchObject({ name: "Proveedor Uno", taxIdentifier: "J-001", phone: "+58 0414-000", salesArea: "Por clasificar", productsServicesDetail: "Válvulas" });
     expect(JSON.stringify(mapped)).not.toContain("Instrucción interna");
+    expect(mapVendorRows(parsed, { ...mapping, productsServicesDetail: 12 })[0].data?.productsServicesDetail).toBe("Instrucción interna: no importar");
   });
 
   it("reads BOM, semicolon CSV and quoted multiline descriptions with source lines", async () => {
