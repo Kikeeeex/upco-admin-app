@@ -11,7 +11,7 @@ Fecha: 2026-11-06. Alcance de esta entrega: inventario, tokens, integración mí
 | SQL | Pasa | `bash scripts/test-sql.sh`; ejecuta dentro de transacción revertida |
 | Navegación | Pasa en pruebas de componentes | Nueve rutas, estado activo, persistencia de sidebar, grupos, contexto anidado, menú móvil, Escape y retorno de foco |
 | Procura | Pasa en pruebas de páginas y componentes | Artículos, campos, enlaces, proveedores, filtros de servidor, permisos representados en UI y tablas desplazables con teclado |
-| Responsive 390/800/1440 | Pendiente visual | La compilación CSS confirma clases; Chromium local no produjo capturas en este entorno. No se ha revisado con sesión autenticada |
+| Responsive 390/800/1440 | Parcial, pendiente comparación | UPCO aportó capturas previas de Inicio y Procura en escritorio y móvil, sin dimensiones nativas indicadas. Faltan tableta y capturas posteriores; Chromium local no produjo capturas en este entorno |
 | Contraste | Tokens medidos | Cálculos en `UI_UX_V2_TOKENS.md`; falta inspección visual de estados reales |
 | Alta autenticada de dos artículos | Pendiente | La prueba SQL de multiartículo pasa, pero se requiere alta real en el entorno de pruebas |
 
