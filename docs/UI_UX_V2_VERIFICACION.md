@@ -9,6 +9,8 @@ Fecha: 2026-11-06. Alcance de esta entrega: inventario, tokens, integración mí
 | ESLint | Pasa | `npm run lint` |
 | Compilación Next.js | Pasa sin avisos | `npm run build` |
 | SQL | Pasa | `bash scripts/test-sql.sh`; ejecuta dentro de transacción revertida |
+| CI y despliegue del PR #1 | Pasan | GitHub `verify` y Vercel informan éxito para la rama de vista previa; no se ha desplegado a producción |
+| Acceso a la vista previa | Bloqueado por configuración | Captura del usuario: `/login` carga, pero Microsoft está deshabilitado porque falta al menos una de `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` o `ENTRA_TENANT_ID` en Vercel Preview. El callback exacto de la rama tampoco figura en `uri_allow_list` de Supabase; se solicitó autorización antes de modificarlo |
 | Navegación | Pasa en pruebas de componentes | Nueve rutas, estado activo, persistencia de sidebar, grupos, contexto anidado, menú móvil, Escape y retorno de foco |
 | Procura | Pasa en pruebas de páginas y componentes | Artículos, campos, enlaces, proveedores, filtros de servidor, permisos representados en UI y tablas desplazables con teclado |
 | Responsive 390/800/1440 | Parcial, pendiente comparación | UPCO aportó capturas previas de Inicio y Procura en escritorio y móvil, sin dimensiones nativas indicadas. Faltan tableta y capturas posteriores; Chromium local no produjo capturas en este entorno |
