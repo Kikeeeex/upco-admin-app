@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppShell } from "../../src/components/app-shell";
 import { PendingPage } from "../../src/components/pending-page";
+
+vi.mock("next/navigation", () => ({ usePathname: () => "/inicio" }));
 
 describe("AppShell", () => {
   it("offers every required area and common view", () => {
