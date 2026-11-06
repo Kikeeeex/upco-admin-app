@@ -76,7 +76,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
     <section id="solicitudes-activas" className="work-card work-list"><h2>Solicitudes activas</h2>
       {requests.error || requestDetailsResult.error ? <p role="alert" className="error-message">No se pudieron cargar las solicitudes.</p> : requestRows.length === 0 ?
         <p className="work-empty">{requestPage > 1 ? "No hay más solicitudes en esta página." : "Aún no hay solicitudes registradas."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Código</th><th>Primer artículo o servicio</th><th>Artículos</th><th>Número de parte</th><th>Cantidad</th><th>Sede de destino</th><th>Solicitante</th><th>Proveedor</th><th>Estado</th><th>Ficha</th></tr></thead><tbody>
+        <div className="table-scroll procurement-table" role="region" aria-label="Tabla de solicitudes activas" tabIndex={0}><table><thead><tr><th>Código</th><th>Primer artículo o servicio</th><th>Artículos</th><th>Número de parte</th><th>Cantidad</th><th>Sede de destino</th><th>Solicitante</th><th>Proveedor</th><th>Estado</th><th>Ficha</th></tr></thead><tbody>
           {requestRows.slice(0, PAGE_SIZE).map((item) => { const detail = requestDetails.get(item.id); return <tr key={item.id}>
             <td>{item.code}</td><td>{item.title}</td><td>{detail ? `${detail.item_count} ${detail.item_count === 1 ? "artículo" : "artículos"}` : "—"}</td><td>{detail?.part_number ?? "—"}</td><td>{detail ? `${Number(detail.quantity).toLocaleString("es-VE", { maximumFractionDigits: 3 })} ${detail.unit}` : "—"}</td>
             <td>{item.site_id ? siteLabels.get(item.site_id) ?? "Sede no disponible" : "—"}</td><td>{[detail?.requester_first_name, detail?.requester_last_name].filter(Boolean).join(" ") || "No registrado"}</td><td>{detail?.vendor_name ?? "Por definir"}</td><td>{item.status === "pending" ? "Pendiente" : item.status}</td>
@@ -99,7 +99,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
       </form>
       {vendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores.</p> : rows.length === 0 ?
         <p className="work-empty">{page > 1 ? "No hay más proveedores en esta página." : filters.query || filters.country || filters.salesArea ? "No hay proveedores que coincidan con los filtros." : "Aún no hay proveedores registrados. Puedes crear uno o importar un archivo."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>País</th><th>Área de venta</th><th>Persona de contacto</th><th>Teléfono</th><th>Correo electrónico</th><th>Ficha</th><th>Acción</th></tr></thead><tbody>
+        <div className="table-scroll procurement-table" role="region" aria-label="Tabla de proveedores" tabIndex={0}><table><thead><tr><th>Proveedor</th><th>País</th><th>Área de venta</th><th>Persona de contacto</th><th>Teléfono</th><th>Correo electrónico</th><th>Ficha</th><th>Acción</th></tr></thead><tbody>
           {rows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
             <td><strong>{vendor.name}</strong></td><td>{vendor.country ?? "—"}</td><td>{vendor.sales_area ?? "—"}</td><td>{vendor.contact_name ?? "—"}</td><td>{vendor.phone ?? "—"}</td><td>{vendor.email ?? "—"}</td>
             <td><Link className="text-link" href={`/procura/proveedores/${vendor.id}`}>Ver ficha</Link></td>
@@ -117,7 +117,7 @@ export default async function ProcurementPage({ searchParams }: { searchParams: 
     <section id="proveedores-eliminados" className="work-card work-list"><h2>Proveedores eliminados</h2><p className="vendor-retention-note">Puedes restaurarlos durante 30 días. Después se eliminan permanentemente.</p>
       {archivedVendors.error ? <p role="alert" className="error-message">No se pudieron cargar los proveedores eliminados.</p> : archivedRows.length === 0 ?
         <p className="work-empty">{archivePage > 1 ? "No hay más proveedores eliminados en esta página." : "No hay proveedores eliminados."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>País</th><th>Eliminado</th><th>Eliminación definitiva</th><th>Acción</th></tr></thead><tbody>
+        <div className="table-scroll procurement-table" role="region" aria-label="Tabla de proveedores eliminados" tabIndex={0}><table><thead><tr><th>Proveedor</th><th>País</th><th>Eliminado</th><th>Eliminación definitiva</th><th>Acción</th></tr></thead><tbody>
           {archivedRows.slice(0, PAGE_SIZE).map((vendor) => <tr key={vendor.id}>
             <td><strong>{vendor.name}</strong></td><td>{vendor.country ?? "—"}</td>
             <td>{vendor.archived_at ? formatWorkItemDateTime(vendor.archived_at, timezone) : "—"}</td>

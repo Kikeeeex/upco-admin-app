@@ -126,3 +126,45 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .vendor-filter-form { margin: 18px 0 8px; }
 .vendor-filter-form .filter-actions { align-items: end; }
 .vendor-detail-text { white-space: pre-wrap; }
+
+/* Shared shell v2. The desktop width preference and both UPCO logos remain intact. */
+.main-nav a[aria-current="page"] { background: rgba(237, 237, 237, .16); color: #fff; box-shadow: inset 3px 0 0 #ededed; }
+.main-nav a svg { flex: none; width: 20px; color: #ededed; }
+.nav-group { display: grid; gap: 4px; margin-bottom: 10px; }
+.nav-group .nav-caption { display: block; margin: 12px 0 4px; }
+.sidebar.is-collapsed .nav-group .nav-caption { display: none; }
+.sidebar.is-collapsed .nav-group { margin-bottom: 8px; }
+.topbar-location { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.topbar-breadcrumb { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.topbar-breadcrumb a { color: inherit; }
+.topbar-breadcrumb a:hover { text-decoration: underline; }
+.mobile-menu-trigger { display: none; }
+.mobile-menu-panel { background: #041914; color: #ededed; border-color: rgba(237, 237, 237, .2); width: min(320px, 85vw); overflow-y: auto; }
+.mobile-menu-panel [data-slot="sheet-title"] { color: #ededed; }
+.mobile-menu-panel [data-slot="sheet-close"] { color: #ededed; min-width: 44px; min-height: 44px; }
+.mobile-nav { display: grid; gap: 4px; padding: 0 12px 20px; }
+.mobile-nav a { color: #ededed; }
+.mobile-nav a .nav-label { display: inline; color: inherit; font-size: .9rem; }
+.mobile-nav .nav-caption { display: block; color: #ededed; opacity: .65; }
+
+/* Procura pilot: preserve all columns and scroll dense tables within their own region. */
+.procurement-table { max-width: 100%; border: 1px solid var(--line); border-radius: 10px; overscroll-behavior-inline: contain; }
+.procurement-table:focus-visible { outline: 3px solid var(--upco-focus); outline-offset: 3px; }
+.procurement-table table { min-width: 620px; }
+#solicitudes-activas .procurement-table table { min-width: 1120px; }
+#proveedores .procurement-table table { min-width: 980px; }
+#proveedores-eliminados .procurement-table table { min-width: 850px; }
+.procurement-table th { white-space: nowrap; background: var(--upco-surface-subtle); color: var(--upco-text-muted); }
+.procurement-table td { line-height: 1.45; vertical-align: top; overflow-wrap: anywhere; }
+.procurement-table tbody tr:hover { background: var(--upco-surface-subtle); }
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .topbar { gap: 12px; }
+  .topbar-location { overflow: hidden; }
+  .topbar-location > div:last-child { min-width: 0; }
+  .topbar-location strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mobile-menu-trigger { display: inline-flex; flex: none; min-width: 44px; min-height: 44px; color: #0b4b32; }
+  .topbar-breadcrumb { display: none; }
+  .mobile-nav a { display: flex; align-items: center; gap: 13px; padding: 12px 14px; min-height: 44px; border-radius: 8px; }
+  .mobile-nav a:hover, .mobile-nav a:focus-visible { background: rgba(237, 237, 237, .13); color: #fff; }
+}

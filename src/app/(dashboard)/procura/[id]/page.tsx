@@ -57,7 +57,7 @@ export default async function ProcurementRequestDetailPage({ params }: { params:
     </section>
     <section className="work-card work-list"><h2>Artículos solicitados</h2>
       {linesResult.error ? <p role="alert" className="error-message">No se pudieron cargar los artículos.</p> :
-        <div className="table-scroll"><table><thead><tr><th>N.º</th><th>Artículo o servicio</th><th>Número de parte</th><th>Cantidad</th><th>Unidad</th></tr></thead><tbody>
+        <div className="table-scroll procurement-table" role="region" aria-label="Artículos de la solicitud" tabIndex={0}><table><thead><tr><th>N.º</th><th>Artículo o servicio</th><th>Número de parte</th><th>Cantidad</th><th>Unidad</th></tr></thead><tbody>
           {lines.map((line) => <tr key={line.id}><td>{line.position}</td><td>{line.article}</td><td>{line.part_number ?? "—"}</td><td>{Number(line.quantity).toLocaleString("es-VE", { maximumFractionDigits: 3 })}</td><td>{line.unit}</td></tr>)}
         </tbody></table></div>}
     </section>

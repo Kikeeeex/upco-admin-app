@@ -1,0 +1,18 @@
+# Verificación de modernización UI/UX v2
+
+Fecha: 2026-11-06. Alcance de esta entrega: inventario, tokens, integración mínima de shadcn/ui, shell compartido y primera mejora verificable del piloto Procura. La iniciativa completa continúa por fases.
+
+| Comprobación | Resultado | Evidencia y límite |
+|---|---|---|
+| Suite Vitest | 158 pasan, 1 omitida | `npm test`; 153 pasaban antes de esta fase |
+| TypeScript | Pasa | `npm run typecheck` |
+| ESLint | Pasa | `npm run lint` |
+| Compilación Next.js | Pasa sin avisos | `npm run build` |
+| SQL | Pasa | `bash scripts/test-sql.sh`; ejecuta dentro de transacción revertida |
+| Navegación | Pasa en pruebas de componentes | Nueve rutas, estado activo, persistencia de sidebar, grupos, contexto anidado, menú móvil, Escape y retorno de foco |
+| Procura | Pasa en pruebas de páginas y componentes | Artículos, campos, enlaces, proveedores, filtros de servidor, permisos representados en UI y tablas desplazables con teclado |
+| Responsive 390/800/1440 | Pendiente visual | La compilación CSS confirma clases; Chromium local no produjo capturas en este entorno. No se ha revisado con sesión autenticada |
+| Contraste | Tokens medidos | Cálculos en `UI_UX_V2_TOKENS.md`; falta inspección visual de estados reales |
+| Alta autenticada de dos artículos | Pendiente | La prueba SQL de multiartículo pasa, pero se requiere alta real en el entorno de pruebas |
+
+No se modificaron acciones de servidor, consultas, esquema, RLS, rutas, sesión ni nombres de `FormData`. No se publicó en producción. El shell y las tablas de Procura todavía requieren comparación antes/después con datos reales; hasta entonces no se declara concluida la fase 3 ni se extienden sus patrones a los demás módulos.
