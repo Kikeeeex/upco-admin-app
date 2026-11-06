@@ -142,6 +142,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .mobile-menu-panel { background: #041914; color: #ededed; border-color: rgba(237, 237, 237, .2); width: min(320px, 85vw); overflow-y: auto; }
 .mobile-menu-panel [data-slot="sheet-title"] { color: #ededed; }
 .mobile-menu-panel [data-slot="sheet-close"] { color: #ededed; min-width: 44px; min-height: 44px; }
+.mobile-menu-panel [data-slot="sheet-close"]:hover { background: rgba(237, 237, 237, .16); color: #ededed; }
+.mobile-menu-panel a:focus-visible, .mobile-menu-panel button:focus-visible { outline: 3px solid #ededed; outline-offset: 2px; }
 .mobile-nav { display: grid; gap: 4px; padding: 0 12px 20px; }
 .mobile-nav a { color: #ededed; }
 .mobile-nav a .nav-label { display: inline; color: inherit; font-size: .9rem; }
