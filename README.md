@@ -2,6 +2,8 @@
 
 Aplicación web en español para organizar trabajo de Administración, Procura, TI, Proyectos y Seguimientos. El alcance funcional está en [la especificación](docs/UPCO_Admin_Especificacion_MVP_v1_0.md); el estado de entrega está en [PROGRESO](docs/PROGRESO.md).
 
+El [contexto de la entrega fiscal V2](docs/fiscal-v2/CONTEXTO-Y-ESTADO.md) registra la incorporación pendiente de UPCO Compras y distingue el código disponible de los comportamientos declarados en la [matriz de validaciones](docs/fiscal-v2/VALIDACIONES-PENDIENTES.md). La documentación recibida no implica que el paquete de código fiscal ya esté integrado ni validado para uso fiscal real.
+
 ## Desarrollo local
 
 Requiere Node 24 y npm. En el entorno cloud, usar una caché npm bajo `/workspace` porque el directorio HOME no es escribible.
