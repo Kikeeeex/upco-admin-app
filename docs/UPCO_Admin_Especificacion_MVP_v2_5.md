@@ -100,6 +100,8 @@ Se añadieron PDF de retención IVA/ISLR con firma y sello del paquete fuente, g
 
 Se generaron respaldos lógicos JSON del esquema público antes de los cambios V2 y después de aplicar migraciones/cargar proveedores. Archivos privados en /workspace/private-backups, permisos 0600, con SHA-256. Incluyen datos de tablas del esquema public, no son un volcado físico de PostgreSQL ni incluyen auth o archivos binarios de Storage.
 
+El commit a37cb9d se publicó en main y Vercel lo marcó READY en https://upco-admin-app.vercel.app/.
+
 Queda pendiente implementar la confirmación transaccional de importaciones históricas de documentos y evaluar permisos granulares por submódulo. La vista previa histórica continúa local, sin enviar ni persistir el archivo. Los PDF se generan para revisión y no certifican aceptación por SENIAT.
 
 Para el inventario completo de fuentes, comportamientos, matriz y dependencias ver [diseño de Administración V2](superpowers/specs/2026-11-09-administracion-compras-contabilidad-design.md) y [plan de implementación](superpowers/plans/2026-11-09-administracion-compras-contabilidad.md).
