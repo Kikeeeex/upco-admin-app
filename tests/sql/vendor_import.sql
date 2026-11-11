@@ -10,6 +10,7 @@ DO $$ DECLARE result jsonb; BEGIN
   result := public.import_vendor_directory('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','xlsx',
     '[{"sourceRow":2,"mode":"create","data":{"name":"Proveedor Uno","country":"Venezuela","taxIdentifier":"J-001","phone":"+58 0414-000","email":"ventas@example.com","salesArea":"Por clasificar","contactPerson":"Ana","website":"www.example.com","city":"Caracas","productsServicesDetail":"Válvulas"}},{"sourceRow":3,"mode":"reject"}]'::jsonb);
   IF result->>'created' <> '1' OR result->>'rejected' <> '1' THEN RAISE EXCEPTION 'wrong import result %', result; END IF;
+  IF result->'results' IS DISTINCT FROM '[{"sourceRow":2,"status":"created"},{"sourceRow":3,"status":"rejected"}]'::jsonb THEN RAISE EXCEPTION 'missing row outcomes %', result; END IF;
   IF (SELECT count(*) FROM public.vendors WHERE name='Proveedor Uno' AND associated_area IS NULL AND phone='+58 0414-000') <> 1
     THEN RAISE EXCEPTION 'imported vendor missing'; END IF;
   IF (SELECT count(*) FROM public.vendor_import_batches WHERE created_count=1 AND rejected_count=1) <> 1
@@ -17,6 +18,7 @@ DO $$ DECLARE result jsonb; BEGIN
   result := public.import_vendor_directory('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','xlsx',
     '[{"sourceRow":2,"mode":"create","data":{"name":"PROVEEDOR UNO","country":"Venezuela","taxIdentifier":"J001"}}]'::jsonb);
   IF result->>'created' <> '0' OR result->>'skipped' <> '1' THEN RAISE EXCEPTION 'duplicate was not skipped %', result; END IF;
+  IF result->'results' IS DISTINCT FROM '[{"sourceRow":2,"status":"skipped"}]'::jsonb THEN RAISE EXCEPTION 'missing duplicate outcome %', result; END IF;
 END $$;
 DO $$ DECLARE target_vendor_id uuid; result jsonb; BEGIN
   SELECT v.id INTO target_vendor_id FROM public.vendors v WHERE v.name='Proveedor Uno';

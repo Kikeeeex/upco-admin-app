@@ -6,10 +6,12 @@ cleanup() { docker stop "$container" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 docker run --rm -d --name "$container" -e POSTGRES_PASSWORD=upco_test postgres:17-alpine >/dev/null
 for attempt in $(seq 1 30); do
-  if docker exec "$container" pg_isready -U postgres >/dev/null 2>&1; then break; fi
+  # The image starts a temporary socket-only server during initialization.
+  # TCP becomes available only after that server stops and the final one starts.
+  if docker exec "$container" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then break; fi
   sleep 1
 done
-docker exec "$container" pg_isready -U postgres >/dev/null
+docker exec "$container" pg_isready -h 127.0.0.1 -U postgres >/dev/null
 docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < tests/sql/bootstrap.sql
 for migration in supabase/migrations/*.sql; do
   docker exec -i "$container" psql -U postgres -v ON_ERROR_STOP=1 < "$migration"

@@ -27,7 +27,8 @@ const form = (extra: Record<string, string> = {}) => {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getAccessContext).mockResolvedValue({ kind: "allowed", user: { id: actor }, organizationId: org, supabase: { from: vi.fn(() => query()), rpc } } as never);
-  rpc.mockResolvedValue({ data: { batchId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", created: 1, updated: 0, skipped: 1, rejected: 0 }, error: null });
+  rpc.mockResolvedValue({ data: { batchId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", created: 1, updated: 0, skipped: 1, rejected: 0,
+    results: [{ sourceRow: 2, status: "skipped" }, { sourceRow: 3, status: "created" }] }, error: null });
 });
 
 describe("vendor import actions", () => {
@@ -54,7 +55,8 @@ describe("vendor import actions", () => {
     expect(await commitVendorImport(form({ digest: "incorrecto" }))).toMatchObject({ kind: "error" });
   });
   it("reports a selected update as updated rather than an omitted incident", async () => {
-    rpc.mockResolvedValue({ data: { batchId: "id", created: 1, updated: 1, skipped: 0, rejected: 0 }, error: null });
+    rpc.mockResolvedValue({ data: { batchId: "id", created: 1, updated: 1, skipped: 0, rejected: 0,
+      results: [{ sourceRow: 2, status: "updated" }, { sourceRow: 3, status: "created" }] }, error: null });
     const preview = await previewVendorImport(form());
     if (preview.kind !== "success") throw new Error("Vista previa falló");
     const result = await commitVendorImport(form({ digest: preview.digest, selectedRows: "[2]", selectedFields: '["phone"]' }));

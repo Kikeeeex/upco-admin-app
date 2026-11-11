@@ -124,12 +124,22 @@ export async function commitVendorImport(form: FormData): Promise<ErrorResult | 
       p_organization_id: access.organizationId, p_format: parsed.format, p_rows: plan,
     });
     if (error || !data || typeof data !== "object") return fail("No se pudo guardar el lote. No se importó ninguna fila de este intento.");
+    const outcomes: unknown = data.results;
+    if (!Array.isArray(outcomes) || outcomes.length !== analyzed.length || outcomes.some((item, index) =>
+      !item || typeof item !== "object" || item.sourceRow !== analyzed[index].sourceRow ||
+      !["created", "updated", "skipped", "rejected"].includes(item.status))) {
+      return fail("El lote se procesó, pero la base no devolvió el detalle completo. Consulta el catálogo antes de repetir la carga.");
+    }
     revalidatePath("/procura");
     return { kind: "success", batchId: String(data.batchId), counts: { created: Number(data.created), updated: Number(data.updated),
       skipped: Number(data.skipped), rejected: Number(data.rejected) },
     incidents: analyzed.flatMap((row, index) => {
-      if (plan[index].mode === "create" || plan[index].mode === "update") return [];
-      return [{ sourceRow: row.sourceRow, status: row.status, reason: row.errors.join(" ") || row.reason || "Fila omitida." }];
+      const status = outcomes[index].status;
+      if (status === "created" || status === "updated") return [];
+      const reason = row.errors.join(" ") || (plan[index].mode === "create" || plan[index].mode === "update"
+        ? "La base de datos omitió la fila por una coincidencia o un cambio posterior a la vista previa."
+        : row.reason || "Fila omitida.");
+      return [{ sourceRow: row.sourceRow, status, reason }];
     }) };
   } catch (error) { return fail(error instanceof Error ? error.message : "No se pudo completar la importación."); }
 }

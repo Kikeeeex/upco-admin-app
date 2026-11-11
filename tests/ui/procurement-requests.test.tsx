@@ -55,6 +55,7 @@ describe("procurement request pages", () => {
     expect(html).toContain("2 artículos");
     expect(html).toContain(`/procura/${itemId}`);
     expect(html).toContain('aria-label="Secciones de Procura"');
+    expect(html).toContain('role="region" aria-label="Tabla de solicitudes activas" tabindex="0"');
     for (const id of ["nueva-solicitud", "solicitudes-activas", "nuevo-proveedor", "proveedores", "proveedores-eliminados"]) {
       expect(html).toContain(`href="#${id}"`);
       expect(html).toContain(`id="${id}"`);
