@@ -1,0 +1,1 @@
+Los textos originales citados y sus fechas de consulta están en `../documentacion/FUENTES-NORMATIVAS-Y-TECNICAS.md`. Esta carpeta no contiene copias PDF: el entorno bloqueó su descarga. Revise la vigencia de las Gacetas antes de aplicar reglas fiscales nuevas.

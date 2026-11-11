@@ -1,0 +1,87 @@
+﻿code;description;beneficiary;ratePercent;taxableBasePercent;calculation;subtractionApplies;minimumWithheldLegacyBs;subtractionFactorUt;baseRuleNote
+001;Sueldos y Salarios;null;null;null;variable;false;;;"Sueldos y salarios: porcentaje anual determinado por AR-I; no procede una tasa fija."
+002;Honorarios Profesionales No Mercantiles;PNR;3;100;subtraction;true;;83.3334;
+003;Honorarios Profesionales No Mercantiles;PNNR;34;90;flat;false;;;
+004;Honorarios Profesionales No Mercantiles;PJD;5;100;threshold;false;1250;;
+005;Honorarios Profesionales No Mercantiles;PJND;null;90;tiered;false;;;
+006;Honorarios Profesionales Mancomunados No Mercantiles;PNR;3;100;subtraction;true;;83.3334;
+007;Honorarios Profesionales Mancomunados No Mercantiles;PNNR;34;90;flat;false;;;
+008;Honorarios Profesionales Mancomunados No Mercantiles;PJD;5;100;threshold;false;1250;;
+009;Honorarios Profesionales Mancomunados No Mercantiles;PJND;null;90;tiered;false;;;
+010;Honorarios Profesionales pagados a Jinetes, Veterinarios, Preparadores o Entrenadores;PNR;3;100;subtraction;true;;83.3334;
+011;Honorarios Profesionales pagados a Jinetes, Veterinarios, Preparadores o Entrenadores;PNNR;34;100;flat;false;;;
+012;Honorarios Profesionales pagados por Clínicas, Hospitales, Centros de Salud, Bufetes, Escritorios, Oficinas, Colegios Profesionales u otra Institución Profesionales No Mercantiles a Profesionales sin relación de dependencia;PNR;3;100;subtraction;true;;83.3334;
+013;Honorarios Profesionales pagados por Clínicas, Hospitales, Centros de Salud, Bufetes, Escritorios, Oficinas, Colegios Profesionales u otra Institución Profesionales No Mercantiles a Profesionales sin relación de dependencia;PNNR;34;100;flat;false;;;
+014;Comisiones pagadas por la venta de bienes inmuebles;PNR;3;100;subtraction;true;;83.3334;
+015;Comisiones pagadas por la venta de bienes inmuebles;PNNR;34;100;flat;false;;;
+016;Comisiones pagadas por la venta de bienes inmuebles;PJD;5;100;threshold;false;1250;;
+017;Comisiones pagadas por la venta de bienes inmuebles;PJND;5;100;flat;false;;;
+018;Cualquier otra Comisión distintas a Remuneraciones accesorias de los sueldos, salarios y demás remuneraciones similares;PNR;3;100;subtraction;true;;83.3334;
+019;Cualquier otra Comisión distintas a Remuneraciones accesorias de los sueldos, salarios y demás remuneraciones similares;PNNR;34;100;flat;false;;;
+020;Cualquier otra Comisión distintas a Remuneraciones accesorias de los sueldos, salarios y demás remuneraciones similares;PJD;5;100;threshold;false;1250;;
+021;Cualquier otra Comisión distintas a Remuneraciones accesorias de los sueldos, salarios y demás remuneraciones similares;PJND;5;100;flat;false;;;
+022;Intereses de Capitales tomados en préstamo e invertidos en la producción de la renta;PNNR;34;95;flat;false;;;
+023;Intereses de Capitales tomados en préstamo e invertidos en la producción de la renta;PJND;null;95;tiered;false;;;
+024;Intereses provenientes de préstamos y otros créditos pagaderos a instituciones financieras constituidas en el exterior y no domiciliadas en el país;PJND;4.95;100;flat;false;;;
+025;Intereses pagados por las personas jurídicas o comunidades a cualquier otra persona natural, jurídica o comunidad;PNR;3;100;subtraction;true;;83.3334;
+026;Intereses pagados por las personas jurídicas o comunidades a cualquier otra persona natural, jurídica o comunidad;PNNR;34;100;flat;false;;;
+027;Intereses pagados por las personas jurídicas o comunidades a cualquier otra persona natural, jurídica o comunidad;PJD;5;100;threshold;false;1250;;
+028;Intereses pagados por las personas jurídicas o comunidades a cualquier otra persona natural, jurídica o comunidad;PJND;null;100;tiered;false;;;
+029;Enriquecimientos Netos de las Agencias Internacionales cuando el pagador sea una personas jurídica o comunidad domiciliada en el país;PJND;null;15;tiered;false;;;
+030;Enriquecimientos netos por fletes pagados a empresas de transporte internacional constituidas y domiciliadas en el exterior;PNNR;null;null;tiered;false;;;"Art. 9 num. 5: base efectiva 5 % para fletes Venezuela/exterior; 100 % para transporte y operaciones conexas realizadas en el país. Requiere clasificar el trayecto."
+031;Enriquecimientos Netos de Gastos de Transporte conformados por fletes pagados a agencias o empresas de transporte internacional constituidas y domiciliadas en el exterior;PJND;null;null;tiered;false;;;"Art. 9 num. 5: base efectiva 5 % para fletes Venezuela/exterior; 100 % para transporte y operaciones conexas realizadas en el país. Requiere clasificar el trayecto."
+032;Enriquecimientos Netos de Exhibición de Películas, Cine o la Televisión;PNNR;34;25;flat;false;;;
+033;Enriquecimientos Netos de Exhibición de Películas, Cine o la Televisión;PJND;null;25;tiered;false;;;
+034;Enriquecimientos obtenidos por concepto de regalías y demás participaciones análogas;PNNR;34;90;flat;false;;;
+035;Enriquecimientos obtenidos por concepto de regalías y demás participaciones análogas;PJND;null;90;tiered;false;;;
+036;Enriquecimientos obtenidos por las Remuneraciones, Honorarios y pagos análogos por Asistencia Técnica;PNNR;34;30;flat;false;;;
+037;Enriquecimientos obtenidos por las Remuneraciones, Honorarios y pagos análogos por Asistencia Técnica;PJND;null;30;tiered;false;;;
+038;Enriquecimientos obtenidos por Servicios Tecnológicos utilizados en el país o cedidos a Terceros;PNNR;34;50;flat;false;;;
+039;Enriquecimientos obtenidos por Servicios Tecnológicos utilizados en el país o cedidos a Terceros;PJND;null;50;tiered;false;;;
+040;Enriquecimientos Netos derivados de las Primas de Seguros y Reaseguros;PJND;10;null;variable;false;;;"Art. 9 num. 8: 10 % sobre 30 % de las primas netas causadas en el país; requiere deducir rebajas, devoluciones y anulaciones."
+041;Ganancias Obtenidas por Juegos y Apuestas;PNR;34;100;flat;false;;;
+042;Ganancias Obtenidas por Juegos y Apuestas;PNNR;34;100;flat;false;;;
+043;Ganancias Obtenidas por Juegos y Apuestas;PJD;34;100;flat;false;;;
+044;Ganancias Obtenidas por Juegos y Apuestas;PJND;34;100;flat;false;;;
+045;Ganancias Obtenidas por Premios de Loterías y de Hipódromos;PNR;16;100;flat;false;;;
+046;Ganancias Obtenidas por Premios de Loterías y de Hipódromos;PNNR;16;100;flat;false;;;
+047;Ganancias Obtenidas por Premios de Loterías y de Hipódromos;PJD;16;100;flat;false;;;
+048;Ganancias Obtenidas por Premios de Loterías y de Hipódromos;PJND;16;100;flat;false;;;
+049;Pagos a Propietarios de Animales de Carrera por concepto de Premios;PNR;3;100;subtraction;true;;83.3334;
+050;Pagos a Propietarios de Animales de Carrera por concepto de Premios;PNNR;34;100;flat;false;;;
+051;Pagos a Propietarios de Animales de Carrera por concepto de Premios;PJD;5;100;threshold;false;1250;;
+052;Pagos a Propietarios de Animales de Carrera por concepto de Premios;PJND;5;100;flat;false;;;
+053;Pagos a Empresas Contratistas o Subcontratistas domiciliadas o no en el país, por la ejecución de obras o de la prestación de servicios en base a valuaciones y ordenes de pago;PNR;1;100;subtraction;true;;83.3334;
+054;Pagos a Empresas Contratistas o Subcontratistas domiciliadas o no en el país, por la ejecución de obras o de la prestación de servicios en base a valuaciones y ordenes de pago;PNNR;34;100;flat;false;;;
+055;Pagos a Empresas Contratistas o Subcontratistas domiciliadas o no en el país, por la ejecución de obras o de la prestación de servicios en base a valuaciones y ordenes de pago;PJD;2;100;flat;false;;;
+056;Pagos a Empresas Contratistas o Subcontratistas domiciliadas o no en el país, por la ejecución de obras o de la prestación de servicios en base a valuaciones y ordenes de pago;PJND;null;100;tiered;false;;;
+057;Pagos a los Arrendadores de los bienes inmuebles a los Arrendadores de los bienes inmuebles situados en el país;PNR;3;100;subtraction;true;;83.3334;
+058;Pagos a los Arrendadores de los bienes inmuebles a los Arrendadores de los bienes inmuebles situados en el país;PNNR;34;100;flat;false;;;
+059;Pagos a los Arrendadores de los bienes inmuebles a los Arrendadores de los bienes inmuebles situados en el país;PJD;5;100;threshold;false;1250;;
+060;Pagos a los Arrendadores de los bienes inmuebles a los Arrendadores de los bienes inmuebles situados en el país;PJND;null;100;tiered;false;;;
+061;Cánones de Arrendamientos de Bienes Muebles situados en el país;PNR;3;100;subtraction;true;;83.3334;
+062;Cánones de Arrendamientos de Bienes Muebles situados en el país;PNNR;34;100;flat;false;;;
+063;Cánones de Arrendamientos de Bienes Muebles situados en el país;PJD;5;100;threshold;false;1250;;
+064;Cánones de Arrendamientos de Bienes Muebles situados en el país;PJND;5;100;flat;false;;;
+065;Pagos de las Empresas Emisoras de Tarjetas de Crédito o Consumo por la Venta de Bienes y servicios, o cualquier otro concepto;PNR;3;null;variable;false;;;"Art. 9 num. 14: base especial de pagos de emisoras de tarjetas; requiere excluir el IVA incluido conforme a la fórmula legal."
+066;Pagos de las Empresas Emisoras de Tarjetas de Crédito o Consumo por la Venta de Bienes y servicios, o cualquier otro concepto;PNNR;34;null;variable;false;;;"Art. 9 num. 14: base especial de pagos de emisoras de tarjetas; requiere excluir el IVA incluido conforme a la fórmula legal."
+067;Pagos de las Empresas Emisoras de Tarjetas de Crédito o Consumo por la Venta de Bienes y servicios, o cualquier otro concepto;PJD;5;null;variable;false;;;"Art. 9 num. 14: base especial de pagos de emisoras de tarjetas; requiere excluir el IVA incluido conforme a la fórmula legal."
+068;Pagos de las Empresas Emisoras de Tarjetas de Crédito o Consumo por la Venta de Bienes y servicios, o cualquier otro concepto;PJND;5;null;variable;false;;;"Art. 9 num. 14: base especial de pagos de emisoras de tarjetas; requiere excluir el IVA incluido conforme a la fórmula legal."
+069;Pagos de las Empresas Emisoras de Tarjetas de Crédito por la venta de gasolina en las Estaciones de Servicios;PNR;1;null;variable;false;;;"Art. 9 num. 14: base especial de pagos de emisoras de tarjetas; requiere excluir el IVA incluido conforme a la fórmula legal."
+070;Pagos de las Empresas Emisoras de Tarjetas de Crédito por la venta de gasolina en las Estaciones de Servicios;PJD;1;null;variable;false;;;"Art. 9 num. 14: base especial de pagos de emisoras de tarjetas; requiere excluir el IVA incluido conforme a la fórmula legal."
+071;Pagos por gastos de transporte conformados por fletes;PNR;1;100;subtraction;true;;83.3334;
+072;Pagos por Gastos de Transporte conformados por Fletes;PJD;3;100;threshold;false;750;;
+073;Pagos de las Empresas de Seguro, las Sociedades de Corretaje de Seguros y las Empresas de Reaseguros por las Prestaciones de Servicios que le son propios;PNR;3;100;subtraction;true;;83.3334;
+074;Pagos de las Empresas de Seguro, las Sociedades de Corretaje de Seguros y las Empresas de Reaseguros por las Prestaciones de Servicios que le son propios;PJD;5;100;threshold;false;1250;;
+075;Pagos de las Empresas de Seguro a sus Contratistas por la Reparación de Daños sufridos de sus Asegurados;PNR;3;100;subtraction;true;;83.3334;
+076;Pagos de las Empresas de Seguro a sus Contratistas por la Reparación de Daños sufridos de sus Asegurados;PJD;5;100;threshold;false;1250;;
+077;Pagos de las Empresas de Seguros a Clínicas, Hospitales y/o Centros de Salud por la Atención Medica a sus Asegurados;PNR;3;100;subtraction;true;;83.3334;
+078;Pagos de las Empresas de Seguros a Clínicas, Hospitales y/o Centros de Salud por la Atención Medica a sus Asegurados;PJD;5;100;threshold;false;1250;;
+079;Cantidades que se paguen por adquisición de Fondos de Comercio situados en el país;PNR;3;100;subtraction;true;;83.3334;
+080;Cantidades que se paguen por adquisición de Fondos de Comercio situados en el país;PNNR;34;100;flat;false;;;
+081;Cantidades que se paguen por adquisición de Fondos de Comercio situados en el país;PJD;5;100;threshold;false;1250;;
+082;Cantidades que se paguen por adquisición de Fondos de Comercio situados en el país;PJND;5;100;flat;false;;;
+083;Pagos por Servicios de Publicidad y Propaganda y la Cesión de la Venta de Espacios para tales fines;PNR;3;100;subtraction;true;;83.3334;
+084;Pagos por Servicios de Publicidad y Propaganda y la Cesión de la Venta de Espacios para tales fines;PJD;5;100;threshold;false;1250;;
+085;Pagos por Servicios de Publicidad y Propaganda y la Cesión de la Venta de Espacios para tales fines;PJND;5;100;flat;false;;;
+086;Pagos por Servicios de Publicidad y Propaganda y la Cesión de la Venta de Espacios para tales fines a Emisoras de Radio;PJD;3;100;threshold;false;750;;

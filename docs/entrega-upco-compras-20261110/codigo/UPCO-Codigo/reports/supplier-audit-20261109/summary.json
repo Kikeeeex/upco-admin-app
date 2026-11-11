@@ -1,0 +1,22 @@
+{
+  "source_suppliers": 345,
+  "local_db_suppliers": 345,
+  "unique_rifs": 345,
+  "pdfs_opened": 346,
+  "source_pdfs_existing": 345,
+  "issue_counts": {
+    "taxpayer_type_unverified": 345,
+    "residency_inferred": 245,
+    "person_type_inferred": 240,
+    "historical_name_or_address_conflict": 45,
+    "iva_rate_inferred": 12,
+    "ivaRetentionRate_evidence_missing": 12,
+    "name_evidence_rif_not_found": 4,
+    "address_evidence_rif_not_found": 4,
+    "ivaRetentionRate_evidence_rif_not_found": 4,
+    "rif_not_found_in_source_text": 4,
+    "same_name_multiple_rifs": 2,
+    "person_type_vs_rif": 1
+  },
+  "unmatched_db_rifs": []
+}

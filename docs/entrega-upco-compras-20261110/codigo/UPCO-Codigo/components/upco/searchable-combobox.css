@@ -1,0 +1,13 @@
+.searchable-combobox{width:100%;min-width:0}
+.searchable-combobox-input-wrap{position:relative}
+.searchable-combobox-input-wrap input{padding-right:34px}
+.searchable-combobox-input-wrap svg{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#7e9a87;pointer-events:none}
+.searchable-combobox-list{max-height:215px;overflow-y:auto;margin-top:5px;border:1px solid #dce7e0;border-radius:8px;background:#fff;box-shadow:0 7px 20px #163d2c15}
+.searchable-combobox-option{padding:9px 11px;font-size:11px;color:#294736;cursor:pointer;line-height:1.35;border-bottom:1px solid #eef2ef;overflow-wrap:anywhere}
+.searchable-combobox-option:last-child{border-bottom:0}
+.searchable-combobox-option.active,.searchable-combobox-option:hover{background:#edf7ee;color:#16503a}
+.searchable-combobox-option[aria-selected="true"]{font-weight:800}
+.searchable-combobox-option span,.searchable-combobox-option small{display:block}
+.searchable-combobox-option small{margin-top:3px;color:#7d9283;font-size:10px}
+.searchable-combobox-empty,.searchable-combobox-hint{padding:9px 11px;color:#82948a;font-size:10px}
+.searchable-combobox-hint{border-top:1px solid #eef2ef}
