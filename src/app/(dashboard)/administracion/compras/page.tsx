@@ -23,7 +23,7 @@ async function ComprasContent({ issued }: { issued: boolean }) {
   const invoices = rows.filter((row) => row.document_type === "invoice").map((row) => ({ id: row.id, invoice_number: row.invoice_number, issued_at: row.issued_at, fiscal_vendor_id: row.fiscal_vendor_id }));
   const typeLabels: Record<string, string> = { invoice: "Factura", credit_note: "Nota de crédito", debit_note: "Nota de débito" };
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.5</span><h1>Compras y documentos</h1><p>Registra facturas recibidas y notas de crédito o débito.</p></div>
+    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.6</span><h1>Compras y documentos</h1><p>Registra facturas recibidas y notas de crédito o débito.</p></div>
     {issued && <p className="success-message" role="status">Documento emitido con cálculo, configuración y distribución contable inmutables.</p>}
     {access.role === "admin" && !vendorsResult.error && <AdministrationDraftForm vendors={vendorRows} invoices={invoices} />}
     <section className="work-card work-list">

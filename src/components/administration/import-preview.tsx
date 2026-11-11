@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { validateHistoricalImportAction } from "@/features/administration/imports/actions";
+import type { HistoricalImportValidation } from "@/features/administration/imports/validation";
 
 type PreviewRow = Record<string, string>;
 type Preview = { fileName: string; rows: PreviewRow[]; total: number; columns: string[]; documentTemplate: boolean; invalidRows: number; rowProblems: string[] };
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 const MAX_ROWS = 2000;
 const DISPLAY_ROWS = 10;
 const DOCUMENT_COLUMNS = ["RIF proveedor", "Tipo", "Fecha emisión", "Pago o abono", "Período IVA", "Quincena IVA", "Número documento", "Número control", "Factura afectada", "Exento", "Base 16%", "Base 8%", "Retención IVA %", "Monto IVA retenido", "Comprobante IVA", "Concepto ISLR", "Base ISLR", "Tasa ISLR %", "Monto ISLR", "Comprobante ISLR", "Descripción", "Cuenta código", "CECO reparto", "Aplica IGTF", "Base IGTF", "Base gravable ISLR", "Sustraendo ISLR"];
@@ -101,12 +103,15 @@ async function parseXlsx(file: File) {
 
 export function ImportPreview() {
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [validation, setValidation] = useState<HistoricalImportValidation | null>(null);
+  const [validating, setValidating] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function readFile(file?: File) {
-    setPreview(null); setError("");
+    setPreview(null); setError(""); setValidation(null); setSelectedFile(file ?? null);
     if (!file) return;
-    if (file.size > MAX_FILE_BYTES) { setError("El archivo supera el límite de 5 MB."); return; }
+    if (file.size > MAX_FILE_BYTES) { setError("El archivo supera el límite de 4 MB."); return; }
     const extension = file.name.toLowerCase().split(".").pop();
     if (extension !== "csv" && extension !== "json" && extension !== "xlsx") {
       setError("Selecciona un archivo CSV, JSON o XLSX."); return;
@@ -121,6 +126,17 @@ export function ImportPreview() {
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "No se pudo leer el archivo.");
     } finally { setBusy(false); }
+  }
+  async function validateOnServer() {
+    if (!selectedFile) return;
+    setValidation(null); setValidating(true);
+    try {
+      const form = new FormData();
+      form.set("file", selectedFile);
+      setValidation(await validateHistoricalImportAction(form));
+    } catch {
+      setValidation({ kind: "error", message: "No se pudo completar la validación del servidor. Vuelve a intentarlo." });
+    } finally { setValidating(false); }
   }
   const rifColumn = preview?.columns.find((column) => /^(rif|tax_identifier|taxidentifier)$/i.test(column));
   const rifs = rifColumn ? preview?.rows.map((row) => row[rifColumn].toUpperCase().replace(/[^A-Z0-9]/g, "")).filter(Boolean) ?? [] : [];
@@ -140,7 +156,22 @@ export function ImportPreview() {
       {rifColumn && <ul><li>RIF ausentes: {missingRifCount}</li><li>RIF duplicados en el archivo: {duplicateCount}</li><li>Filas con RIF listo para comparar: {rifs.length}</li></ul>}
       {!rifColumn && <p className="muted-note">No se detectó una columna RIF; la revisión de duplicados fiscales no está disponible.</p>}
       <div className="table-scroll"><table><thead><tr>{preview.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{preview.rows.slice(0, DISPLAY_ROWS).map((row, index) => <tr key={index}>{preview.columns.map((column) => <td key={column}>{row[column]}</td>)}</tr>)}</tbody></table></div>
-      <p className="administration-lock-note">La validación solo revisa estructura y campos básicos de la plantilla. Confirmar importación está bloqueado; no se crea ni actualiza ningún proveedor o documento desde esta pantalla.</p>
+      {preview.documentTemplate && selectedFile && !selectedFile.name.toLowerCase().endsWith(".json") && <div className="import-server-validation">
+        <button className="quiet-button" type="button" disabled={busy || validating || preview.invalidRows > 0} onClick={() => void validateOnServer()}>
+          {validating ? "Validando en servidor…" : "Validar contra el servidor"}
+        </button>
+        {preview.invalidRows > 0 && <p className="muted-note">Corrige primero las observaciones estructurales de la vista previa.</p>}
+        {validation && <div className={validation.kind === "error" || (validation.blocked ?? 0) > 0 ? "administration-lock-note" : "badge"} role={validation.kind === "error" || (validation.blocked ?? 0) > 0 ? "alert" : "status"}>
+          <strong>{validation.message}</strong>
+          {validation.kind === "validated" && <p>{validation.ready} listas · {validation.blocked} bloqueadas · {validation.warnings} observaciones.</p>}
+          {validation.details && validation.details.length > 0 && <ul>{validation.details.map((detail) => <li key={detail.row}>
+            <strong>Fila {detail.row} · {detail.document}:</strong> {[...detail.issues, ...detail.warnings.map((warning) => `Observación: ${warning}`)].join(" ")}
+          </li>)}</ul>}
+          {!!validation.moreDetails && <p>Hay {validation.moreDetails} filas adicionales con detalles no mostrados.</p>}
+        </div>}
+        <p className="administration-lock-note">La validación vuelve a comprobar los datos en el servidor, pero aún no importa documentos ni emite comprobantes.</p>
+      </div>}
+      {!preview.documentTemplate && <p className="administration-lock-note">El archivo no coincide con la plantilla histórica de documentos; esta pantalla no creará ni actualizará registros.</p>}
     </div>}
   </section>;
 }

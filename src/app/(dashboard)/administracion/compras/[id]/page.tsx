@@ -20,7 +20,7 @@ export default async function EditarBorradorPage({ params }: { params: Promise<{
     const calculation = draft.calculation_snapshot && typeof draft.calculation_snapshot === "object" ? draft.calculation_snapshot as Record<string, unknown> : {};
     const accounting = draft.accounting_snapshot && typeof draft.accounting_snapshot === "object" ? draft.accounting_snapshot as Record<string, unknown> : {};
     return <div className="page-content">
-      <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.5 · {draft.status === "voided" ? "ANULADO" : "EMITIDO"}</span><h1>{draft.status === "voided" ? "Documento anulado" : "Documento emitido"}</h1><p>Esta operación conserva el cálculo, la configuración y la distribución contable usados al emitir.</p></div>
+      <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.6 · {draft.status === "voided" ? "ANULADO" : "EMITIDO"}</span><h1>{draft.status === "voided" ? "Documento anulado" : "Documento emitido"}</h1><p>Esta operación conserva el cálculo, la configuración y la distribución contable usados al emitir.</p></div>
       <Link className="text-link" href="/administracion/compras">← Volver a Compras y documentos</Link>
       <section className="work-card"><h2>{draft.invoice_number ?? "Documento"}</h2><dl className="detail-grid">
         <div><dt>Comprobante IVA</dt><dd>{draft.iva_certificate_number ?? "Sin retención IVA"}</dd></div>
@@ -45,7 +45,7 @@ export default async function EditarBorradorPage({ params }: { params: Promise<{
     </div>;
   }
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.5 · BORRADOR</span><h1>Editar borrador</h1><p>Puedes obtener una vista previa fiscal; solo los datos de captura se guardan. No se emite ni asigna correlativo.</p></div>
+    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.6 · BORRADOR</span><h1>Editar borrador</h1><p>Puedes obtener una vista previa fiscal; solo los datos de captura se guardan. No se emite ni asigna correlativo.</p></div>
     <Link className="text-link" href="/administracion/compras">← Volver a Compras y documentos</Link>
     {access.role === "admin" ? <AdministrationDraftForm draft={draft} vendors={vendors ?? []} invoices={invoices ?? []} /> : <p className="administration-lock-note">Solo una persona administradora puede editar borradores.</p>}
   </div>;

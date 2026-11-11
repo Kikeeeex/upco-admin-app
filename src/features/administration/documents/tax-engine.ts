@@ -169,7 +169,7 @@ export function normalizeSettings(raw: Record<string, unknown>, prior: TaxSettin
   return merged;
 }
 
-export function calculateDocument(raw: Record<string, unknown>, vendor: VendorInput, settings: TaxSettings, previewOnly = false) {
+export function calculateDocument(raw: Record<string, unknown>, vendor: VendorInput, settings: TaxSettings, previewOnly = false, allowHistoricalPeriod = false) {
   const type = String(raw.type ?? "factura");
   if (!["factura", "nota_credito", "nota_debito"].includes(type)) fail("Tipo de documento inválido");
   const issuedAt = validateDate(raw.issuedAt, "Fecha de emisión");
@@ -181,7 +181,7 @@ export function calculateDocument(raw: Record<string, unknown>, vendor: VendorIn
   const chosen = `${period}-${half}`;
   const expected = `${currentHalf.period}-${currentHalf.half}`;
   const next = nextHalf(currentHalf.period, currentHalf.half);
-  if (chosen !== expected && chosen !== `${next.period}-${next.half}`) fail("Solo se admite la quincena actual o la siguiente");
+  if (!allowHistoricalPeriod && chosen !== expected && chosen !== `${next.period}-${next.half}`) fail("Solo se admite la quincena actual o la siguiente");
   const periodOverrideReason = String(raw.periodOverrideReason ?? "").trim();
   if (chosen !== expected && !periodOverrideReason) fail("Indique el motivo de diferir la quincena");
   const number = String(raw.number ?? "").trim();
