@@ -5,6 +5,7 @@ import ExcelJS from "exceljs";
 import type { getAccessContext } from "@/features/auth/access";
 import { calculateDocument, fiscalHalf, normalizeVendor, validateDate } from "@/features/administration/documents/tax-engine";
 import { readApprovedTaxSettings } from "@/features/administration/documents/tax-settings";
+import { createAdministrationServiceClient } from "@/features/administration/documents/service-client";
 
 const HEADERS = [
   "RIF proveedor", "Tipo", "Fecha emisión", "Pago o abono", "Período IVA", "Quincena IVA",
@@ -27,9 +28,13 @@ export type HistoricalImportValidation = {
   ready?: number;
   blocked?: number;
   warnings?: number;
+  imported?: number;
+  requiresWarningAcknowledgement?: boolean;
   details?: { row: number; document: string; issues: string[]; warnings: string[] }[];
   moreDetails?: number;
 };
+type PreparedHistoricalDocument = Record<string, unknown> & { document_type: string; source_row: number };
+type HistoricalImportRun = { report: HistoricalImportValidation; preparedDocuments: PreparedHistoricalDocument[]; settingsSnapshot?: Record<string, unknown> };
 
 function fail(message: string): never { throw new Error(message); }
 function normalized(value: string) { return value.trim().toUpperCase(); }
@@ -183,10 +188,10 @@ async function existingDocuments(access: Access) {
   return documents;
 }
 
-export async function validateHistoricalImportFile(file: File, access: Access): Promise<HistoricalImportValidation> {
+async function prepareHistoricalImportFile(file: File, access: Access): Promise<HistoricalImportRun> {
   let sourceRows: SourceRow[];
   try { sourceRows = await readRows(file); }
-  catch (error) { return { kind: "error", message: error instanceof Error ? error.message : "No se pudo leer la plantilla." }; }
+  catch (error) { return { report: { kind: "error", message: error instanceof Error ? error.message : "No se pudo leer la plantilla." }, preparedDocuments: [] }; }
 
   const [{ data: active, error: settingsError }, { data: vendors, error: vendorsError }, documents] = await Promise.all([
     access.supabase.from("fiscal_settings_activations").select("id, version_no, config_snapshot")
@@ -195,12 +200,13 @@ export async function validateHistoricalImportFile(file: File, access: Access): 
       .eq("organization_id", access.organizationId),
     existingDocuments(access),
   ]);
-  if (settingsError || vendorsError) return { kind: "error", message: "No se pudieron leer la configuración fiscal activa o el registro de proveedores." };
-  if (!active) return { kind: "error", message: "No hay configuración fiscal activa. El archivo se leyó, pero no puede completarse su validación fiscal en servidor." };
+  if (settingsError || vendorsError) return { report: { kind: "error", message: "No se pudieron leer la configuración fiscal activa o el registro de proveedores." }, preparedDocuments: [] };
+  if (!active) return { report: { kind: "error", message: "No hay configuración fiscal activa. El archivo se leyó, pero no puede completarse su validación fiscal en servidor." }, preparedDocuments: [] };
 
   let settings: ReturnType<typeof readApprovedTaxSettings>;
   try { settings = readApprovedTaxSettings(active.config_snapshot); }
-  catch { return { kind: "error", message: "La configuración fiscal activa no supera la validación del módulo; no se validó ningún documento." }; }
+  catch { return { report: { kind: "error", message: "La configuración fiscal activa no supera la validación del módulo; no se validó ningún documento." }, preparedDocuments: [] }; }
+  const settingsSnapshot = { activationId: active.id, version: active.version_no, config: active.config_snapshot };
   const vendorByRif = new Map((vendors ?? []).map(row => [normalizedRif(row.tax_identifier), row] as const));
   const existingKeys = new Set(documents.map(row => `${row.fiscal_vendor_id}|${row.document_type}|${normalized(String(row.invoice_number ?? ""))}`));
   const existingIva = new Set(documents.map(row => row.iva_certificate_number).filter((value): value is string => typeof value === "string" && Boolean(value)));
@@ -209,6 +215,7 @@ export async function validateHistoricalImportFile(file: File, access: Access): 
   const batchIva = new Map<string, number[]>();
   const batchIslr = new Map<string, number[]>();
   const results: RowResult[] = [];
+  const preparedByRow = new Map<number, PreparedHistoricalDocument>();
 
   for (const source of sourceRows) {
     const c = source.cells;
@@ -323,10 +330,65 @@ export async function validateHistoricalImportFile(file: File, access: Access): 
       if (islrApplies && expectedIslrCents !== Math.round(islrAmount * 100)) warn("El monto ISLR difiere de base gravable × tasa menos sustraendo; revise el comprobante fuente.");
       if (Math.abs(calculation.ivaRetentionCents) > Math.round((base16 * Number(settings.ivaGeneralRate) / 100 + base8 * Number(settings.ivaReducedRate) / 100) * 100)) issue("La retención IVA supera el IVA calculado.");
       if (docType !== "invoice" && islrApplies) issue("No se admite ISLR en notas en esta versión.");
+
+      const sign = docType === "credit_note" ? -1 : 1;
+      const calculationSnapshot = {
+        ...calculation,
+        affectedDocumentId: null,
+        ...(docType === "invoice" ? {} : { affectedInvoiceNumber: affectedNumber }),
+        islrTaxableBaseCents: Math.round(islrTaxableBase * 100) * sign,
+        islrSubtractionCents: Math.round(islrSubtraction * 100) * sign,
+      };
+      const accountingSnapshot = {
+        paymentAccount: { id: account.id, code: account.code, name: account.name },
+        cecoAllocations: ceco.map(item => ({ ...item, code: settings.cecos.find(entry => entry.id === item.cecoId)?.code })),
+        cecoSummary: calculation.ceco,
+      };
+      preparedByRow.set(source.row, {
+        source_row: source.row,
+        fiscal_vendor_id: vendorRow!.id,
+        document_type: docType,
+        invoice_number: number,
+        control_number: control,
+        issued_at: issuedAt,
+        event_at: eventAt,
+        tax_period: period,
+        tax_half: half,
+        period_override_reason: period === normalHalf.period && half === normalHalf.half ? "" : "Importación histórica con período ya determinado",
+        affected_invoice_number: docType === "invoice" ? "" : affectedNumber,
+        description,
+        exempt_cents: Math.round(exempt * 100),
+        base16_cents: Math.round(base16 * 100),
+        base8_cents: Math.round(base8 * 100),
+        iva_retention_rate: ivaRate,
+        iva_retention_reason: ivaRate === 0 ? "Importación histórica: retención 0 %" : "Importación histórica",
+        igtf_applies: igtfApplies,
+        igtf_base_cents: Math.round(igtfBase * 100),
+        islr_applies: islrApplies,
+        islr_concept_code: islrApplies ? concept.padStart(3, "0") : "",
+        islr_base_cents: Math.round(islrBase * 100),
+        islr_manual_cents: islrApplies ? Math.round(islrAmount * 100) : "",
+        islr_manual_reason: islrApplies ? "Monto del comprobante histórico" : "",
+        islr_manual_rate: islrApplies ? islrRate : "",
+        islr_manual_subtraction_cents: Math.round(islrSubtraction * 100),
+        payment_account_label: c[21],
+        ceco_allocation_note: c[22],
+        status: "issued",
+        calculation_snapshot: calculationSnapshot,
+        accounting_snapshot: accountingSnapshot,
+        iva_certificate_number: ivaCert,
+        islr_certificate_number: islrCert,
+      });
     } catch (error) {
       issue(error instanceof Error ? error.message : "Fila inválida.");
     }
   }
+
+  for (const sourceRowsForKey of batchDocKeys.values()) if (sourceRowsForKey.length > 1) {
+    for (const row of sourceRowsForKey) results.find(result => result.row === row)?.issues.push("Número de documento duplicado dentro del archivo.");
+  }
+  for (const sourceRowsForNumber of batchIva.values()) if (sourceRowsForNumber.length > 1) for (const row of sourceRowsForNumber) results.find(result => result.row === row)?.issues.push("Número de comprobante IVA repetido dentro del archivo.");
+  for (const sourceRowsForNumber of batchIslr.values()) if (sourceRowsForNumber.length > 1) for (const row of sourceRowsForNumber) results.find(result => result.row === row)?.issues.push("Número de comprobante ISLR repetido dentro del archivo.");
 
   for (const result of results) {
     const source = sourceRows.find(item => item.row === result.row)!;
@@ -340,20 +402,53 @@ export async function validateHistoricalImportFile(file: File, access: Access): 
     }
   }
 
-  for (const sourceRowsForKey of batchDocKeys.values()) if (sourceRowsForKey.length > 1) {
-    for (const row of sourceRowsForKey) results.find(result => result.row === row)?.issues.push("Número de documento duplicado dentro del archivo.");
-  }
-  for (const sourceRowsForNumber of batchIva.values()) if (sourceRowsForNumber.length > 1) for (const row of sourceRowsForNumber) results.find(result => result.row === row)?.issues.push("Número de comprobante IVA repetido dentro del archivo.");
-  for (const sourceRowsForNumber of batchIslr.values()) if (sourceRowsForNumber.length > 1) for (const row of sourceRowsForNumber) results.find(result => result.row === row)?.issues.push("Número de comprobante ISLR repetido dentro del archivo.");
-
   const ready = results.filter(row => row.issues.length === 0).length;
   const blocked = results.length - ready;
   const warningCount = results.reduce((total, row) => total + row.warnings.length, 0);
   const details = results.filter(row => row.issues.length || row.warnings.length).slice(0, MAX_DETAILS)
     .map(({ row, document, issues, warnings }) => ({ row, document, issues, warnings }));
-  return {
+  const report: HistoricalImportValidation = {
     kind: "validated",
     message: blocked === 0 ? "Validación de servidor completada. El archivo todavía no se importó." : "Validación de servidor completada; corrige las filas bloqueadas antes de importar.",
     total: results.length, ready, blocked, warnings: warningCount, details, moreDetails: Math.max(0, results.filter(row => row.issues.length || row.warnings.length).length - details.length),
+  };
+  const preparedDocuments = results.filter(row => row.issues.length === 0).map(row => preparedByRow.get(row.row)).filter((row): row is PreparedHistoricalDocument => Boolean(row))
+    .sort((a, b) => Number(a.document_type !== "invoice") - Number(b.document_type !== "invoice") || a.source_row - b.source_row);
+  return { report, preparedDocuments, settingsSnapshot };
+}
+
+export async function validateHistoricalImportFile(file: File, access: Access): Promise<HistoricalImportValidation> {
+  return (await prepareHistoricalImportFile(file, access)).report;
+}
+
+export async function importHistoricalDocumentsFile(file: File, access: Access, acknowledgeWarnings: boolean): Promise<HistoricalImportValidation> {
+  const { report, preparedDocuments, settingsSnapshot } = await prepareHistoricalImportFile(file, access);
+  if (report.kind === "error" || (report.blocked ?? 0) > 0) return report;
+  if ((report.ready ?? 0) === 0 || preparedDocuments.length !== report.ready || !settingsSnapshot) {
+    return { ...report, kind: "error", message: "No hay documentos aptos para importar; no se guardó ningún registro." };
+  }
+  if ((report.warnings ?? 0) > 0 && !acknowledgeWarnings) {
+    return { ...report, requiresWarningAcknowledgement: true, message: "Revisa y confirma las observaciones antes de importar." };
+  }
+  const service = createAdministrationServiceClient();
+  if (!service) return { ...report, kind: "error", message: "La importación no está configurada en servidor; falta SUPABASE_SERVICE_ROLE_KEY." };
+  const { data, error } = await service.rpc("import_administration_documents", {
+    p_organization_id: access.organizationId,
+    p_actor_id: access.user.id,
+    p_settings_snapshot: settingsSnapshot,
+    p_documents: preparedDocuments,
+  });
+  if (error) {
+    const message = error.code === "23505"
+      ? "El lote encontró un duplicado creado durante la validación; se revirtió completo. Vuelve a validar el archivo."
+      : "No se importó ningún documento; la transacción se revirtió. Actualiza la validación y revisa la configuración fiscal.";
+    return { ...report, kind: "error", message };
+  }
+  const imported = Number((data as { imported_count?: unknown } | null)?.imported_count ?? preparedDocuments.length);
+  return {
+    ...report,
+    imported,
+    requiresWarningAcknowledgement: false,
+    message: `Importación completada: ${imported} documentos históricos, con comprobantes originales y auditoría.`,
   };
 }

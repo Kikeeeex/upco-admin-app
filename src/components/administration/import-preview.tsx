@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { validateHistoricalImportAction } from "@/features/administration/imports/actions";
+import { importHistoricalDocumentsAction, validateHistoricalImportAction } from "@/features/administration/imports/actions";
 import type { HistoricalImportValidation } from "@/features/administration/imports/validation";
 
 type PreviewRow = Record<string, string>;
@@ -106,10 +106,12 @@ export function ImportPreview() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validation, setValidation] = useState<HistoricalImportValidation | null>(null);
   const [validating, setValidating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [acknowledgeWarnings, setAcknowledgeWarnings] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function readFile(file?: File) {
-    setPreview(null); setError(""); setValidation(null); setSelectedFile(file ?? null);
+    setPreview(null); setError(""); setValidation(null); setSelectedFile(file ?? null); setAcknowledgeWarnings(false);
     if (!file) return;
     if (file.size > MAX_FILE_BYTES) { setError("El archivo supera el límite de 4 MB."); return; }
     const extension = file.name.toLowerCase().split(".").pop();
@@ -129,7 +131,7 @@ export function ImportPreview() {
   }
   async function validateOnServer() {
     if (!selectedFile) return;
-    setValidation(null); setValidating(true);
+    setValidation(null); setAcknowledgeWarnings(false); setValidating(true);
     try {
       const form = new FormData();
       form.set("file", selectedFile);
@@ -137,6 +139,18 @@ export function ImportPreview() {
     } catch {
       setValidation({ kind: "error", message: "No se pudo completar la validación del servidor. Vuelve a intentarlo." });
     } finally { setValidating(false); }
+  }
+  async function importOnServer() {
+    if (!selectedFile) return;
+    setImporting(true);
+    try {
+      const form = new FormData();
+      form.set("file", selectedFile);
+      if (acknowledgeWarnings) form.set("acknowledgeWarnings", "on");
+      setValidation(await importHistoricalDocumentsAction(form));
+    } catch {
+      setValidation({ kind: "error", message: "No se pudo completar la importación. Actualiza la validación y vuelve a intentarlo." });
+    } finally { setImporting(false); }
   }
   const rifColumn = preview?.columns.find((column) => /^(rif|tax_identifier|taxidentifier)$/i.test(column));
   const rifs = rifColumn ? preview?.rows.map((row) => row[rifColumn].toUpperCase().replace(/[^A-Z0-9]/g, "")).filter(Boolean) ?? [] : [];
@@ -157,7 +171,7 @@ export function ImportPreview() {
       {!rifColumn && <p className="muted-note">No se detectó una columna RIF; la revisión de duplicados fiscales no está disponible.</p>}
       <div className="table-scroll"><table><thead><tr>{preview.columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{preview.rows.slice(0, DISPLAY_ROWS).map((row, index) => <tr key={index}>{preview.columns.map((column) => <td key={column}>{row[column]}</td>)}</tr>)}</tbody></table></div>
       {preview.documentTemplate && selectedFile && !selectedFile.name.toLowerCase().endsWith(".json") && <div className="import-server-validation">
-        <button className="quiet-button" type="button" disabled={busy || validating || preview.invalidRows > 0} onClick={() => void validateOnServer()}>
+        <button className="quiet-button" type="button" disabled={busy || validating || importing || preview.invalidRows > 0 || Boolean(validation?.imported)} onClick={() => void validateOnServer()}>
           {validating ? "Validando en servidor…" : "Validar contra el servidor"}
         </button>
         {preview.invalidRows > 0 && <p className="muted-note">Corrige primero las observaciones estructurales de la vista previa.</p>}
@@ -169,7 +183,13 @@ export function ImportPreview() {
           </li>)}</ul>}
           {!!validation.moreDetails && <p>Hay {validation.moreDetails} filas adicionales con detalles no mostrados.</p>}
         </div>}
-        <p className="administration-lock-note">La validación vuelve a comprobar los datos en el servidor, pero aún no importa documentos ni emite comprobantes.</p>
+        {validation?.kind === "validated" && !validation.imported && validation.blocked === 0 && (validation.warnings ?? 0) > 0 && <label className="field import-warning-confirmation">
+          <span><input type="checkbox" checked={acknowledgeWarnings} onChange={(event) => setAcknowledgeWarnings(event.target.checked)} /> Confirmo que revisé las observaciones y autorizo continuar con este lote.</span>
+        </label>}
+        {validation?.kind === "validated" && !validation.imported && validation.blocked === 0 && <button className="primary-button" type="button" disabled={validating || importing || ((validation.warnings ?? 0) > 0 && !acknowledgeWarnings)} onClick={() => void importOnServer()}>
+          {importing ? "Importando lote…" : `Confirmar e importar ${validation.ready ?? 0} documentos`}
+        </button>}
+        <p className="administration-lock-note">{validation?.imported ? "Se conservaron los números originales de comprobante; la importación quedó auditada y no generó nuevos comprobantes. Las secuencias quedaron avanzadas al mayor número importado." : "Al confirmar, el servidor vuelve a validar el archivo. Un error en cualquier fila revierte el lote completo; no se generan comprobantes ni correlativos nuevos."}</p>
       </div>}
       {!preview.documentTemplate && <p className="administration-lock-note">El archivo no coincide con la plantilla histórica de documentos; esta pantalla no creará ni actualizará registros.</p>}
     </div>}
