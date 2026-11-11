@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { satoshi } from "./fonts";
 import "./globals.css";
 import "./brand.css";
+import "./tokens.css";
 
 export const metadata: Metadata = {
   title: "UPCO Admin",

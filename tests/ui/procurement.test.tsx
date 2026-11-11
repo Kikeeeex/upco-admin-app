@@ -50,6 +50,7 @@ describe("Procura vendor catalog", () => {
       expect(html).toContain(label);
     expect(html).toContain("Eliminar proveedor");
     expect(html).toContain("Importar proveedores");
+    expect(html).toContain('role="region" aria-label="Tabla de proveedores" tabindex="0"');
     expect(html).toContain('name="buscarProveedor"');
     expect(html).toContain('name="pais"');
     expect(html).toContain('name="areaVenta"');
