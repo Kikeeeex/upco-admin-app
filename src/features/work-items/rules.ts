@@ -9,7 +9,7 @@ const validDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
 
 const workItemInput = z.object({
   title: z.string().trim().min(1).max(200),
-  area: z.enum(["general", "administration", "procurement", "it"]),
+  area: z.enum(["general", "procurement", "it"]),
   priority: z.enum(["low", "medium", "high", "critical"]),
   dueDate: validDate.optional(),
   description: z.string().trim().max(5000).transform((value) => value || undefined).optional(),

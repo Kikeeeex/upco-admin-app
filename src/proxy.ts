@@ -5,6 +5,21 @@ import { SESSION_ACTIVITY_COOKIE, SESSION_STARTED_COOKIE, sessionCookieOptions, 
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+    const origin = request.headers.get("origin");
+    if (origin) {
+      try {
+        const actualOrigin = new URL(origin);
+        const host = request.headers.get("host") ?? request.nextUrl.host;
+        const protocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ?? request.nextUrl.protocol.slice(0, -1);
+        if (actualOrigin.host !== host || actualOrigin.protocol !== `${protocol}:`) {
+          return NextResponse.json({ error: "Origen de la solicitud no autorizado." }, { status: 403 });
+        }
+      } catch {
+        return NextResponse.json({ error: "Origen de la solicitud no autorizado." }, { status: 403 });
+      }
+    }
+  }
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_PUBLISHABLE_KEY;
   const protectedPage = isProtectedPath(request.nextUrl.pathname);

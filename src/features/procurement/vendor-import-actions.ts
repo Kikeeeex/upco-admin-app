@@ -71,7 +71,10 @@ export async function inspectVendorImport(form: FormData): Promise<ErrorResult |
   const access = await getAccessContext();
   if (access.kind !== "allowed") return fail("Tu sesión no está autorizada.");
   try {
-    const { parsed, mapping } = await readForm(form);
+    const file = form.get("file");
+    if (!(file instanceof File)) throw new Error("Selecciona un archivo XLSX o CSV.");
+    const parsed = await readVendorFile(file, stringField(form, "sheet"));
+    const mapping = guessVendorMapping(parsed.headers);
     return { kind: "success", fileName: parsed.fileName, format: parsed.format, sheets: parsed.sheets,
       sheetName: parsed.sheetName, headers: parsed.headers, mapping, rowsRead: parsed.rows.length, blankRows: parsed.blankRows };
   } catch (error) { return fail(error instanceof Error ? error.message : "No se pudo leer el archivo."); }

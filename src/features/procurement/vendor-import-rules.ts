@@ -57,7 +57,9 @@ export function analyzeVendorRows(rows: MappedVendorRow[], existing: ExistingVen
       result.push({ ...item, status: "review", reason: matches.some((match) => match.archived_at) ? "El proveedor coincide con un registro eliminado; revisa el caso." : "Hay varias coincidencias posibles; revisa el caso." });
       continue;
     }
-    const sameName = country ? (byNameCountry.get(nameCountry) ?? []) : (byName.get(name) ?? []);
+    const sameName = country
+      ? [...(byNameCountry.get(nameCountry) ?? []), ...(byName.get(name) ?? []).filter((vendor) => !normalized(vendor.country))]
+      : (byName.get(name) ?? []);
     if (sameName.length) {
       result.push({ ...item, status: "review", reason: "El nombre coincide con otro proveedor; revisa país e identificación fiscal." });
       continue;
@@ -77,6 +79,7 @@ export function analyzeVendorRows(rows: MappedVendorRow[], existing: ExistingVen
 }
 
 export type VendorImportPlanRow = {
+  sourceRow: number;
   mode: "create" | "update" | "skip" | "reject";
   data?: NonNullable<MappedVendorRow["data"]>;
   vendorId?: string;
@@ -88,13 +91,13 @@ export function buildVendorImportPlan(rows: VendorPreviewRow[], actorId: string,
   const chosen = new Set(selectedRows);
   const owners = new Map(existing.map((item) => [item.id, item]));
   return rows.map((row) => {
-    if (row.status === "error") return { mode: "reject" };
-    if (row.status === "new" && row.data) return { mode: "create", data: row.data };
+    if (row.status === "error") return { sourceRow: row.sourceRow, mode: "reject" };
+    if (row.status === "new" && row.data) return { sourceRow: row.sourceRow, mode: "create", data: row.data };
     const match = row.matchedVendorId ? owners.get(row.matchedVendorId) : undefined;
     if (row.status === "match" && row.data && match?.created_by === actorId && !match.archived_at &&
         chosen.has(row.sourceRow) && fields.length) {
-      return { mode: "update", data: row.data, vendorId: match.id, fields };
+      return { sourceRow: row.sourceRow, mode: "update", data: row.data, vendorId: match.id, fields };
     }
-    return { mode: "skip" };
+    return { sourceRow: row.sourceRow, mode: "skip" };
   });
 }

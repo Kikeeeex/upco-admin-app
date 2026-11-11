@@ -1,6 +1,8 @@
 # UPCO Admin
 
-Aplicación web en español para organizar trabajo de Administración, Procura, TI, Proyectos y Seguimientos. El alcance funcional está en [la especificación](docs/UPCO_Admin_Especificacion_MVP_v1_0.md); el estado de entrega está en [PROGRESO](docs/PROGRESO.md).
+Aplicación web en español para organizar trabajo de Administración, Procura, TI y Proyectos. El alcance general inicial está en [la especificación V1](docs/UPCO_Admin_Especificacion_MVP_v1_0.md); la línea vigente de Administración está en [su especificación V2.5](docs/UPCO_Admin_Especificacion_MVP_v2_5.md). El estado de entrega está en [PROGRESO](docs/PROGRESO.md).
+
+La ampliación de Administración basada en UPCO Compras está detallada en el [diseño funcional](docs/superpowers/specs/2026-11-09-administracion-compras-contabilidad-design.md) y su [plan de implementación](docs/superpowers/plans/2026-11-09-administracion-compras-contabilidad.md). Incluye submódulos de compras, proveedores, retenciones, cierres, importaciones, reportes y configuración fiscal.
 
 ## Desarrollo local
 
@@ -22,7 +24,7 @@ npm run lint
 npm run build
 ```
 
-La autenticación real requiere proyecto Supabase autorizado, proveedor Azure configurado, registro de aplicación en Entra, callback de Entra `https://<supabase-project>.supabase.co/auth/v1/callback`, URL de redirección de la aplicación `<origen>/auth/callback`, tenant aprobado y membresía activa provisionada por un administrador. `SUPABASE_PUBLISHABLE_KEY` debe ser solo la clave publicable/anon; nunca una clave `service_role`. Ver [DECISIONES](docs/DECISIONES.md).
+La autenticación real requiere proyecto Supabase autorizado, proveedor Azure configurado, registro de aplicación en Entra, callback de Entra `https://<supabase-project>.supabase.co/auth/v1/callback`, URL de redirección de la aplicación `<origen>/auth/callback`, tenant aprobado y membresía activa provisionada por un administrador. `SUPABASE_PUBLISHABLE_KEY` es la clave publicable/anon. Emisión usa `SUPABASE_SERVICE_ROLE_KEY` solo desde el servidor para llamar al RPC transaccional; nunca debe llamarse `NEXT_PUBLIC_` ni enviarse al navegador. Ver [DECISIONES](docs/DECISIONES.md).
 
 ## URL de pruebas
 

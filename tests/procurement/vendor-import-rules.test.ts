@@ -12,6 +12,7 @@ describe("vendor import commit plan", () => {
     const preview = analyzeVendorRows([row(2, "Nuevo", "Venezuela"), row(3, "Acme S.A.", "Venezuela", "J001")], existing);
     const plan = buildVendorImportPlan(preview, existing[0].created_by, [3], ["phone", "email"], existing);
     expect(plan.map((item) => item.mode)).toEqual(["create", "update"]);
+    expect(plan.map((item) => item.sourceRow)).toEqual([2, 3]);
     expect(plan[1]).toMatchObject({ vendorId: existing[0].id, fields: ["phone", "email"] });
     expect(buildVendorImportPlan(preview, existing[0].created_by, [], ["phone"], existing)[1].mode).toBe("skip");
   });
@@ -32,6 +33,10 @@ describe("vendor import preview", () => {
     const archived = { ...existing[0], archived_at: "2026-11-01T10:00:00Z" };
     const result = analyzeVendorRows([row(2, "Acme S.A."), row(3, "Acme SA", "Venezuela"), row(4, "Acme S.A.", "Venezuela", "J-001")], [archived]);
     expect(result.map((item) => item.status)).toEqual(["review", "review", "review"]);
+  });
+  it("reviews a country-qualified name when an existing vendor lacks country", () => {
+    const unknownCountry = { ...existing[0], country: null, tax_identifier: null };
+    expect(analyzeVendorRows([row(2, "Acme S.A.", "Venezuela")], [unknownCountry])[0].status).toBe("review");
   });
   it("marks repeated rows in the same file and preserves validation errors", () => {
     const invalid: MappedVendorRow = { sourceRow: 4, data: null, errors: ["Correo electrónico no válido."], warnings: [] };

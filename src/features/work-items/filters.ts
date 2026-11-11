@@ -8,7 +8,7 @@ export type WorkItemFilters = {
   query: string; area: string; status: string; priority: string; site: string; due: string;
 };
 
-const areas = new Set(["general", "administration", "procurement", "it"]);
+const areas = new Set(["general", "procurement", "it"]);
 const statuses = new Set(["pending", "in_progress", "waiting", "completed", "cancelled"]);
 const priorities = new Set(["low", "medium", "high", "critical"]);
 const dueFilters = new Set(["overdue", "today", "upcoming", "none"]);

@@ -20,7 +20,7 @@ export async function getAccessContext(options: { allowFreshSession?: boolean } 
 
   const { data: memberships, error: membershipError } = await supabase
     .from("memberships")
-    .select("user_id, organization_id, entra_tenant_id, entra_subject, active")
+    .select("user_id, organization_id, entra_tenant_id, entra_subject, active, role")
     .eq("user_id", user.id)
     .eq("active", true);
   if (membershipError || !memberships) return { kind: "denied" as const };
@@ -40,5 +40,5 @@ export async function getAccessContext(options: { allowFreshSession?: boolean } 
   }));
 
   if (!membership) return { kind: "denied" as const };
-  return { kind: "allowed" as const, supabase, user, organizationId: membership.organization_id, sessionStartedAt: sessionStartedAt ?? "" };
+  return { kind: "allowed" as const, supabase, user, organizationId: membership.organization_id, role: membership.role, sessionStartedAt: sessionStartedAt ?? "" };
 }

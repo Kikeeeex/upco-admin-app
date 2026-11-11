@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  typescript: { tsconfigPath: "tsconfig.app.json" },
   experimental: { serverActions: { bodySizeLimit: "4.25mb" } },
   cacheComponents: true,
   partialPrefetching: true,

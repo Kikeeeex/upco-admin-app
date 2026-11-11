@@ -34,6 +34,7 @@ export default async function WorkItemDetailPage({ params, searchParams }: {
       .select("id, code, type, title, description, site_id, status, priority, due_date, closed_at, archived_at, creator_id, created_at, updated_at")
       .eq("id", id)
       .eq("organization_id", access.organizationId)
+      .neq("type", "administration")
       .maybeSingle(),
     access.supabase.from("user_profiles")
       .select("timezone, display_name")

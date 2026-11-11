@@ -9,7 +9,6 @@ const navigation = [
   { href: "/procura", label: "Procura", icon: "◇" },
   { href: "/ti", label: "Tecnología", icon: "⌘" },
   { href: "/proyectos", label: "Proyectos", icon: "▥" },
-  { href: "/seguimientos", label: "Seguimientos", icon: "◎" },
   { href: "/reportes", label: "Reportes", icon: "▧" },
   { href: "/configuracion", label: "Configuración", icon: "⚙" },
 ] as const;

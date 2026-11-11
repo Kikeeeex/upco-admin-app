@@ -24,7 +24,6 @@ export async function createWorkItem(_previous: ActionState, form: FormData): Pr
   let input;
   try { input = parseWorkItemInput(fields(form)); }
   catch { return { kind: "error", message: "Revisa el título, el área, la prioridad, la descripción, la sede y la fecha." }; }
-  if (input.area === "administration") return { kind: "error", message: "Crea las gestiones desde Administración para registrar sus datos documentales." };
   if (input.area === "procurement") return { kind: "error", message: "Crea las solicitudes desde Procura para registrar cantidad y necesidad." };
 
   const { error } = await access.supabase.from("work_items").insert({
@@ -61,6 +60,7 @@ export async function updateWorkItem(_previous: ActionState, form: FormData): Pr
     .eq("id", input.id)
     .eq("organization_id", access.organizationId)
     .eq("creator_id", access.user.id)
+    .neq("type", "administration")
     .is("archived_at", null)
     .select("id")
     .maybeSingle();
@@ -68,8 +68,6 @@ export async function updateWorkItem(_previous: ActionState, form: FormData): Pr
 
   revalidatePath("/mi-trabajo");
   revalidatePath(`/mi-trabajo/${input.id}`);
-  revalidatePath("/administracion");
-  revalidatePath(`/administracion/${input.id}`);
   revalidatePath("/procura");
   revalidatePath(`/procura/${input.id}`);
   revalidatePath("/inicio");
@@ -88,15 +86,14 @@ async function changeArchiveState(form: FormData, archive: boolean): Promise<Act
     .update({ archived_at: archive ? new Date().toISOString() : null })
     .eq("id", id)
     .eq("organization_id", access.organizationId)
-    .eq("creator_id", access.user.id);
+    .eq("creator_id", access.user.id)
+    .neq("type", "administration");
   query = archive ? query.is("archived_at", null) : query.not("archived_at", "is", null);
   const { data, error } = await query.select("id").maybeSingle();
   if (error || !data) return { kind: "error", message: archive ? "No se pudo archivar la actividad." : "No se pudo restaurar la actividad." };
 
   revalidatePath("/mi-trabajo");
   revalidatePath(`/mi-trabajo/${id}`);
-  revalidatePath("/administracion");
-  revalidatePath(`/administracion/${id}`);
   revalidatePath("/procura");
   revalidatePath(`/procura/${id}`);
   return { kind: "success", message: archive ? "Actividad archivada." : "Actividad restaurada." };
@@ -117,6 +114,11 @@ export async function addWorkItemNote(_previous: ActionState, form: FormData): P
   let input;
   try { input = parseWorkItemNote({ id: form.get("id"), body: form.get("body") }); }
   catch { return { kind: "error", message: "Escribe una nota de 1 a 2000 caracteres." }; }
+
+  const { data: item, error: itemError } = await access.supabase.from("work_items")
+    .select("id").eq("id", input.id).eq("organization_id", access.organizationId)
+    .neq("type", "administration").is("archived_at", null).maybeSingle();
+  if (itemError || !item) return { kind: "error", message: "Esta actividad no está disponible." };
 
   const { error } = await access.supabase.from("activity_log").insert({
     organization_id: access.organizationId,

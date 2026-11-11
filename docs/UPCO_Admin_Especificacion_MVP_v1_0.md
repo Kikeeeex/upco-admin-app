@@ -5,9 +5,9 @@
 | CONTROL DEL DOCUMENTO | VALOR |
 |---|---|
 | Código | UPCO-ADM-SRS-001 |
-| Versión | 1.0 · Línea base del MVP |
-| Fecha | 28 de octubre de 2026 |
-| Estado | Requisitos funcionales definidos; sujeto a validación de viabilidad técnica y permisos corporativos |
+| Versión | 1.1 · Línea base ampliada de Administración |
+| Fecha | 9 de noviembre de 2026 |
+| Estado | MVP ampliado con UPCO Compras; sujeto a validación fiscal, técnica y de permisos corporativos |
 | Público objetivo | Usuario administrador inicial; crecimiento futuro multiusuario |
 | Tipo de entrega | Especificación funcional, no funcional, flujos, datos y backlog priorizado |
 
@@ -17,10 +17,10 @@ Uso previsto: referencia para diseño, implementación, pruebas y control de cam
 
 UPCO Admin será una aplicación web alojada en la nube para centralizar las actividades diarias de UPCO de Venezuela. Su primera versión estará orientada a un solo usuario, pero incluirá las cinco áreas desde el inicio mediante procedimientos intencionalmente simplificados.
 
-| DECISIÓN | BASE V1.0 |
+| DECISIÓN | BASE DEL MVP |
 |---|---|
 | Usuarios | Un único administrador habilitado explícitamente. No hay alta pública ni colaboración entre empleados. |
-| Áreas | Administración, procura, TI, proyectos y seguimientos, visibles en la navegación inicial. |
+| Áreas | Administración, procura, TI, proyectos y seguimientos, visibles en la navegación inicial. Administración contiene submódulos para gestiones internas y operación administrativo-contable. |
 | Autenticación | Inicio de sesión con identidad corporativa Microsoft 365 (Microsoft Entra ID); permitir únicamente la cuenta expresamente autorizada. |
 | Despliegue | Nube, usando un entorno de desarrollo/pruebas separado del entorno de producción. |
 | Stack de referencia | Next.js + TypeScript + PostgreSQL / Supabase; decisión técnica a confirmar antes de configurar recursos corporativos. |
@@ -42,7 +42,7 @@ Ofrecer un punto único y confiable donde registrar, priorizar, ejecutar, docume
 
 | ÁREA | PROCESO SIMPLIFICADO INCLUIDO | AMPLIACIÓN POSTERIOR |
 |---|---|---|
-| Administración | Registrar gestiones y compromisos, fechas, responsables externos en texto, referencias y documentos. | Flujos documentales, aprobaciones formales, firmas. |
+| Administración | Gestiones y compromisos; compras registradas y notas; proveedores; retenciones IVA/ISLR e IGTF; libros, cierres, importaciones, reportes, exportaciones y configuración fiscal, ordenados en submódulos. | Integraciones con SENIAT/ERP, firma electrónica y flujos de aprobación formal. Los cálculos y formatos requieren validación fiscal antes de producción. |
 | Procura | Crear solicitudes, registrar proveedores y cotizaciones básicas, etapas y seguimiento. | Órdenes de compra, evaluaciones, recepción, ERP. |
 | TI | Registrar y resolver solicitudes/incidentes, equipo asociado en texto y evidencia. | Inventario detallado, SLA, automatización y GLPI. |
 | Proyectos | Crear proyectos, asociar actividades, fechas y estado de avance. | Dependencias, presupuestos, cronogramas Gantt. |
@@ -65,7 +65,7 @@ Administrador funcional: único usuario que ingresa con su cuenta corporativa Mi
 
 ### 2.3 Fuera de alcance del MVP
 
-No se desarrollarán gestión contable, nómina, facturación, órdenes de compra oficiales, aprobaciones multinivel, control detallado de activos, directorio de usuarios, sincronización bidireccional con Microsoft 365, integración GLPI, aplicación móvil nativa, modo offline, reglas automáticas complejas ni funciones de IA generativa.
+No se desarrollarán nómina, emisión de facturas de venta, órdenes de compra oficiales, aprobaciones multinivel, control detallado de activos, directorio de usuarios, sincronización bidireccional con Microsoft 365, integración GLPI, aplicación móvil nativa, modo offline, reglas automáticas complejas ni funciones de IA generativa.
 
 ## 3. Modelo funcional y reglas transversales
 
@@ -86,7 +86,7 @@ La aplicación utilizará un registro base de trabajo (work item) con número, t
 
 ### 3.2 Navegación y vistas
 
-Menú lateral: Inicio; Mi trabajo; Administración; Procura; Tecnología (TI); Proyectos; Seguimientos; Reportes; Configuración. Acceso universal a Nueva actividad, búsqueda global y filtros por sede, estado, prioridad y fecha. Todas las vistas muestran los datos autorizados de un solo usuario.
+Menú lateral: Inicio; Mi trabajo; Administración; Procura; Tecnología (TI); Proyectos; Seguimientos; Reportes; Configuración. Administración abre una navegación secundaria: **Resumen**, **Gestiones internas**, **Compras y documentos**, **Proveedores**, **Retenciones**, **Libros y cierres**, **Importaciones**, **Reportes y exportaciones** y **Configuración fiscal**. Acceso universal a Nueva actividad, búsqueda global y filtros por sede, estado, prioridad y fecha. Todas las vistas muestran los datos autorizados de un solo usuario. Las compras registradas en Administración son comprobantes recibidos y su tratamiento fiscal/contable; Procura conserva solicitudes de compra, cotizaciones y seguimiento previo a la adquisición.
 
 ### 3.3 Convenciones de aceptación
 
@@ -123,52 +123,63 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 
 | ID / PRIORIDAD | REQUISITO Y COMPORTAMIENTO | CRITERIO DE ACEPTACIÓN |
 |---|---|---|
-| RF-016 · P0 | **Crear gestión administrativa**. Registrar tipo de gestión, asunto, referencia, contraparte y fecha compromiso. | La gestión se crea en Administración con código ADM y su ficha específica. |
-| RF-017 · P0 | **Control de documentación**. Anotar estado documental (pendiente, recibido, revisado), referencia y enlace. | La ficha permite identificar si la documentación está pendiente. |
-| RF-018 · P0 | **Seguimiento de compromisos**. Asignar fechas de seguimiento y resultado a una gestión administrativa. | Un compromiso próximo aparece en Seguimientos e Inicio. |
-| RF-019 · P1 | **Listas por tipo/sede**. Filtrar gestiones por tipo, sede y contraparte. | La consulta muestra solo trámites de la selección. |
+| RF-016 · P0 | **Gestiones internas**. Registrar tipo, asunto, referencia, contraparte, sede, fecha de compromiso, estado, notas y seguimientos relacionados. | Se asigna código ADM; ficha, historial y agenda muestran los datos de la gestión. |
+| RF-017 · P0 | **Control documental interno**. Mantener referencia/enlace, estado pendiente/recibido/revisado y bitácora de cambios. | Una ficha identifica documentación pendiente y conserva el historial de actualizaciones. |
+| RF-018 · P0 | **Seguimiento de compromisos**. Programar contacto, motivo, fecha y resultado sin sobrescribir fechas previas. | La próxima acción aparece una sola vez en Seguimientos e Inicio y su reprogramación queda auditada. |
+| RF-019 · P0 | **Submódulos y navegación de Administración**. Separar el contenido en Resumen, Gestiones internas, Compras y documentos, Proveedores, Retenciones, Libros y cierres, Importaciones, Reportes y exportaciones, Configuración fiscal. | Cada submódulo abre una vista propia con acciones y filtros del dominio, sin concentrar todos los formularios en una sola página. |
+| RF-020 · P0 | **Registrar compras/documentos**. Registrar factura, nota de crédito o nota de débito; proveedor, fechas de emisión y pago/abono, período/quincena, número/control, descripción, montos, estado borrador/emitido/anulado y relación con factura afectada cuando corresponda. | Un borrador se valida antes de emitir; números de documento por proveedor/tipo son únicos; anular conserva la ficha y el historial. |
+| RF-021 · P0 | **Directorio fiscal de proveedores**. Crear, editar, activar/inactivar y buscar proveedor con RIF, razón social, dirección, condición/tipo fiscal, residencia, contacto, alícuota de retención IVA, máquinas fiscales y marca de revisión. Mantener separado el catálogo fiscal del directorio comercial de Procura, con referencia opcional cuando se confirme que son el mismo proveedor. | Un RIF duplicado se rechaza; proveedor inactivo o marcado para revisión no se usa para emitir hasta resolver la validación requerida. |
+| RF-022 · P0 | **Cálculo y emisión de retenciones**. Calcular IVA por bases/alícuotas configuradas; registrar ISLR por concepto/base/alícuota/sustraendo y cálculo manual justificado cuando aplique; registrar IGTF cuando aplique. | Los importes se recalculan y verifican en servidor; reglas y configuración usadas quedan congeladas en el documento emitido; números de comprobante son únicos por período/tributo. |
+| RF-023 · P0 | **Soportes documentales privados**. Adjuntar PDF/JPG/PNG/WEBP hasta 10 MB a una compra; validar extensión, MIME, cabecera y tamaño; descarga protegida y auditable. | Un archivo inválido o un usuario no autorizado no puede cargar/descargar; se conserva el nombre y tipo del soporte; solo un borrador admite reemplazo o retiro ordinario. |
+| RF-024 · P0 | **Distribución contable**. Asignar cuenta de pago y distribuir el gasto entre uno o más CECO con porcentajes cuya suma sea 100%; congelar la descripción contable en el comprobante emitido. | La emisión impide guardar una distribución incompleta o inválida; los cierres reflejan la asignación vigente al emitir. |
+| RF-025 · P0 | **Libros, cierres y conciliación**. Generar libro Excel, TXT de retenciones IVA por quincena, XML y Excel auxiliar ISLR mensual, conciliación del período y cierre contable por rango de fechas. | Cada salida aplica filtros y bloqueos definidos; excluye borradores/anulados donde corresponde; cifras y filas concilian con documentos emitidos incluidos. |
+| RF-026 · P0 | **Importar historial con vista previa**. Descargar plantilla XLSX, aceptar XLSX/CSV hasta 4 MB y 10.000 filas, validar estructura, RIF, duplicados, importes, referencias, certificados y vínculos de notas antes de confirmar. | La importación es atómica; no se confirma con filas bloqueadas; las advertencias quedan visibles y el origen/fila se audita. No emite comprobantes retroactivamente ni carga datos de la instalación por sí sola. |
+| RF-027 · P0 | **Reportes y exportaciones**. Resumir compras, documentos emitidos y retenciones por período; exportar formatos de libro, conciliación, cierre y archivos declarativos soportados. | Los resultados reproducen exactamente la selección de período y estados; se muestran bloqueos o advertencias antes de exportar. |
+| RF-028 · P0 | **Configuración fiscal y catálogos**. Mantener datos fiscales de UPCO, vigencia/historial de UT, tasas y referencias, conceptos ISLR, CECO, cuentas de pago y correlativos IVA/ISLR por período. Versionar cambios y auditar actor/fecha. | Los cambios aplican a documentos nuevos; documentos emitidos conservan el snapshot usado; un correlativo debe confirmarse antes de emitir. |
+| RF-029 · P1 | **Importar y revisar proveedores fiscales**. Cargar archivo JSON/CSV con vista previa, correlativo de origen, RIF, razón social, dirección, tipo fiscal, persona, residencia, retención IVA, máquinas fiscales y procedencia. Detectar RIF y nombres repetidos; importar únicamente registros con RIF válido; marcar para revisión según la fuente. | Vista previa y resultado concilian cantidad/filas, no sobrescriben registros existentes, son transaccionales y conservan correlativo/procedencia. Las filas sin RIF quedan separadas para completar; duplicados de nombre con RIF distinto requieren revisión humana. |
+| RF-030 · P1 | **Importación de soportes anteriores**. Asociar soportes PDF históricos solo si el origen los entrega y se valida correspondencia, sin recrear comprobantes ni alterar montos históricos. | Cada archivo queda asociado a un documento identificado; duplicados y documentos sin correspondencia se aíslan para revisión. |
 
 ### 4.4 Procura
 
 | ID / PRIORIDAD | REQUISITO Y COMPORTAMIENTO | CRITERIO DE ACEPTACIÓN |
 |---|---|---|
-| RF-020 · P0 | **Crear solicitud simple**. Registrar artículo/servicio, cantidad/unidad, sede de destino, necesidad y referencia. | Se obtiene código PRC y se visualizan cantidad y sede. |
-| RF-021 · P0 | **Catálogo de proveedores**. Crear/editar proveedor con nombre, contacto, correo y observaciones. | Un proveedor se selecciona desde una solicitud sin duplicarse. |
-| RF-022 · P0 | **Cotizaciones manuales**. Registrar una o más cotizaciones: proveedor, importe, moneda, fecha, vigencia y referencia. | La solicitud muestra las ofertas asociadas, cada una con su moneda. |
-| RF-023 · P0 | **Etapa comercial básica**. Identificar etapa: por solicitar, solicitado, cotizando, evaluando, decidido, entregado, cancelado. | El historial conserva cada cambio de etapa y fecha. |
-| RF-024 · P0 | **Pendientes externos**. Registrar proveedor esperado y próxima fecha de contacto sin enviar correos automáticos. | La respuesta pendiente genera un seguimiento visible y modificable. |
-| RF-025 · P1 | **Comparación manual**. Presentar tabla comparativa simple de cotizaciones, sin convertir monedas. | Se pueden visualizar ofertas de distintas monedas sin sumarlas como equivalentes. |
-| RF-026 · P1 | **Resultado de solicitud**. Registrar decisión/resultado como nota y fecha; no genera orden oficial. | La decisión se consulta en historial; no se emite OC ni aprobación digital. |
+| RF-031 · P0 | **Crear solicitud simple**. Registrar artículo/servicio, cantidad/unidad, sede de destino, necesidad y referencia. | Se obtiene código PRC y se visualizan cantidad y sede. |
+| RF-032 · P0 | **Catálogo de proveedores**. Crear/editar proveedor con nombre, contacto, correo y observaciones. | Un proveedor se selecciona desde una solicitud sin duplicarse. |
+| RF-033 · P0 | **Cotizaciones manuales**. Registrar una o más cotizaciones: proveedor, importe, moneda, fecha, vigencia y referencia. | La solicitud muestra las ofertas asociadas, cada una con su moneda. |
+| RF-034 · P0 | **Etapa comercial básica**. Identificar etapa: por solicitar, solicitado, cotizando, evaluando, decidido, entregado, cancelado. | El historial conserva cada cambio de etapa y fecha. |
+| RF-035 · P0 | **Pendientes externos**. Registrar proveedor esperado y próxima fecha de contacto sin enviar correos automáticos. | La respuesta pendiente genera un seguimiento visible y modificable. |
+| RF-036 · P1 | **Comparación manual**. Presentar tabla comparativa simple de cotizaciones, sin convertir monedas. | Se pueden visualizar ofertas de distintas monedas sin sumarlas como equivalentes. |
+| RF-037 · P1 | **Resultado de solicitud**. Registrar decisión/resultado como nota y fecha; no genera orden oficial. | La decisión se consulta en historial; no se emite OC ni aprobación digital. |
 
 ### 4.5 Tecnología y soporte TI
 
 | ID / PRIORIDAD | REQUISITO Y COMPORTAMIENTO | CRITERIO DE ACEPTACIÓN |
 |---|---|---|
-| RF-027 · P0 | **Registrar incidente o servicio**. Crear ticket simple con tipo, solicitante de referencia, categoría, sede y descripción. | Se asigna código IT y aparece en el módulo de TI. |
-| RF-028 · P0 | **Identificar activo informal**. Registrar nombre de equipo, identificador/serial opcional y ubicación en texto. | El ticket puede asociarse a un equipo sin catálogo maestro de activos. |
-| RF-029 · P0 | **Registrar diagnóstico y resolución**. Añadir notas de diagnóstico, acciones tomadas y conclusión de cierre. | La ficha permite reconstruir cronológicamente el tratamiento. |
-| RF-030 · P0 | **Clasificar impacto y urgencia**. Registrar impacto y urgencia (bajo/medio/alto), además de prioridad de trabajo. | Los campos pueden filtrarse y no alteran automáticamente la prioridad. |
-| RF-031 · P1 | **Vista de casos activos**. Filtrar tickets por categoría, sede y estado. | Se identifican los casos abiertos y en espera sin acceder a otras áreas. |
+| RF-038 · P0 | **Registrar incidente o servicio**. Crear ticket simple con tipo, solicitante de referencia, categoría, sede y descripción. | Se asigna código IT y aparece en el módulo de TI. |
+| RF-039 · P0 | **Identificar activo informal**. Registrar nombre de equipo, identificador/serial opcional y ubicación en texto. | El ticket puede asociarse a un equipo sin catálogo maestro de activos. |
+| RF-040 · P0 | **Registrar diagnóstico y resolución**. Añadir notas de diagnóstico, acciones tomadas y conclusión de cierre. | La ficha permite reconstruir cronológicamente el tratamiento. |
+| RF-041 · P0 | **Clasificar impacto y urgencia**. Registrar impacto y urgencia (bajo/medio/alto), además de prioridad de trabajo. | Los campos pueden filtrarse y no alteran automáticamente la prioridad. |
+| RF-042 · P1 | **Vista de casos activos**. Filtrar tickets por categoría, sede y estado. | Se identifican los casos abiertos y en espera sin acceder a otras áreas. |
 
 ### 4.6 Proyectos
 
 | ID / PRIORIDAD | REQUISITO Y COMPORTAMIENTO | CRITERIO DE ACEPTACIÓN |
 |---|---|---|
-| RF-032 · P0 | **Crear proyectos**. Registrar código, nombre, descripción, sede, fecha objetivo y estado. | El proyecto aparece en listado y admite nuevas actividades. |
-| RF-033 · P0 | **Asociar actividades**. Vincular cualquier registro de trabajo a un proyecto existente. | La ficha del proyecto muestra actividades de diferentes áreas. |
-| RF-034 · P0 | **Progreso básico**. Calcular avance como registros completados/total de registros no cancelados; mostrar N/A si no hay registros. | Al completar una actividad, el porcentaje se actualiza; no cuenta canceladas. |
-| RF-035 · P1 | **Resumen de proyecto**. Mostrar cantidad de pendientes, en espera, vencidas y cerradas. | Los contadores corresponden a la lista de trabajo vinculada. |
+| RF-043 · P0 | **Crear proyectos**. Registrar código, nombre, descripción, sede, fecha objetivo y estado. | El proyecto aparece en listado y admite nuevas actividades. |
+| RF-044 · P0 | **Asociar actividades**. Vincular cualquier registro de trabajo a un proyecto existente. | La ficha del proyecto muestra actividades de diferentes áreas. |
+| RF-045 · P0 | **Progreso básico**. Calcular avance como registros completados/total de registros no cancelados; mostrar N/A si no hay registros. | Al completar una actividad, el porcentaje se actualiza; no cuenta canceladas. |
+| RF-046 · P1 | **Resumen de proyecto**. Mostrar cantidad de pendientes, en espera, vencidas y cerradas. | Los contadores corresponden a la lista de trabajo vinculada. |
 
 ### 4.7 Seguimientos y reportes
 
 | ID / PRIORIDAD | REQUISITO Y COMPORTAMIENTO | CRITERIO DE ACEPTACIÓN |
 |---|---|---|
-| RF-036 · P0 | **Crear seguimiento asociado**. Programar próximo contacto/acción para un registro existente, con fecha, motivo, destinatario en texto. | El seguimiento queda relacionado con un registro de trabajo. |
-| RF-037 · P0 | **Gestionar seguimiento**. Marcar como realizado, posponer o cancelar, con nota de resultado y fecha. | Se conserva fecha programada anterior en historial de cambios. |
-| RF-038 · P0 | **Agenda de seguimientos**. Mostrar pendientes para hoy, próximos y vencidos sin duplicar tareas. | El seguimiento aparece una vez y conserva enlace al registro de origen. |
-| RF-039 · P0 | **Reportes resumen**. Mostrar recuentos por área/estado y completados por rango de fechas. | Los totales coinciden con datos de prueba y respetan filtros. |
-| RF-040 · P1 | **Exportación de reportes**. Exportar CSV de los indicadores y registros utilizados. | Los datos exportados mantienen el rango de fecha y filtros aplicados. |
-| RF-041 · P1 | **Calendario**. Presentar vista mensual de fechas límite y seguimientos. | Seleccionar un elemento abre la ficha de origen. |
+| RF-047 · P0 | **Crear seguimiento asociado**. Programar próximo contacto/acción para un registro existente, con fecha, motivo, destinatario en texto. | El seguimiento queda relacionado con un registro de trabajo. |
+| RF-048 · P0 | **Gestionar seguimiento**. Marcar como realizado, posponer o cancelar, con nota de resultado y fecha. | Se conserva fecha programada anterior en historial de cambios. |
+| RF-049 · P0 | **Agenda de seguimientos**. Mostrar pendientes para hoy, próximos y vencidos sin duplicar tareas. | El seguimiento aparece una vez y conserva enlace al registro de origen. |
+| RF-050 · P0 | **Reportes resumen**. Mostrar recuentos por área/estado y completados por rango de fechas. | Los totales coinciden con datos de prueba y respetan filtros. |
+| RF-051 · P1 | **Exportación de reportes**. Exportar CSV de los indicadores y registros utilizados. | Los datos exportados mantienen el rango de fecha y filtros aplicados. |
+| RF-052 · P1 | **Calendario**. Presentar vista mensual de fechas límite y seguimientos. | Seleccionar un elemento abre la ficha de origen. |
 
 ## 5. Requisitos no funcionales
 
@@ -183,11 +194,11 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | RNF-07 | **Rendimiento**. En condiciones de prueba fijadas: p95 de listas/panel ≤3 s con 5.000 registros propios; operaciones de guardado ≤3 s sin archivos grandes. | Prueba instrumentada en entorno de staging. |
 | RNF-08 | **Compatibilidad**. Últimas 2 versiones estables de Chrome, Edge y Firefox; experiencia útil en móvil ≥360 px. | Matriz manual de navegadores y Playwright. |
 | RNF-09 | **Accesibilidad**. Objetivo WCAG 2.2 AA para formularios y navegación del MVP; foco visible, etiquetas y uso por teclado. | Auditoría automatizada y revisión manual de teclado. |
-| RNF-10 | **Integridad**. Transacciones atómicas para crear registro con detalle; validación de tipos, rangos, moneda y referencias. | Pruebas de fallos parciales y datos inválidos. |
+| RNF-10 | **Integridad**. Transacciones atómicas para crear registros y detalle, emitir comprobantes, reservar correlativos e importar; validación de tipos, rangos, moneda, unicidad y referencias. | Pruebas de fallos parciales y datos inválidos; no quedan secuencias consumidas ni registros parciales. |
 | RNF-11 | **Respaldo**. Definir y probar restauración antes de producción; meta de diseño RPO ≤24 h y RTO ≤8 h, sujeta al plan cloud aprobado. | Evidencia de política y simulación de recuperación. |
-| RNF-12 | **Observabilidad**. Errores centralizados sin registrar tokens ni datos sensibles innecesarios; identificador de correlación para fallas. | Provocar error controlado y revisar telemetría. |
+| RNF-12 | **Observabilidad**. Errores centralizados sin registrar tokens ni datos sensibles innecesarios; identificador de correlación para fallas. Los eventos fiscales críticos registran actor, fecha y valores relevantes. | Provocar error controlado y revisar telemetría e historial de auditoría. |
 | RNF-13 | **Escalabilidad**. El esquema soporta organization_id, site_id y memberships aunque solo haya un usuario activo. | Prueba de segregación entre organizaciones en datos ficticios. |
-| RNF-14 | **Mantenibilidad**. TypeScript estricto, módulos separados, control de versiones, migraciones y pruebas automatizadas en CI. | Pipeline bloquea cambios con pruebas o lint fallidos. |
+| RNF-14 | **Mantenibilidad**. TypeScript estricto, submódulos desacoplados, cálculos fiscales puros/versionados, migraciones y pruebas automatizadas en CI. | Cada módulo puede evolucionar sin cargar el panel de Administración; cambios de cálculo cuentan con casos de referencia revisados. |
 | RNF-15 | **Retención y residencia**. Retención, ubicación de datos y clasificación corporativa sujetos a aprobación formal previa. | Acta de aprobación documentada antes de datos reales. |
 | RNF-16 | **Usabilidad**. Operaciones frecuentes desde Inicio en ≤3 clics de navegación; mensajes claros de error/éxito. | Prueba guiada de 5 escenarios de uso. |
 
@@ -219,6 +230,18 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 
 **RN-13 ·** Las fechas se guardan en UTC cuando contienen hora y se presentan en la zona horaria configurada; fechas de vencimiento sin hora se interpretan por día local.
 
+**RN-14 ·** Los submódulos de Administración organizan el mismo dominio administrativo en páginas separadas: Gestiones internas; Compras y documentos; Proveedores; Retenciones; Libros y cierres; Importaciones; Reportes y exportaciones; Configuración fiscal.
+
+**RN-15 ·** Los documentos emitidos conservan una instantánea inmutable de proveedor, concepto, valores, tasas/reglas aplicadas, distribución contable y datos de comprobante. Cambios futuros de reglas versionadas no recalculan documentos emitidos.
+
+**RN-16 ·** Los valores tributarios y catálogos pueden editarse desde Configuración fiscal con validación y auditoría. Un cambio aplica solo a documentos futuros; cada documento emitido conserva la versión y los valores usados.
+
+**RN-17 ·** Compras y documentos registra compras recibidas (facturas/notas) y su registro tributario-contable; Procura sigue registrando solicitudes y cotizaciones antes de comprar. No se genera una orden oficial ni una factura de venta.
+
+**RN-18 ·** No se convierten ni suman monedas distintas como si fueran equivalentes. Las exportaciones identifican período, moneda y reglas del informe.
+
+**RN-19 ·** Los archivos cargados son soportes privados. La autorización se comprueba en el servidor en cada carga y descarga; los enlaces temporales no sustituyen autorización y no se guardan como URL pública.
+
 ## 7. Flujos principales de usuario
 
 ### FU-01 · Inicio de sesión
@@ -246,7 +269,7 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | Precondición | Sesión iniciada |
 | Flujo principal | 1\. Administración → Nueva gestión. 2. Registrar asunto, tipo, contraparte, referencias y compromiso. 3. Crear seguimiento. 4. Registrar documentación y resultados. 5. Completar/archivar. |
 | Alternativa / excepción | Si no hay documento: indicar pendiente; no bloquear la creación de la gestión. |
-| Requisitos | RF-016 a RF-019, RF-036 a RF-038 |
+| Requisitos | RF-016 a RF-018, RF-047 a RF-049 |
 
 ### FU-04 · Solicitud y cotizaciones
 
@@ -255,7 +278,7 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | Precondición | Sesión iniciada |
 | Flujo principal | 1\. Procura → Nueva solicitud. 2. Registrar artículo/servicio, sede, cantidad. 3. Elegir/crear proveedor. 4. Añadir ofertas y moneda. 5. Actualizar etapa. 6. Programar seguimiento. 7. Registrar decisión o entrega. |
 | Alternativa / excepción | Sin cotización: solicitud sigue abierta. Cotizaciones en distinta moneda se muestran por separado, sin comparación monetaria total. |
-| Requisitos | RF-020 a RF-026, RF-036 |
+| Requisitos | RF-031 a RF-037, RF-047 a RF-049 |
 
 ### FU-05 · Caso de soporte TI
 
@@ -264,7 +287,7 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | Precondición | Sesión iniciada |
 | Flujo principal | 1\. TI → Nuevo caso. 2. Registrar solicitante de referencia, sede, dispositivo, tipo e impacto. 3. Anotar diagnóstico. 4. Guardar acciones. 5. Registrar resolución y completar. |
 | Alternativa / excepción | Si requiere respuesta externa: pasar a En espera y crear seguimiento; no sincronizar GLPI. |
-| Requisitos | RF-027 a RF-031 |
+| Requisitos | RF-038 a RF-042 |
 
 ### FU-06 · Proyecto y actividades
 
@@ -273,7 +296,7 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | Precondición | Sesión iniciada |
 | Flujo principal | 1\. Proyectos → Nuevo proyecto. 2. Registrar objetivo y fecha. 3. Crear o vincular registros existentes. 4. Revisar avance calculado. 5. Cerrar proyecto cuando corresponda. |
 | Alternativa / excepción | Si no hay registros: progreso sin datos; una actividad cancelada se excluye del denominador. |
-| Requisitos | RF-032 a RF-035 |
+| Requisitos | RF-043 a RF-046 |
 
 ### FU-07 · Seguimiento y revisión diaria
 
@@ -282,7 +305,34 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | Precondición | Existen actividades abiertas |
 | Flujo principal | 1\. Abrir Inicio. 2. Revisar vencidas, hoy y seguimientos. 3. Abrir registro de origen. 4. Añadir resultado de contacto. 5. Marcar seguimiento hecho o reprogramarlo. |
 | Alternativa / excepción | Reprogramación no cambia fecha límite; seguimiento vencido sigue visible hasta cerrarse. |
-| Requisitos | RF-010, RF-036 a RF-039 |
+| Requisitos | RF-010, RF-047 a RF-050 |
+
+### FU-08 · Compra recibida y emisión de retenciones
+
+| ELEMENTO | DESCRIPCIÓN |
+|---|---|
+| Precondición | Proveedor fiscal habilitado y parámetros/reglas requeridos configurados y revisados. |
+| Flujo principal | 1. Administración → Compras y documentos. 2. Crear factura o nota y elegir proveedor. 3. Registrar fechas, período, importes, retenciones, cuenta/CECO y soporte. 4. Revisar desglose y advertencias. 5. Guardar borrador o emitir. 6. Consultar comprobantes y bitácora. |
+| Alternativa / excepción | Datos incompletos, proveedor en revisión, duplicados o período no válido impiden emitir; borrador se conserva para corregir. Anulación conserva historial y no borra el documento. |
+| Requisitos | RF-020 a RF-024, RF-028 |
+
+### FU-09 · Importar proveedores y documentos históricos
+
+| ELEMENTO | DESCRIPCIÓN |
+|---|---|
+| Precondición | JSON/CSV de proveedores fiscales o XLSX/CSV de documentos, con formato admitido y sesión autorizada. |
+| Flujo principal | 1. Administración → Importaciones. 2. Elegir lote de proveedores fiscales o importar documentos históricos. 3. Revisar vista previa de filas, errores, advertencias y duplicados. 4. Corregir archivo si hay filas bloqueadas. 5. Confirmar importación. 6. Consultar el resumen y procedencia del lote. |
+| Alternativa / excepción | Si cambian los datos entre vista previa y confirmación, se revalida; cualquier conflicto bloquea el lote completo. Importar historia no emite certificados nuevos. |
+| Requisitos | RF-026, RF-029, RF-030 |
+
+### FU-10 · Preparar libro, cierre y exportación
+
+| ELEMENTO | DESCRIPCIÓN |
+|---|---|
+| Precondición | Documentos emitidos para el período y reglas de exportación revisadas. |
+| Flujo principal | 1. Administración → Reportes y exportaciones o Libros y cierres. 2. Elegir mes/quincena o rango de fechas. 3. Revisar conciliación, advertencias y bloqueos. 4. Abrir/exportar libro, archivo IVA/ISLR o cierre contable. |
+| Alternativa / excepción | Facturas mixtas, documentos incompletos, borradores o notas que cruzan período pueden bloquear una salida específica; se informa la razón y no se entrega archivo parcial silenciosamente. |
+| Requisitos | RF-025, RF-027 |
 
 ## 8. Diseño preliminar de pantallas
 
@@ -291,7 +341,15 @@ P0 = indispensable para liberar el MVP. P1 = incluido si cabe en el piloto; podr
 | Acceso | Identidad UPCO Admin; botón Microsoft 365; error acceso denegado. | Entrar. |
 | Inicio | Resumen por estado, vencimientos, agenda de seguimientos, accesos rápidos. | Nueva actividad. |
 | Mi trabajo | Tabla/lista, filtros, búsqueda, vistas activas/archivadas. | Crear/editar actividad. |
-| Administración | Listado de gestiones; formulario con contraparte, referencia y estado documental. | Nueva gestión. |
+| Administración: Resumen | Métricas del período, documentos recientes, pendientes documentales y avisos de cierre. | Abrir submódulo. |
+| Administración: Gestiones internas | Listado/ficha ADM, contraparte, referencias, compromisos, estado documental y seguimiento. | Nueva gestión. |
+| Administración: Compras y documentos | Listado filtrable, ficha de factura/nota, desglose fiscal, estados, soporte y auditoría. | Nuevo documento. |
+| Administración: Proveedores | Directorio fiscal, búsqueda, proveedor por revisar y ficha. | Nuevo proveedor. |
+| Administración: Retenciones | Consulta de comprobantes, bases y períodos IVA/ISLR/IGTF. | Revisar período. |
+| Administración: Libros y cierres | Conciliación, libro de compras y cierre contable. | Preparar cierre. |
+| Administración: Importaciones | Plantillas, vista previa de filas y confirmación de lotes. | Revisar archivo. |
+| Administración: Reportes y exportaciones | Selector de período y artefactos XLSX/TXT/XML admitidos con chequeos previos. | Exportar informe. |
+| Administración: Configuración fiscal | Datos de UPCO, vigencia UT, tasas/referencias, conceptos ISLR, CECO, cuentas de pago y correlativos versionados. | Guardar cambios/confirmar correlativos. |
 | Procura | Solicitudes, etapas, proveedores, cotizaciones por solicitud. | Nueva solicitud. |
 | TI | Tickets, impacto/urgencia, referencia de equipo, diagnóstico. | Nuevo caso. |
 | Proyectos | Lista, ficha, tareas vinculadas y progreso. | Nuevo proyecto. |
@@ -321,6 +379,14 @@ La modalidad Azure OAuth requiere registro de app en Entra, permisos del adminis
 | procurement_details | work_item_id (1:1), item_description, quantity, unit, destination_site_id, commercial_stage, decision_note. |
 | vendors | id, organization_id, name, contact_name, email, phone, notes. |
 | quotations | id, procurement_work_item_id, vendor_id, amount DECIMAL, currency ISO, quote_date, valid_until, notes, document_link. |
+| fiscal_vendors | id, organization_id, procurement_vendor_id?, rif, legal_name, address, taxpayer/person/residency types, withholding_rate, fiscal_machines, active, review_state, import_provenance. |
+| purchase_documents | id, organization_id, fiscal_vendor_id, type, number, control_number, issued_at, event_at, period, half, affected_document_id?, currency, amounts, status, settings_snapshot, accounting_snapshot, created_by. |
+| tax_withholdings | id, purchase_document_id, tax_kind (IVA/ISLR/IGTF), bases, rates, reason, certificate_number, amount, rule_version. |
+| purchase_allocations | id, purchase_document_id, payment_account_id, ceco_id, percentage, amount, label_snapshot. |
+| fiscal_settings | organization_id, key, version, value JSON, effective_from, updated_by, updated_at; valores tributarios y catálogos editables con auditoría. |
+| certificate_sequences | organization_id, tax_kind, period, next_number, confirmed_by, confirmed_at. |
+| purchase_attachments | id, purchase_document_id, private_storage_key, filename, MIME type, byte_size, uploaded_by, created_at. |
+| import_batches / import_rows | id, organization_id, actor_id, source_name, status, row_number, outcome, issues JSON, created_at. |
 | it_details | work_item_id (1:1), ticket_type, requester_name, asset_label, asset_serial, impact, urgency, resolution. |
 | follow_ups | id, work_item_id, scheduled_for, contact_name, reason, status, outcome, performed_at. |
 | comments | id, work_item_id, author_id, body, created_at. |
@@ -330,9 +396,9 @@ La modalidad Azure OAuth requiere registro de app en Entra, permisos del adminis
 
 ### 9.3 Índices, restricciones y integridad
 
-- Claves foráneas sobre organization_id, project_id, site_id, work_item_id y vendor_id; índices por usuario/organización, status, due_date y scheduled_for.
+- Claves foráneas sobre organization_id, project_id, site_id, work_item_id, vendor_id y purchase_document_id; índices por usuario/organización, status, due_date, scheduled_for, fiscal_vendor_id, period y event_at.
 - Código único dentro de organización y tipo; identificadores UUID como claves internas.
-- Comprobación de amount ≥0, quantity \>0; moneda ISO 4217 y etapas dentro del conjunto permitido.
+- Comprobación de amount ≥0, quantity \>0; moneda ISO 4217, límites fiscales, unicidad de RIF/documento/comprobante y etapas dentro del conjunto permitido.
 - Comprobación de consistencia de type con la tabla de detalle respectiva, aplicada en lógica transaccional y con restricciones cuando corresponda.
 - En todas las consultas y reglas de RLS, la pertenencia a la organización determina acceso, aunque inicialmente solo exista una membresía habilitada.
 
@@ -361,25 +427,34 @@ Los elementos P0 son obligatorios para liberar; P1 forman parte del alcance dese
 | BL-13 | P0 | S2 | Crear gestiones administrativas y detalle documental | RF-016, RF-017 | BL-08 |
 | BL-14 | P0 | S2 | Registrar compromisos administrativos y vínculos | RF-018 | BL-13 |
 | BL-15 | P0 | S2 | Crear proveedores y sus datos mínimos | RF-021 | BL-05 |
-| BL-16 | P0 | S2 | Crear solicitudes de procura | RF-020 | BL-08 |
-| BL-17 | P0 | S2 | Registrar cotizaciones manuales y monedas | RF-022 | BL-15, BL-16 |
-| BL-18 | P0 | S2 | Gestionar etapas y espera comercial | RF-023, RF-024 | BL-16 |
-| BL-19 | P0 | S3 | Crear casos de soporte TI | RF-027, RF-028 | BL-08 |
-| BL-20 | P0 | S3 | Implementar diagnóstico, resolución e impacto/urgencia | RF-029, RF-030 | BL-19 |
-| BL-21 | P0 | S3 | Crear proyectos y vincular registros | RF-032, RF-033 | BL-08 |
-| BL-22 | P0 | S3 | Calcular avance básico y estados del proyecto | RF-034 | BL-21 |
-| BL-23 | P0 | S3 | Crear seguimientos vinculados y reprogramación | RF-036, RF-037 | BL-08 |
-| BL-24 | P0 | S3 | Implementar agenda de seguimientos | RF-038 | BL-23 |
-| BL-25 | P0 | S4 | Integrar contadores del dashboard y reportes resumen | RF-039 | BL-12, BL-24 |
+| BL-16 | P0 | S2 | Crear solicitudes de procura | RF-031 | BL-08 |
+| BL-17 | P0 | S2 | Registrar cotizaciones manuales y monedas | RF-033 | BL-15, BL-16 |
+| BL-18 | P0 | S2 | Gestionar etapas y espera comercial | RF-034, RF-035 | BL-16 |
+| BL-19 | P0 | S3 | Crear casos de soporte TI | RF-038, RF-039 | BL-08 |
+| BL-20 | P0 | S3 | Implementar diagnóstico, resolución e impacto/urgencia | RF-040, RF-041 | BL-19 |
+| BL-21 | P0 | S3 | Crear proyectos y vincular registros | RF-043, RF-044 | BL-08 |
+| BL-22 | P0 | S3 | Calcular avance básico y estados del proyecto | RF-045 | BL-21 |
+| BL-23 | P0 | S3 | Crear seguimientos vinculados y reprogramación | RF-047, RF-048 | BL-08 |
+| BL-24 | P0 | S3 | Implementar agenda de seguimientos | RF-049 | BL-23 |
+| BL-25 | P0 | S4 | Integrar contadores del dashboard y reportes resumen | RF-050 | BL-12, BL-24 |
 | BL-26 | P0 | S4 | Implementar preferencias de usuario y sede | RF-004 | BL-04 |
-| BL-27 | P0 | S4 | Pruebas E2E de los 7 flujos, seguridad y accesibilidad | RNF-02, RNF-09 | BL-25 |
+| BL-27 | P0 | S4 | Revisar los flujos principales, seguridad y accesibilidad | RNF-02, RNF-09 | BL-25 |
 | BL-28 | P0 | S4 | Definir respaldos, restauración, monitoreo y despliegue | RNF-06, RNF-11 | BL-27 |
 | BL-29 | P1 | S5 | Checklists y adjuntos privados | RF-013, RF-014 | BL-08 |
-| BL-30 | P1 | S5 | Filtros avanzados de administración y TI | RF-019, RF-031 | BL-13, BL-19 |
-| BL-31 | P1 | S5 | Comparador manual y registro de resultado de procura | RF-025, RF-026 | BL-17 |
-| BL-32 | P1 | S5 | Resumen adicional de proyectos | RF-035 | BL-22 |
-| BL-33 | P1 | S5 | Exportaciones CSV y calendario | RF-015, RF-040, RF-041 | BL-25 |
+| BL-30 | P1 | S5 | Filtros avanzados de administración y TI | RF-019, RF-042 | BL-13, BL-19 |
+| BL-31 | P1 | S5 | Comparador manual y registro de resultado de procura | RF-036, RF-037 | BL-17 |
+| BL-32 | P1 | S5 | Resumen adicional de proyectos | RF-046 | BL-22 |
+| BL-33 | P1 | S5 | Exportaciones CSV y calendario | RF-015, RF-051, RF-052 | BL-25 |
 | BL-34 | P1 | S5 | Catálogos editables | RF-005 | BL-05 |
+| BL-35 | P0 | S3 | Crear navegación, páginas independientes y resumen de Administración | RF-019 | BL-07, BL-13 |
+| BL-36 | P0 | S3 | Crear configuración fiscal versionada con auditoría | RF-028, RN-15, RN-16 | BL-05, BL-10 |
+| BL-37 | P0 | S3 | Crear modelo fiscal de proveedores e importación/revisión | RF-021, RF-029 | BL-15, BL-35 |
+| BL-38 | P0 | S3 | Registrar compras, notas y cálculo servidor de retenciones | RF-020, RF-022 | BL-36, BL-37 |
+| BL-39 | P0 | S3 | Adjuntos privados y eventos de soporte | RF-023, RNF-03 | BL-38, BL-02 |
+| BL-40 | P0 | S4 | Distribuciones por cuenta/CECO y snapshots contables | RF-024 | BL-36, BL-38 |
+| BL-41 | P0 | S4 | Libro, conciliación y exportaciones fiscales/contables | RF-025, RF-027 | BL-38, BL-40 |
+| BL-42 | P0 | S4 | Importar proveedores/documentos con preview y atomicidad | RF-026, RF-030, RNF-10 | BL-37, BL-38 |
+| BL-43 | P0 | S4 | Configurar y confirmar correlativos de certificados | RF-028 | BL-36, BL-38 |
 
 ### 10.1 Dependencias que condicionan el inicio
 
@@ -444,7 +519,7 @@ Los requisitos P0 y las cinco áreas constituyen la línea base. Toda ampliació
 ### 12.2 Criterios de salida del MVP
 
 - Todos los RF P0 ejecutados y aprobados en su criterio de aceptación.
-- Siete flujos completos ejercitados con datos sintéticos; sin defectos bloqueantes.
+- Diez flujos completos ejercitados con datos sintéticos; sin defectos bloqueantes.
 - Acceso y RLS validados con casos negativos; no quedan secretos expuestos.
 - Restauración ensayada, monitoreo activo y procedimiento de incidente documentado.
 - Autorización corporativa para alojamiento y tratamiento de información obtenida.
@@ -470,11 +545,12 @@ Nota técnica: los procedimientos y precios de servicios cloud pueden cambiar. A
 |---|---|---|
 | Identidad/configuración | RF-001–005 | S1 / S4 |
 | Núcleo de tareas | RF-006–015 | S1–S2 (P0), S5 (P1) |
-| Administración | RF-016–019 | S2 (P0), S5 (P1) |
-| Procura | RF-020–026 | S2 (P0), S5 (P1) |
-| TI | RF-027–031 | S3 (P0), S5 (P1) |
-| Proyectos | RF-032–035 | S3 (P0), S5 (P1) |
-| Seguimientos/reportes | RF-036–041 | S3–S4 (P0), S5 (P1) |
+| Administración: gestiones | RF-016–018 | S2 (P0) |
+| Administración: compras y fiscal | RF-019–030 | S3–S4 (P0), S5 (P1) |
+| Procura | RF-031–037 | S2 (P0), S5 (P1) |
+| TI | RF-038–042 | S3 (P0), S5 (P1) |
+| Proyectos | RF-043–046 | S3 (P0), S5 (P1) |
+| Seguimientos/reportes | RF-047–052 | S3–S4 (P0), S5 (P1) |
 | Seguridad/calidad | RNF-01–16 | Transversal; gate final S4 |
 
 ## Anexo B. Datos sintéticos para prueba funcional

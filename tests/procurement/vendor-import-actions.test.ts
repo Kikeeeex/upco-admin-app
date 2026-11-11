@@ -35,6 +35,11 @@ describe("vendor import actions", () => {
     vi.mocked(getAccessContext).mockResolvedValue({ kind: "anonymous" } as never);
     expect(await inspectVendorImport(form())).toMatchObject({ kind: "error" });
   });
+  it("allows inspecting unfamiliar headers so the user can map them manually", async () => {
+    const input = new FormData();
+    input.set("file", new File(["Nombre comercial,País\nProveedor Uno,Venezuela"], "otro.csv", { type: "text/csv" }));
+    expect(await inspectVendorImport(input)).toMatchObject({ kind: "success", headers: ["Nombre comercial", "País"], mapping: { country: 1 } });
+  });
   it("previews matches and new rows without writing", async () => {
     const result = await previewVendorImport(form());
     expect(result).toMatchObject({ kind: "success", counts: { new: 1, match: 1 }, rows: [{ sourceRow: 2, status: "match" }, { sourceRow: 3, status: "new" }] });
@@ -55,5 +60,15 @@ describe("vendor import actions", () => {
     const result = await commitVendorImport(form({ digest: preview.digest, selectedRows: "[2]", selectedFields: '["phone"]' }));
     expect(rpc.mock.calls[0][1].p_rows[0].mode).toBe("update");
     expect(result).toMatchObject({ kind: "success", incidents: [] });
+  });
+  it("reports a row skipped by the database after preview", async () => {
+    rpc.mockResolvedValue({ data: { batchId: "id", created: 0, updated: 0, skipped: 2, rejected: 0,
+      results: [{ sourceRow: 2, status: "skipped" }, { sourceRow: 3, status: "skipped" }] }, error: null });
+    const preview = await previewVendorImport(form());
+    if (preview.kind !== "success") throw new Error("Vista previa falló");
+    const result = await commitVendorImport(form({ digest: preview.digest }));
+    expect(result).toMatchObject({ kind: "success", incidents: [
+      { sourceRow: 2, status: "skipped" }, { sourceRow: 3, status: "skipped" },
+    ] });
   });
 });

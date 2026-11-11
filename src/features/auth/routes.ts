@@ -1,6 +1,6 @@
 const protectedRoots = [
   "/inicio", "/mi-trabajo", "/administracion", "/procura", "/ti",
-  "/proyectos", "/seguimientos", "/reportes", "/configuracion",
+  "/proyectos", "/reportes", "/configuracion",
   "/auth/activity",
 ];
 

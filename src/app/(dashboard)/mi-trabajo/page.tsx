@@ -5,7 +5,7 @@ import { parsePageNumber, formatWorkItemDateTime } from "@/features/work-items/p
 import { ArchiveWorkItemForm, CreateWorkItemForm, EditWorkItemForm, type ListedWorkItem } from "@/components/work-item-forms";
 
 const PAGE_SIZE = 50;
-const areaLabels: Record<string, string> = { general: "General", administration: "Administración", procurement: "Procura", it: "TI" };
+const areaLabels: Record<string, string> = { general: "General", procurement: "Procura", it: "TI" };
 const priorityLabels: Record<string, string> = { low: "Baja", medium: "Media", high: "Alta", critical: "Crítica" };
 const statusLabels: Record<string, string> = { pending: "Pendiente", in_progress: "En progreso", waiting: "En espera", completed: "Completada", cancelled: "Cancelada" };
 
@@ -41,7 +41,8 @@ export default async function MiTrabajoPage({ searchParams }: { searchParams: Pr
   function listQuery(isArchived: boolean, page: number) {
     let query = supabase.from("work_items")
       .select("id, code, type, title, description, site_id, status, priority, due_date, closed_at, archived_at, creator_id")
-      .eq("organization_id", access.organizationId);
+      .eq("organization_id", access.organizationId)
+      .neq("type", "administration");
     query = isArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
     if (filters.query) query = query.ilike("search_text", `%${escapeLikePattern(filters.query)}%`);
     if (filters.area) query = query.eq("type", filters.area);
