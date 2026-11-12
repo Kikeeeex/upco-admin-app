@@ -27,6 +27,7 @@ export const ADMINISTRATION_NAVIGATION = [
   { href: "/administracion/importaciones", label: "Importaciones", permissions: ["imports.validate"] },
   { href: "/administracion/reportes", label: "Reportes y exportaciones", permissions: ["reports.export"] },
   { href: "/administracion/configuracion-fiscal", label: "Configuración fiscal", permissions: ["fiscal_settings.read", "fiscal_settings.manage"] },
+  { href: "/administracion/permisos", label: "Permisos", adminOnly: true, permissions: [] },
 ] as const;
 
 export function isAdministrationPermission(value: string): value is AdministrationPermission {

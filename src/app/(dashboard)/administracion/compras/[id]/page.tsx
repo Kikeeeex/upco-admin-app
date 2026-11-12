@@ -23,7 +23,7 @@ export default async function EditarBorradorPage({ params }: { params: Promise<{
     const calculation = draft.calculation_snapshot && typeof draft.calculation_snapshot === "object" ? draft.calculation_snapshot as Record<string, unknown> : {};
     const accounting = draft.accounting_snapshot && typeof draft.accounting_snapshot === "object" ? draft.accounting_snapshot as Record<string, unknown> : {};
     return <div className="page-content">
-      <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8 · {draft.status === "voided" ? "ANULADO" : "EMITIDO"}</span><h1>{draft.status === "voided" ? "Documento anulado" : "Documento emitido"}</h1><p>Esta operación conserva el cálculo, la configuración y la distribución contable usados al emitir.</p></div>
+      <div className="page-heading"><span className="eyebrow">REGISTRO DOCUMENTAL · {draft.status === "voided" ? "ANULADO" : "EMITIDO"}</span><h1>{draft.status === "voided" ? "Documento anulado" : "Documento emitido"}</h1><p>Esta operación conserva el cálculo, la configuración y la distribución contable usados al emitir.</p></div>
       <Link className="text-link" href="/administracion/compras">← Volver a Compras y documentos</Link>
       <section className="work-card"><h2>{draft.invoice_number ?? "Documento"}</h2><dl className="detail-grid">
         <div><dt>Comprobante IVA</dt><dd>{draft.iva_certificate_number ?? "Sin retención IVA"}</dd></div>
@@ -38,7 +38,7 @@ export default async function EditarBorradorPage({ params }: { params: Promise<{
       </dl></section>
       {draft.status === "issued" && access.role === "admin" && (draft.iva_certificate_number || draft.islr_certificate_number) && <section className="work-card">
         <h2>Comprobantes PDF</h2>
-        <div className="administration-subnav">
+        <div className="administration-document-downloads">
           {draft.iva_certificate_number && <a className="text-link" href={`/api/administracion/compras/${draft.id}/pdf?tipo=iva`}>Descargar comprobante IVA · {draft.iva_certificate_number}</a>}
           {draft.islr_certificate_number && <a className="text-link" href={`/api/administracion/compras/${draft.id}/pdf?tipo=islr`}>Descargar comprobante ISLR · {draft.islr_certificate_number}</a>}
         </div>
@@ -48,7 +48,7 @@ export default async function EditarBorradorPage({ params }: { params: Promise<{
     </div>;
   }
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8 · BORRADOR</span><h1>Editar borrador</h1><p>Puedes obtener una vista previa fiscal; solo los datos de captura se guardan. No se emite ni asigna correlativo.</p></div>
+    <div className="page-heading"><span className="eyebrow">REGISTRO DOCUMENTAL · BORRADOR</span><h1>Editar borrador</h1><p>Puedes obtener una vista previa fiscal; solo los datos de captura se guardan. No se emite ni asigna correlativo.</p></div>
     <Link className="text-link" href="/administracion/compras">← Volver a Compras y documentos</Link>
     {canManage ? <AdministrationDraftForm draft={draft} vendors={vendors ?? []} invoices={invoices ?? []} canIssue={access.role === "admin"} /> : <p className="administration-lock-note">Tienes acceso de lectura. La edición de borradores requiere permiso de gestión.</p>}
   </div>;

@@ -91,9 +91,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .daily-panel > .text-link { margin-top: auto; }
 .work-list th, .login-footnote { color: var(--muted); }
 
-.administration-subnav { display: flex; gap: 8px; margin: 0 0 28px; overflow-x: auto; padding: 0 0 7px; }
-.administration-subnav a { flex: none; padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: .8rem; font-weight: 700; }
-.administration-subnav a:hover, .administration-subnav a.is-active { border-color: var(--blue); background: rgba(11, 75, 50, .08); color: var(--blue); }
 .permission-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
 .permission-options legend { padding: 0 6px; font-size: .82rem; font-weight: 800; }
 .permission-option { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 12px; cursor: pointer; }
@@ -136,7 +133,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 950px) { .draft-document-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .draft-document-form button { grid-column: 2; } }
 @media (max-width: 640px) { .fiscal-vendor-form, .draft-document-form, .fiscal-settings-form { grid-template-columns: 1fr; } .fiscal-vendor-form button, .draft-document-form button, .fiscal-settings-form button { grid-column: 1; } .filter-form { align-items: stretch; flex-direction: column; } }
 @media (max-width: 950px) { .administration-module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 640px) { .administration-module-grid, .administration-export-grid { grid-template-columns: 1fr; } .administration-subnav { margin-bottom: 22px; } }
+@media (max-width: 640px) { .administration-module-grid, .administration-export-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .permission-options { grid-template-columns: 1fr; } }
 
 .login-side { background: linear-gradient(145deg, #0b4b32, #041914); }
@@ -174,6 +171,215 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .vendor-filter-form { margin: 18px 0 8px; }
 .vendor-filter-form .filter-actions { align-items: end; }
 .vendor-detail-text { white-space: pre-wrap; }
+
+/* Administration V2.9: align its shell and screens with the UPCO Compras reference. */
+.administration-app-frame {
+  --admin-forest: #0e1914;
+  --admin-green: #0b4b32;
+  --admin-green-deep: #08402d;
+  --admin-lime: #a4d85a;
+  --admin-canvas: #f1f3f0;
+  --admin-surface: #fff;
+  --admin-border: #dbe3dc;
+  --admin-muted: #718178;
+}
+.administration-app-frame .sidebar { position: sticky; top: 0; width: 248px; height: 100vh; min-height: 100vh; overflow: hidden; background: var(--admin-forest); padding: 18px 14px 16px; }
+.administration-app-frame .brand { padding: 10px 10px 22px; }
+.administration-app-frame .brand-logo-expanded { max-width: 176px; }
+.administration-app-frame .sidebar-toggle { border-color: rgba(237, 237, 237, .2); }
+.administration-app-frame .sidebar-toggle:hover { background: rgba(237, 237, 237, .1); }
+.administration-app-frame .nav-caption { color: #9aada1; }
+.administration-app-frame .main-nav a { color: #d1d9d3; }
+.administration-app-frame .main-nav a svg { color: #b4c8b9; }
+.administration-app-frame .main-nav a:hover,
+.administration-app-frame .main-nav a:focus-visible { background: rgba(255, 255, 255, .08); color: #fff; }
+.administration-app-frame .main-nav a[aria-current="page"] { background: #104c36; color: #fff; box-shadow: inset 3px 0 0 var(--admin-lime); }
+.administration-app-frame .main-nav .admin-nav-parent.is-active { background: rgba(255, 255, 255, .08); color: #fff; }
+.administration-app-frame .main-nav .admin-nav-parent.is-active svg { color: var(--admin-lime); }
+.administration-app-frame .main-nav .nav-group { margin-top: 8px; }
+.administration-app-frame #main-navigation { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.administration-app-frame #main-navigation { scrollbar-color: #53695b transparent; scrollbar-width: thin; }
+.admin-nav-group { margin-bottom: 8px; }
+.admin-nav-parent-row { display: flex; align-items: stretch; gap: 2px; }
+.admin-nav-parent-row > a { flex: 1; min-width: 0; }
+.main-nav .admin-nav-parent-row > .admin-nav-parent { font-weight: 800; }
+.admin-nav-toggle { display: grid; place-items: center; flex: none; width: 38px; min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: #d1d9d3; }
+.admin-nav-toggle:hover, .admin-nav-toggle:focus-visible { background: rgba(255, 255, 255, .1); color: #fff; }
+.admin-nav-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.admin-nav-toggle svg { transition: transform .16s ease; }
+.admin-nav-children { display: grid; gap: 2px; margin: 4px 0 0; padding: 0 0 0 14px; list-style: none; }
+.admin-nav-children[hidden] { display: none; }
+.admin-nav-children li { min-width: 0; }
+.main-nav .admin-nav-children a { min-height: 38px; padding: 8px 10px; gap: 10px; color: #c0cec4; font-size: .8rem; }
+.main-nav .admin-nav-children a svg { width: 18px; color: #a9bdb0; }
+.administration-app-frame .sidebar.is-collapsed { width: 72px; }
+.administration-app-frame .sidebar.is-collapsed .admin-nav-parent-row { position: relative; }
+.administration-app-frame .sidebar.is-collapsed .admin-nav-parent-row > .admin-nav-parent { flex: none; width: 30px; justify-content: center; padding: 10px 0; }
+.administration-app-frame .sidebar.is-collapsed .admin-nav-toggle { width: 22px; min-height: 24px; padding: 0; color: #a9bdb0; }
+.administration-app-frame .sidebar.is-collapsed .admin-nav-children { padding: 0; }
+.administration-app-frame .sidebar.is-collapsed .admin-nav-children a { justify-content: center; padding: 9px 0; }
+.administration-app-frame .content-frame { background: var(--admin-canvas); }
+.administration-app-frame .topbar { height: 72px; padding: 0 34px; border-color: var(--admin-border); }
+.administration-app-frame .topbar-eyebrow { color: var(--admin-muted); }
+.administration-app-frame .topbar strong { color: #16251d; }
+.administration-app-frame .topbar .quiet-button { border-color: var(--admin-border); color: #385343; }
+.administration-app-frame .topbar .quiet-button:hover { background: #f1f6f2; }
+.administration-mobile-menu-panel { background: #0e1914; color: #ededed; border-color: rgba(237, 237, 237, .2); }
+.administration-mobile-menu-panel [data-slot="sheet-title"] { color: #ededed; }
+.administration-mobile-menu-panel .mobile-nav a { color: #d1d9d3; }
+.administration-mobile-menu-panel .mobile-nav a[aria-current="page"] { background: #104c36; color: #fff; box-shadow: inset 3px 0 0 #a4d85a; }
+.administration-mobile-menu-panel .mobile-nav .admin-nav-parent.is-active { background: rgba(255, 255, 255, .08); color: #fff; }
+.administration-mobile-menu-panel .mobile-nav .nav-caption { color: #9aada1; }
+.administration-app-frame .main-content { max-width: 1440px; padding: 32px 34px 42px; }
+.administration-module { color: #17251d; }
+.administration-module .page-content { max-width: none; }
+.administration-module .eyebrow { color: #64776b; font-size: .68rem; letter-spacing: .14em; }
+.administration-module .page-heading { margin-bottom: 26px; }
+.administration-module .page-heading h1 { margin: 7px 0 7px; color: #14231c; font-size: 2rem; letter-spacing: -.045em; }
+.administration-module .page-heading p { color: var(--admin-muted); font-size: .9rem; }
+.administration-module .work-card,
+.administration-module .overview-card,
+.administration-module .empty-card { border-color: var(--admin-border); border-radius: 14px; background: var(--admin-surface); box-shadow: 0 3px 10px rgba(13, 45, 29, .035); }
+.administration-module .work-card { padding: 22px; }
+.administration-module .work-card h2,
+.administration-module .overview-card h2 { color: #17251d; }
+.administration-module .work-card p,
+.administration-module .overview-card p { color: var(--admin-muted); }
+.administration-module .overview-card { min-height: 158px; padding: 20px; }
+.administration-module .overview-card h2 { margin: 17px 0 7px; font-size: .94rem; }
+.administration-module .overview-card > strong { display: block; color: #17251d; font-size: 1.65rem; font-weight: 750; line-height: 1.2; }
+.administration-module .overview-card p { min-height: auto; margin: 6px 0 0; font-size: .73rem; }
+.administration-module .text-link,
+.administration-module .overview-card a { color: var(--admin-green); }
+.administration-module .badge { border-radius: 999px; background: #e5f3e8; color: var(--admin-green); }
+.administration-module .primary-button { background: var(--admin-green); box-shadow: 0 6px 16px rgba(11, 75, 50, .12); }
+.administration-module .primary-button:hover:not(:disabled) { background: var(--admin-green-deep); }
+.administration-module .quiet-button { border-color: var(--admin-border); color: #263b2e; }
+.administration-module .field label { color: #5d7064; }
+.administration-module .field input,
+.administration-module .field select,
+.administration-module .work-form input,
+.administration-module .work-form select { border-color: var(--admin-border); border-radius: 8px; }
+.administration-module .work-list { overflow: hidden; }
+.administration-module .work-list table { font-size: .8rem; }
+.administration-module .work-list th { background: #f7f9f7; color: #74867a; font-size: .64rem; letter-spacing: .075em; }
+.administration-module .work-list th,
+.administration-module .work-list td { border-color: #e8ede9; padding: 12px 10px; }
+.administration-module .table-scroll { max-width: 100%; border-radius: 9px; overscroll-behavior-inline: contain; }
+.administration-module .administration-lock-note,
+.administration-module .muted-note { border-left-color: var(--admin-green); background: #edf4ee; color: #56695d; }
+.administration-module .error-message { padding: 12px 14px; border-radius: 8px; background: #fff2ef; }
+.administration-module .administration-module-grid { gap: 14px; }
+.administration-module .administration-export-grid { gap: 16px; }
+.administration-module .permission-options { border-color: var(--admin-border); }
+.administration-module .permission-option { border-color: var(--admin-border); }
+.administration-module .permission-option input,
+.administration-module .fiscal-vendor-form .check-field input,
+.administration-module .draft-document-form .check-field input { accent-color: var(--admin-green); }
+.administration-module .proposal-list li { border-color: var(--admin-border); border-radius: 12px; }
+.administration-module .proposal-list summary { color: var(--admin-green); }
+.administration-module .administration-create-panel { margin: 0 0 20px; }
+.administration-module .administration-create-panel > summary { display: inline-flex; align-items: center; min-height: 42px; margin-bottom: 12px; padding: 0 16px; border-radius: 9px; background: var(--admin-green); color: #fff; cursor: pointer; font-size: .78rem; font-weight: 800; list-style: none; }
+.administration-module .administration-create-panel > summary::-webkit-details-marker { display: none; }
+.administration-module .administration-create-panel > summary::before { content: "+"; margin-right: 10px; font-size: 1.2rem; font-weight: 500; }
+.administration-module .administration-create-panel[open] > summary::before { content: "−"; }
+.administration-module .administration-create-panel > summary:hover { background: var(--admin-green-deep); }
+.administration-document-downloads { display: flex; flex-wrap: wrap; gap: 10px; }
+.administration-document-downloads a { display: inline-flex; align-items: center; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-green); font-size: .8rem; font-weight: 700; }
+.administration-document-downloads a:hover { background: #f3f7f3; }
+.administration-purchase-filters { display: grid; gap: 14px; padding: 18px 20px; border-bottom: 1px solid #e8ede9; }
+.administration-filter-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+.administration-filter-pills a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; color: #586d5f; font-size: .75rem; font-weight: 700; }
+.administration-filter-pills a:hover { background: #f1f6f2; }
+.administration-filter-pills a.is-active { background: var(--admin-green); color: #fff; }
+.administration-half-filters a { border-color: var(--admin-border); background: #fff; }
+.administration-half-filters a.is-active { border-color: var(--admin-green); }
+.administration-period-filter { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.administration-period-filter label { color: var(--admin-muted); font-size: .72rem; font-weight: 700; }
+.administration-period-filter input { min-height: 36px; padding: 5px 8px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: #233b2d; }
+.administration-period-filter .quiet-button { min-height: 36px; padding: 0 12px; }
+
+.administration-dashboard-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.administration-dashboard-heading .eyebrow { text-transform: uppercase; }
+.administration-dashboard-heading h1 { font-size: 2.15rem !important; }
+.administration-dashboard-actions { display: flex; align-items: center; gap: 10px; }
+.administration-dashboard-actions .primary-button,
+.administration-dashboard-actions .quiet-button { display: inline-flex; width: auto; min-height: 42px; align-items: center; justify-content: center; padding: 0 15px; border-radius: 9px; font-size: .78rem; }
+.administration-dashboard-actions .quiet-button { background: #fff; }
+.administration-hero { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 156px; margin-bottom: 18px; padding: 26px 30px; border-radius: 16px; background: var(--admin-green); color: #fff; }
+.administration-hero > div > span { color: #c3e78b; font-size: .66rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.administration-hero h2 { margin: 9px 0 7px; color: #fff; font-size: 1.7rem; letter-spacing: -.035em; }
+.administration-hero p { max-width: 600px; margin: 0; color: #e0ece3; font-size: .82rem; line-height: 1.55; }
+.administration-hero-link { display: inline-flex; flex: none; align-items: center; gap: 12px; padding: 11px 16px; border-radius: 9px; background: var(--admin-lime); color: #142719; font-size: .78rem; font-weight: 800; }
+.administration-hero-link:hover { background: #b4e773; }
+.administration-module .administration-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0 0 18px; }
+.administration-module .administration-metrics .overview-card { position: relative; min-height: 140px; padding: 18px; }
+.administration-module .administration-metrics .overview-card h2 { margin: 4px 40px 9px 0; color: #5f7466; font-size: .75rem; }
+.administration-metric-icon { display: grid; place-items: center; position: absolute; top: 15px; right: 15px; width: 34px; height: 34px; border-radius: 9px; background: #edf5ec; color: var(--admin-green); font-size: 1rem; font-weight: 800; }
+.administration-summary-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr); align-items: stretch; gap: 14px; }
+.administration-summary-grid > * { min-width: 0; }
+.administration-module .administration-recent-documents { margin-top: 0; padding: 0; }
+.administration-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; }
+.administration-panel-heading h2 { margin: 0 0 5px !important; font-size: .95rem !important; }
+.administration-panel-heading p { margin: 0; color: var(--admin-muted); font-size: .74rem; }
+.administration-panel-heading > span { color: #688d71; }
+.administration-recent-documents .administration-table-scroll { border-radius: 0 0 14px 14px; }
+.administration-recent-documents table { min-width: 640px; }
+.administration-recent-documents td a { color: #17251d; font-weight: 700; }
+.administration-recent-documents td a:hover { color: var(--admin-green); text-decoration: underline; }
+.administration-status { display: inline-flex; align-items: center; white-space: nowrap; padding: 4px 8px; border-radius: 999px; background: #edf2ed; color: #526356; font-size: .68rem; font-weight: 700; }
+.administration-status-issued { background: #e2f2e7; color: #16633a; }
+.administration-status-voided { background: #fff0e4; color: #985120; }
+.administration-period-panel { display: flex; flex-direction: column; gap: 12px; }
+.administration-period-panel .administration-panel-heading { padding: 0 0 2px; }
+.administration-period-stat { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; padding: 13px 14px; border: 1px solid #e2e9e2; border-radius: 10px; background: #f8faf8; }
+.administration-period-stat > span { color: #6c8171; font-size: .71rem; font-weight: 700; }
+.administration-period-stat > strong { color: #17251d; font-size: 1.1rem; }
+.administration-period-stat > div { grid-column: 1 / -1; height: 5px; border-radius: 999px; background: #dce9dd; overflow: hidden; }
+.administration-period-stat > div > span { display: block; height: 100%; border-radius: inherit; background: #13844d; }
+.administration-period-action { display: flex; justify-content: center; align-items: center; min-height: 40px; margin-top: auto; border: 1px solid var(--admin-border); border-radius: 9px; color: var(--admin-green); font-size: .78rem; font-weight: 800; }
+.administration-period-action:hover { background: #f2f7f2; }
+
+@media (max-width: 1100px) {
+  .administration-module .administration-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .administration-summary-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 950px) {
+  .administration-app-frame .sidebar { width: 220px; }
+  .administration-app-frame .sidebar.is-collapsed { width: 72px; }
+  .administration-app-frame .topbar { padding: 0 24px; }
+  .administration-app-frame .main-content { padding: 28px 24px 36px; }
+}
+@media (max-width: 640px) {
+  .administration-app-frame .main-content { padding: 24px 16px 32px; }
+  .administration-app-frame .topbar { height: 65px; padding: 0 14px; }
+  .administration-mobile-menu-panel { background: #0e1914; }
+  .administration-mobile-menu-panel .admin-nav-group { margin: 0 0 8px; }
+  .administration-mobile-menu-panel .admin-nav-parent-row > a { min-height: 46px; }
+  .administration-mobile-menu-panel .admin-nav-toggle { min-width: 44px; min-height: 44px; }
+  .administration-mobile-menu-panel .admin-nav-children { padding-left: 15px; }
+  .administration-mobile-menu-panel .admin-nav-children a { min-height: 44px; }
+  .administration-dashboard-heading { align-items: stretch; flex-direction: column; gap: 15px; }
+  .administration-dashboard-heading h1 { font-size: 1.8rem !important; }
+  .administration-dashboard-actions { width: 100%; }
+  .administration-dashboard-actions > * { flex: 1; }
+  .administration-hero { align-items: flex-start; flex-direction: column; gap: 18px; padding: 22px; }
+  .administration-hero h2 { font-size: 1.45rem; }
+  .administration-module .administration-metrics { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .administration-module .administration-metrics .overview-card { min-height: 133px; padding: 15px; }
+  .administration-summary-grid { grid-template-columns: minmax(0, 1fr); }
+  .administration-module .work-card { padding: 17px; }
+  .administration-module .administration-recent-documents { padding: 0; }
+  .administration-module .administration-export-grid,
+  .administration-module .administration-module-grid { grid-template-columns: 1fr; }
+  .administration-module .permission-options { grid-template-columns: 1fr; }
+  .administration-period-filter { width: 100%; margin: 0; }
+  .administration-period-filter input { flex: 1; min-width: 0; }
+  .administration-purchase-filters { padding: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .administration-app-frame .admin-nav-toggle svg { transition: none; }
+}
 
 /* Shared shell v2. The desktop width preference and both UPCO logos remain intact. */
 .main-nav a[aria-current="page"] { background: rgba(237, 237, 237, .16); color: #fff; box-shadow: inset 3px 0 0 #ededed; }

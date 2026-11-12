@@ -9,7 +9,7 @@ export default async function LibrosPage() {
   const canExport = hasAdministrationPermission(access, "reports.export");
   const status = await loadAdministrationDraftStatus(access);
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Libros y cierres</h1><p>Estado de borradores por período y conciliación.</p></div>
+    <div className="page-heading"><span className="eyebrow">LIBROS Y CIERRES</span><h1>Libros y cierres</h1><p>Estado de borradores por período y conciliación.</p></div>
     {status.error ? <p className="error-message">No se pudo cargar el estado de libros. Aplica las migraciones de Administración V2.</p> : <section className="work-card">
       <h2>Estado actual</h2><dl className="detail-grid">
         <div><dt>Borradores</dt><dd>{status.total}</dd></div><div><dt>Períodos con datos</dt><dd>{status.periods}</dd></div>

@@ -8,7 +8,7 @@ export default async function ReportesAdministracionPage() {
   requireAnyAdministrationPermission(access, ["reports.export"]);
   const status = await loadAdministrationDraftStatus(access);
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Reportes y exportaciones</h1><p>Indicadores operativos de borradores administrativos.</p></div>
+    <div className="page-heading"><span className="eyebrow">CIERRE FISCAL</span><h1>Reportes y exportaciones</h1><p>Indicadores operativos de borradores administrativos.</p></div>
     {status.error ? <p className="error-message">No se pudo cargar el resumen. Aplica las migraciones de Administración V2.</p> : <section className="work-card">
       <h2>Compras en borrador</h2><dl className="detail-grid">
         <div><dt>Total</dt><dd>{status.total}</dd></div><div><dt>Facturas</dt><dd>{status.invoices}</dd></div>
@@ -33,6 +33,6 @@ export default async function ReportesAdministracionPage() {
       </div>
       <p>La exportación se detiene si faltan comprobantes o encuentra casos no representables en el formato entregado, como IVA mixto en una misma línea o notas ISLR.</p>
     </section>
-    <p className="administration-lock-note">Contabilidad aprobó las reglas y formatos fuente. Los archivos son salidas para revisión; este sistema no confirma aceptación por SENIAT. PDF firmado/sellado, importación histórica y cierre XLSX siguen en desarrollo.</p>
+    <p className="administration-lock-note">Contabilidad aprobó las reglas y formatos fuente. Los archivos se generan para revisión y este sistema no confirma su aceptación por SENIAT.</p>
   </div>;
 }

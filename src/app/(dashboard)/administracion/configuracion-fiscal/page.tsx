@@ -15,7 +15,7 @@ export default async function ConfiguracionFiscalPage({ searchParams }: { search
   const { data: activeData, error: activeError } = await access.supabase.from("fiscal_settings_activations")
     .select("proposal_id, version_no, activated_at").eq("organization_id", access.organizationId).is("ended_at", null).maybeSingle();
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Configuración fiscal</h1><p>Parámetros, conceptos, cuentas, CECO y correlativos fiscales.</p></div>
+    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN</span><h1>Configuración fiscal</h1><p>Parámetros, conceptos, cuentas, CECO y correlativos fiscales.</p></div>
     <p className="administration-lock-note"><strong>Configuración versionada:</strong> las propuestas no afectan documentos hasta activar una versión. Las nuevas emisiones toman la versión activa y guardan una copia inmutable de sus parámetros.</p>
     {activationResult === "ok" && <p className="success-message" role="status">Versión fiscal activada y registrada. Los cálculos y la emisión se habilitarán en las operaciones cuando su integración técnica esté disponible.</p>}
     {activationResult === "error" && <p className="error-message" role="alert">No se pudo activar la versión. Confirma permisos y que las migraciones V2.2 estén aplicadas en este entorno.</p>}

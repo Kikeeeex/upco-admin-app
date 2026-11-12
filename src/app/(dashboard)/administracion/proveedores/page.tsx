@@ -26,11 +26,14 @@ export default async function ProveedoresFiscalesPage({ searchParams }: { search
   const vendors = [...new Map([...(nameResult.data ?? []), ...(rifResult?.data ?? [])].map((vendor) => [vendor.id, vendor])).values()] as FiscalVendorRow[];
   vendors.sort((left, right) => left.legal_name.localeCompare(right.legal_name, "es"));
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Proveedores</h1><p>Directorio fiscal separado del catálogo comercial de Procura.</p></div>
+    <div className="page-heading"><span className="eyebrow">DIRECTORIO FISCAL</span><h1>Proveedores</h1><p>Directorio fiscal separado del catálogo comercial de Procura.</p></div>
     <p className="administration-lock-note">La entrega más reciente reporta 347 proveedores. El registro está confirmado como vigente, pero esta versión aún no se ha conciliado con el snapshot previo ni con Procura; no se ha importado.</p>
-    {canManage && <CreateFiscalVendorForm />}
+    {canManage && <details className="administration-create-panel">
+      <summary>Nuevo proveedor</summary>
+      <CreateFiscalVendorForm />
+    </details>}
     <section className="work-card work-list">
-      <h2>Directorio fiscal</h2>
+      <div className="administration-panel-heading"><div><h2>Directorio fiscal</h2><p>{vendors.length} proveedores {query ? "encontrados" : "registrados"}</p></div></div>
       <form method="get" action="/administracion/proveedores" className="filter-form" role="search" aria-label="Buscar proveedores fiscales">
         <div className="field"><label htmlFor="fiscal-vendor-search">Razón social o RIF</label><input id="fiscal-vendor-search" name="buscar" maxLength={100} defaultValue={query} /></div>
         <button className="quiet-button" type="submit">Buscar</button>

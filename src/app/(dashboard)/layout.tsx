@@ -13,5 +13,5 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   if (access.kind === "unconfigured" || access.kind === "anonymous") redirect("/login");
   if (access.kind === "expired") redirect("/login?expired=1");
   if (access.kind !== "allowed") redirect("/acceso-denegado");
-  return <><SessionGuard signedInAt={access.sessionStartedAt} /><AppShell>{children}</AppShell></>;
+  return <><SessionGuard signedInAt={access.sessionStartedAt} /><AppShell administrationPermissions={access.permissions} isAdministrationAdmin={access.role === "admin"}>{children}</AppShell></>;
 }

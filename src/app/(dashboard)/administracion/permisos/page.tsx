@@ -20,7 +20,7 @@ export default async function AdministrationPermissionsPage() {
     grants.set(row.user_id, current);
   }
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Permisos</h1><p>Asigna acceso por tarea a miembros activos de esta organización.</p></div>
+    <div className="page-heading"><span className="eyebrow">ACCESOS</span><h1>Permisos</h1><p>Asigna acceso por tarea a miembros activos de esta organización.</p></div>
     <p className="administration-lock-note">Los administradores conservan acceso completo. Emitir, anular, activar configuración e importar documentos reales siguen siendo acciones exclusivas de administradores. Cada cambio queda auditado.</p>
     {membersResult.data?.length ? membersResult.data.map((member) => <AdministrationPermissionsForm
       key={member.user_id} userId={member.user_id} displayName={names.get(member.user_id)?.trim() || "Miembro sin nombre visible"}
