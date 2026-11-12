@@ -1,12 +1,14 @@
 import { getAccessContext } from "@/features/auth/access";
 import { loadAdministrationDraftStatus } from "@/features/administration/reports/status";
+import { requireAnyAdministrationPermission } from "@/features/administration/permissions/access-control";
 
 export default async function RetencionesPage() {
   const access = await getAccessContext();
   if (access.kind !== "allowed") return null;
+  requireAnyAdministrationPermission(access, ["retentions.read"]);
   const status = await loadAdministrationDraftStatus(access);
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.4</span><h1>Retenciones</h1><p>Control de retenciones IVA, ISLR e IGTF registradas en compras.</p></div>
+    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Retenciones</h1><p>Control de retenciones IVA, ISLR e IGTF registradas en compras.</p></div>
     <section className="work-card">
       <h2>Reglas aprobadas</h2>
       <dl className="detail-grid">

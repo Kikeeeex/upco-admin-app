@@ -1,12 +1,14 @@
 import { getAccessContext } from "@/features/auth/access";
 import { loadAdministrationDraftStatus } from "@/features/administration/reports/status";
+import { requireAnyAdministrationPermission } from "@/features/administration/permissions/access-control";
 
 export default async function ReportesAdministracionPage() {
   const access = await getAccessContext();
   if (access.kind !== "allowed") return null;
+  requireAnyAdministrationPermission(access, ["reports.export"]);
   const status = await loadAdministrationDraftStatus(access);
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.4</span><h1>Reportes y exportaciones</h1><p>Indicadores operativos de borradores administrativos.</p></div>
+    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Reportes y exportaciones</h1><p>Indicadores operativos de borradores administrativos.</p></div>
     {status.error ? <p className="error-message">No se pudo cargar el resumen. Aplica las migraciones de Administración V2.</p> : <section className="work-card">
       <h2>Compras en borrador</h2><dl className="detail-grid">
         <div><dt>Total</dt><dd>{status.total}</dd></div><div><dt>Facturas</dt><dd>{status.invoices}</dd></div>

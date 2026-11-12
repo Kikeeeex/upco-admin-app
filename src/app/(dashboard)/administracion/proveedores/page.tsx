@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAccessContext } from "@/features/auth/access";
 import { CreateFiscalVendorForm } from "@/components/administration/fiscal-vendor-forms";
+import { hasAdministrationPermission, requireAnyAdministrationPermission } from "@/features/administration/permissions/access-control";
 
 type SearchParams = { buscar?: string | string[] };
 type FiscalVendorRow = {
@@ -11,6 +12,8 @@ type FiscalVendorRow = {
 export default async function ProveedoresFiscalesPage({ searchParams }: { searchParams?: Promise<SearchParams> } = {}) {
   const access = await getAccessContext();
   if (access.kind !== "allowed") return null;
+  requireAnyAdministrationPermission(access, ["vendors.read", "vendors.manage"]);
+  const canManage = hasAdministrationPermission(access, "vendors.manage");
   const rawQuery = (await searchParams)?.buscar;
   const query = (typeof rawQuery === "string" ? rawQuery : "").trim().slice(0, 100);
   const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
@@ -23,9 +26,9 @@ export default async function ProveedoresFiscalesPage({ searchParams }: { search
   const vendors = [...new Map([...(nameResult.data ?? []), ...(rifResult?.data ?? [])].map((vendor) => [vendor.id, vendor])).values()] as FiscalVendorRow[];
   vendors.sort((left, right) => left.legal_name.localeCompare(right.legal_name, "es"));
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.4</span><h1>Proveedores</h1><p>Directorio fiscal separado del catálogo comercial de Procura.</p></div>
+    <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN V2.8</span><h1>Proveedores</h1><p>Directorio fiscal separado del catálogo comercial de Procura.</p></div>
     <p className="administration-lock-note">La entrega más reciente reporta 347 proveedores. El registro está confirmado como vigente, pero esta versión aún no se ha conciliado con el snapshot previo ni con Procura; no se ha importado.</p>
-    {access.role === "admin" && <CreateFiscalVendorForm />}
+    {canManage && <CreateFiscalVendorForm />}
     <section className="work-card work-list">
       <h2>Directorio fiscal</h2>
       <form method="get" action="/administracion/proveedores" className="filter-form" role="search" aria-label="Buscar proveedores fiscales">

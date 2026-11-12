@@ -94,6 +94,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .administration-subnav { display: flex; gap: 8px; margin: 0 0 28px; overflow-x: auto; padding: 0 0 7px; }
 .administration-subnav a { flex: none; padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font-size: .8rem; font-weight: 700; }
 .administration-subnav a:hover, .administration-subnav a.is-active { border-color: var(--blue); background: rgba(11, 75, 50, .08); color: var(--blue); }
+.permission-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.permission-options legend { padding: 0 6px; font-size: .82rem; font-weight: 800; }
+.permission-option { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 12px; cursor: pointer; }
+.permission-option input { margin-top: 3px; accent-color: var(--blue); }
+.permission-option span { display: grid; gap: 4px; }
+.permission-option strong { font-size: .82rem; }
+.permission-option small { color: var(--muted); font-size: .74rem; line-height: 1.4; }
 .administration-module-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .administration-export-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .administration-module-grid > a { display: block; color: var(--ink); }
@@ -130,6 +137,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 640px) { .fiscal-vendor-form, .draft-document-form, .fiscal-settings-form { grid-template-columns: 1fr; } .fiscal-vendor-form button, .draft-document-form button, .fiscal-settings-form button { grid-column: 1; } .filter-form { align-items: stretch; flex-direction: column; } }
 @media (max-width: 950px) { .administration-module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .administration-module-grid, .administration-export-grid { grid-template-columns: 1fr; } .administration-subnav { margin-bottom: 22px; } }
+@media (max-width: 640px) { .permission-options { grid-template-columns: 1fr; } }
 
 .login-side { background: linear-gradient(145deg, #0b4b32, #041914); }
 .login-side p { color: #ededed; }

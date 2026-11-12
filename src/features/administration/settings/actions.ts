@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAccessContext } from "@/features/auth/access";
 import { parseFiscalSettingsProposal } from "./rules";
+import { hasAdministrationPermission } from "@/features/administration/permissions/access-control";
 
 export type FiscalSettingsActionState = { kind: "idle" | "success" | "error"; message: string };
 
 export async function createFiscalSettingsProposal(_previous: FiscalSettingsActionState, form: FormData): Promise<FiscalSettingsActionState> {
   const access = await getAccessContext();
-  if (access.kind !== "allowed" || access.role !== "admin") return { kind: "error", message: "No tienes permiso para proponer cambios fiscales." };
+  if (access.kind !== "allowed" || !hasAdministrationPermission(access, "fiscal_settings.manage")) return { kind: "error", message: "No tienes permiso para proponer cambios fiscales." };
   let input;
   try {
     input = parseFiscalSettingsProposal({

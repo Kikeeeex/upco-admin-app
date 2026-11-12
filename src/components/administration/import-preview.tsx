@@ -101,7 +101,7 @@ async function parseXlsx(file: File) {
   return { columns, rows, ...validateDocumentRows(columns, rows) };
 }
 
-export function ImportPreview() {
+export function ImportPreview({ canImport = false }: { canImport?: boolean }) {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validation, setValidation] = useState<HistoricalImportValidation | null>(null);
@@ -183,13 +183,14 @@ export function ImportPreview() {
           </li>)}</ul>}
           {!!validation.moreDetails && <p>Hay {validation.moreDetails} filas adicionales con detalles no mostrados.</p>}
         </div>}
-        {validation?.kind === "validated" && !validation.imported && validation.blocked === 0 && (validation.warnings ?? 0) > 0 && <label className="field import-warning-confirmation">
+        {canImport && validation?.kind === "validated" && !validation.imported && validation.blocked === 0 && (validation.warnings ?? 0) > 0 && <label className="field import-warning-confirmation">
           <span><input type="checkbox" checked={acknowledgeWarnings} onChange={(event) => setAcknowledgeWarnings(event.target.checked)} /> Confirmo que revisé las observaciones y autorizo continuar con este lote.</span>
         </label>}
-        {validation?.kind === "validated" && !validation.imported && validation.blocked === 0 && <button className="primary-button" type="button" disabled={validating || importing || ((validation.warnings ?? 0) > 0 && !acknowledgeWarnings)} onClick={() => void importOnServer()}>
+        {canImport && validation?.kind === "validated" && !validation.imported && validation.blocked === 0 && <button className="primary-button" type="button" disabled={validating || importing || ((validation.warnings ?? 0) > 0 && !acknowledgeWarnings)} onClick={() => void importOnServer()}>
           {importing ? "Importando lote…" : `Confirmar e importar ${validation.ready ?? 0} documentos`}
         </button>}
-        <p className="administration-lock-note">{validation?.imported ? "Se conservaron los números originales de comprobante; la importación quedó auditada y no generó nuevos comprobantes. Las secuencias quedaron avanzadas al mayor número importado." : "Al confirmar, el servidor vuelve a validar el archivo. Un error en cualquier fila revierte el lote completo; no se generan comprobantes ni correlativos nuevos."}</p>
+        {canImport && <p className="administration-lock-note">{validation?.imported ? "Se conservaron los números originales de comprobante; la importación quedó auditada y no generó nuevos comprobantes. Las secuencias quedaron avanzadas al mayor número importado." : "Al confirmar, el servidor vuelve a validar el archivo. Un error en cualquier fila revierte el lote completo; no se generan comprobantes ni correlativos nuevos."}</p>}
+        {!canImport && validation?.kind === "validated" && <p className="administration-lock-note">La validación terminó. Tu permiso no incluye escritura histórica; solicita a una persona administradora que confirme el lote.</p>}
       </div>}
       {!preview.documentTemplate && <p className="administration-lock-note">El archivo no coincide con la plantilla histórica de documentos; esta pantalla no creará ni actualizará registros.</p>}
     </div>}

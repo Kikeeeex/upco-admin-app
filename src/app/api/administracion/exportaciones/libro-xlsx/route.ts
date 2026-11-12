@@ -1,9 +1,10 @@
 import { getAccessContext } from "@/features/auth/access";
 import { buildBookXlsx } from "@/features/administration/reports/exports";
+import { hasAdministrationPermission } from "@/features/administration/permissions/access-control";
 
 export async function GET(request: Request) {
   const access = await getAccessContext();
-  if (access.kind !== "allowed" || access.role !== "admin") return Response.json({ error: "Acceso denegado." }, { status: 403 });
+  if (access.kind !== "allowed" || !hasAdministrationPermission(access, "reports.export")) return Response.json({ error: "Acceso denegado." }, { status: 403 });
   try {
     const params = new URL(request.url).searchParams;
     const period = params.get("period");

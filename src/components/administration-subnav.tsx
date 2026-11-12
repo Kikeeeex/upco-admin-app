@@ -2,24 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ADMINISTRATION_NAVIGATION } from "@/features/administration/permissions/catalog";
 
-const sections: { href: string; label: string; exact?: boolean }[] = [
-  { href: "/administracion", label: "Resumen", exact: true },
-  { href: "/administracion/compras", label: "Compras y documentos" },
-  { href: "/administracion/proveedores", label: "Proveedores" },
-  { href: "/administracion/retenciones", label: "Retenciones" },
-  { href: "/administracion/libros", label: "Libros y cierres" },
-  { href: "/administracion/importaciones", label: "Importaciones" },
-  { href: "/administracion/reportes", label: "Reportes y exportaciones" },
-  { href: "/administracion/configuracion-fiscal", label: "Configuración fiscal" },
-] as const;
-
-export function AdministrationSubnav() {
+export function AdministrationSubnav({ permissions, isAdmin }: { permissions: string[]; isAdmin: boolean }) {
   const pathname = usePathname();
+  const visibleSections = ADMINISTRATION_NAVIGATION.filter((section) => isAdmin || section.permissions.some((permission) => permissions.includes(permission)));
   return <nav className="administration-subnav" aria-label="Secciones de Administración">
-    {sections.map(({ href, label, exact }) => {
-      const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+    {visibleSections.map((section) => {
+      const { href, label } = section;
+      const active = "exact" in section && section.exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
       return <Link key={href} href={href} aria-current={active ? "page" : undefined} className={active ? "is-active" : undefined}>{label}</Link>;
     })}
+    {isAdmin && <Link href="/administracion/permisos" aria-current={pathname === "/administracion/permisos" ? "page" : undefined} className={pathname === "/administracion/permisos" ? "is-active" : undefined}>Permisos</Link>}
   </nav>;
 }

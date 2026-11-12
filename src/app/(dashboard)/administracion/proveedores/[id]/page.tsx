@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EditFiscalVendorForm } from "@/components/administration/fiscal-vendor-forms";
 import { getAccessContext } from "@/features/auth/access";
+import { hasAdministrationPermission, requireAnyAdministrationPermission } from "@/features/administration/permissions/access-control";
 
 type FiscalVendor = {
   id: string; organization_id: string; legal_name: string; tax_identifier: string; tax_address: string;
@@ -15,6 +16,8 @@ type FiscalVendor = {
 export default async function FiscalVendorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await getAccessContext();
   if (access.kind !== "allowed") notFound();
+  requireAnyAdministrationPermission(access, ["vendors.read", "vendors.manage"]);
+  const canManage = hasAdministrationPermission(access, "vendors.manage");
   const { id } = await params;
   const { data, error } = await access.supabase.from("fiscal_vendors").select("*")
     .eq("id", id).eq("organization_id", access.organizationId).maybeSingle();
@@ -25,7 +28,7 @@ export default async function FiscalVendorDetailPage({ params }: { params: Promi
     <section className="work-card">
       <div className="status-row"><span className="badge">{vendor.active ? "Activo" : "Inactivo"}</span><span className="badge">{vendor.review_state === "confirmed" ? "Confirmado" : "Por revisar"}</span></div>
       {vendor.procurement_vendor_id && <p className="muted-note">Vinculado con un registro comercial de Procura.</p>}
-      {access.role === "admin" ? <EditFiscalVendorForm vendor={vendor} /> : <p>Solo el administrador puede editar proveedores fiscales.</p>}
+      {canManage ? <EditFiscalVendorForm vendor={vendor} /> : <p className="administration-lock-note">Tienes acceso de lectura. La edición de fichas requiere permiso de gestión.</p>}
     </section>
   </div>;
 }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getAccessContext } from "@/features/auth/access";
+import { hasAdministrationPermission } from "@/features/administration/permissions/access-control";
 import { parseFiscalVendorInput, parseFiscalVendorUpdate, type FiscalVendorInput } from "./rules";
 
 export type FiscalVendorActionState = { kind: "idle" | "success" | "error"; message: string };
@@ -32,7 +33,7 @@ function row(input: FiscalVendorInput) {
 
 export async function createFiscalVendor(_previous: FiscalVendorActionState, form: FormData): Promise<FiscalVendorActionState> {
   const access = await getAccessContext();
-  if (access.kind !== "allowed" || access.role !== "admin") return { kind: "error", message: "No tienes permiso para administrar proveedores fiscales." };
+  if (access.kind !== "allowed" || !hasAdministrationPermission(access, "vendors.manage")) return { kind: "error", message: "No tienes permiso para administrar proveedores fiscales." };
   let input: FiscalVendorInput;
   try { input = fields(form); }
   catch { return { kind: "error", message: "Revisa los datos del proveedor y el RIF." }; }
@@ -46,13 +47,13 @@ export async function createFiscalVendor(_previous: FiscalVendorActionState, for
 
 export async function updateFiscalVendor(_previous: FiscalVendorActionState, form: FormData): Promise<FiscalVendorActionState> {
   const access = await getAccessContext();
-  if (access.kind !== "allowed" || access.role !== "admin") return { kind: "error", message: "No tienes permiso para administrar proveedores fiscales." };
+  if (access.kind !== "allowed" || !hasAdministrationPermission(access, "vendors.manage")) return { kind: "error", message: "No tienes permiso para administrar proveedores fiscales." };
   let input;
   try {
     input = parseFiscalVendorUpdate({ ...fields(form), id: value(form, "id") });
   } catch { return { kind: "error", message: "Revisa los datos del proveedor y el RIF." }; }
   const { data, error } = await access.supabase.from("fiscal_vendors").update(row(input))
-    .eq("id", input.id).eq("organization_id", access.organizationId).eq("created_by", access.user.id)
+    .eq("id", input.id).eq("organization_id", access.organizationId)
     .select("id").maybeSingle();
   if (error) return { kind: "error", message: error.code === "23505" ? "Ya existe un proveedor fiscal con ese RIF." : "No se pudo actualizar el proveedor fiscal." };
   if (!data) return { kind: "error", message: "No se encontró el proveedor fiscal autorizado." };

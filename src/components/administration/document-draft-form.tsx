@@ -18,7 +18,7 @@ const initial: AdministrationDraftActionState = { kind: "idle", message: "" };
 
 function money(cents?: number | null) { return cents == null ? "" : (cents / 100).toFixed(2); }
 
-export function AdministrationDraftForm({ vendors, invoices, draft }: { vendors: VendorOption[]; invoices: InvoiceOption[]; draft?: DraftInitial }) {
+export function AdministrationDraftForm({ vendors, invoices, draft, canIssue = false }: { vendors: VendorOption[]; invoices: InvoiceOption[]; draft?: DraftInitial; canIssue?: boolean }) {
   const [state, action, pending] = useActionState(draft ? updateAdministrationDraft : createAdministrationDraft, initial);
   const [selectedVendorId, setSelectedVendorId] = useState(draft?.fiscal_vendor_id ?? "");
   const [selectedAffectedId, setSelectedAffectedId] = useState(draft?.affected_document_id ?? "");
@@ -58,7 +58,7 @@ export function AdministrationDraftForm({ vendors, invoices, draft }: { vendors:
       <div className="field description-field"><label htmlFor="draft-ceco">Distribución CECO</label><textarea id="draft-ceco" name="cecoAllocationNote" maxLength={2000} rows={2} placeholder="ADM:60;OPS:40" defaultValue={draft?.ceco_allocation_note ?? ""} /><small>Formato de referencia; los porcentajes deben ser positivos y sumar 100 %. No se valida aquí si los códigos están activos.</small></div>
       <button className="quiet-button" type="submit" name="intent" value="calculate" disabled={pending}>{pending ? "Calculando…" : "Calcular vista previa"}</button>
       <button className="primary-button" type="submit" disabled={pending}>{pending ? "Guardando…" : draft ? "Guardar cambios" : "Guardar borrador"}</button>
-      {draft && <button className="primary-button" type="submit" name="intent" value="issue" disabled={pending}>Emitir documento</button>}
+      {draft && canIssue && <button className="primary-button" type="submit" name="intent" value="issue" disabled={pending}>Emitir documento</button>}
     </form>
     {state.preview && <section className="work-card administration-calculation-preview" aria-label="Vista previa de cálculo"><h3>Resultado de vista previa</h3><dl className="detail-grid">
       <div><dt>Exento</dt><dd>Bs. {state.preview.exempt}</dd></div><div><dt>IVA 16 %</dt><dd>Bs. {state.preview.iva16}</dd></div><div><dt>IVA 8 %</dt><dd>Bs. {state.preview.iva8}</dd></div>

@@ -40,5 +40,14 @@ export async function getAccessContext(options: { allowFreshSession?: boolean } 
   }));
 
   if (!membership) return { kind: "denied" as const };
-  return { kind: "allowed" as const, supabase, user, organizationId: membership.organization_id, role: membership.role, sessionStartedAt: sessionStartedAt ?? "" };
+  const permissionResult = membership.role === "admin"
+    ? { data: [], error: null }
+    : await supabase.from("administration_permissions").select("permission")
+      .eq("organization_id", membership.organization_id).eq("user_id", user.id);
+  if (permissionResult.error || !permissionResult.data) return { kind: "denied" as const };
+  return {
+    kind: "allowed" as const, supabase, user, organizationId: membership.organization_id,
+    role: membership.role, permissions: permissionResult.data.map((row) => row.permission),
+    sessionStartedAt: sessionStartedAt ?? "",
+  };
 }

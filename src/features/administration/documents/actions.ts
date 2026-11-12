@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAccessContext } from "@/features/auth/access";
+import { hasAdministrationPermission } from "@/features/administration/permissions/access-control";
 import { parseAdministrationDraft, type AdministrationDraftInput } from "./rules";
 import { calculateDocument, normalizeVendor, money } from "./tax-engine";
 import { readApprovedTaxSettings } from "./tax-settings";
@@ -102,7 +103,7 @@ async function calculatePreview(input: AdministrationDraftInput, access: Extract
 
 export async function createAdministrationDraft(_previous: AdministrationDraftActionState, form: FormData): Promise<AdministrationDraftActionState> {
   const access = await getAccessContext();
-  if (access.kind !== "allowed" || access.role !== "admin") return initialError("No tienes permiso para registrar borradores de compra.");
+  if (access.kind !== "allowed" || !hasAdministrationPermission(access, "purchases.manage")) return initialError("No tienes permiso para registrar borradores de compra.");
   let input: AdministrationDraftInput;
   try { input = fields(form); }
   catch { return initialError("Revisa los datos del borrador. No se calculó ningún impuesto."); }
@@ -146,7 +147,7 @@ export async function createAdministrationDraft(_previous: AdministrationDraftAc
 
 export async function updateAdministrationDraft(_previous: AdministrationDraftActionState, form: FormData): Promise<AdministrationDraftActionState> {
   const access = await getAccessContext();
-  if (access.kind !== "allowed" || access.role !== "admin") return initialError("No tienes permiso para editar borradores de compra.");
+  if (access.kind !== "allowed" || !hasAdministrationPermission(access, "purchases.manage")) return initialError("No tienes permiso para editar borradores de compra.");
   const id = form.get("id");
   if (typeof id !== "string" || !/^[0-9a-f-]{36}$/i.test(id)) return initialError("El borrador no es válido.");
   let input: AdministrationDraftInput;
@@ -154,6 +155,7 @@ export async function updateAdministrationDraft(_previous: AdministrationDraftAc
   catch { return initialError("Revisa los datos del borrador. No se calculó ningún impuesto."); }
   if (form.get("intent") === "calculate") return calculatePreview(input, access);
   if (form.get("intent") === "issue") {
+    if (access.role !== "admin") return initialError("La emisión de documentos sigue reservada a personas administradoras.");
     const result = await issueAdministrationDraft(id, input, access);
     if (result.kind === "success") redirect("/administracion/compras?emision=ok");
     return result;
