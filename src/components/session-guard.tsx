@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { sessionExpiryReason } from "../features/auth/session-policy";
+import { SESSION_IDLE_MS, SESSION_MAX_MS, sessionExpiryReason } from "../features/auth/session-policy";
 
 const ACTIVITY_STORAGE_KEY = "upco-admin-last-interaction";
 const SESSION_STORAGE_KEY = "upco-admin-session-started";
@@ -15,6 +15,8 @@ export function SessionGuard({ signedInAt }: { signedInAt: string }) {
     let lastHeartbeatActivity = 0;
     let lastHeartbeatAt = 0;
     let lastStoredAt = 0;
+    let lastExpiryScheduledAt = 0;
+    let expiryTimer: number | undefined;
     let checking = false;
     let closing = false;
 
@@ -38,6 +40,7 @@ export function SessionGuard({ signedInAt }: { signedInAt: string }) {
         try { window.localStorage.setItem(ACTIVITY_STORAGE_KEY, String(lastActivity)); }
         catch { /* Browser storage can be disabled; this tab still has its own timer. */ }
       }
+      scheduleExpiryCheck();
       if (lastActivity - lastHeartbeatAt >= 60_000) void checkSession();
     }
 
@@ -49,6 +52,27 @@ export function SessionGuard({ signedInAt }: { signedInAt: string }) {
       return lastActivity;
     }
 
+    function scheduleExpiryCheck() {
+      const now = Date.now();
+      // Pointer movement can fire many times per second. Rearm at most every
+      // five seconds; an older timer will recheck and reschedule if needed.
+      if (expiryTimer !== undefined && now - lastExpiryScheduledAt < 5000) return;
+
+      const startedAt = Date.parse(latestSessionStartedAt());
+      const activityAt = latestActivity(now);
+      const maxExpiry = Number.isFinite(startedAt) && startedAt <= now + 60_000
+        ? startedAt + SESSION_MAX_MS : now;
+      const idleExpiry = Number.isSafeInteger(activityAt) && activityAt > 0 && activityAt <= now + 60_000
+        ? activityAt + SESSION_IDLE_MS : now;
+
+      window.clearTimeout(expiryTimer);
+      lastExpiryScheduledAt = now;
+      expiryTimer = window.setTimeout(() => {
+        expiryTimer = undefined;
+        void checkSession();
+      }, Math.max(0, Math.min(maxExpiry, idleExpiry) - now));
+    }
+
     function closeSession() {
       if (closing) return;
       closing = true;
@@ -57,6 +81,7 @@ export function SessionGuard({ signedInAt }: { signedInAt: string }) {
 
     async function checkSession() {
       if (closing) return;
+      scheduleExpiryCheck();
       const now = Date.now();
       const activity = latestActivity(now);
       if (sessionExpiryReason(latestSessionStartedAt(), String(activity), now)) {
@@ -77,19 +102,25 @@ export function SessionGuard({ signedInAt }: { signedInAt: string }) {
       }
     }
 
+    function onStorage(event: StorageEvent) {
+      if (event.key === ACTIVITY_STORAGE_KEY || event.key === null) void checkSession();
+      else if (event.key === SESSION_STORAGE_KEY) scheduleExpiryCheck();
+    }
+
     rememberActivity();
-    const timer = window.setInterval(checkSession, 30_000);
     window.addEventListener("pointerdown", rememberActivity);
     window.addEventListener("pointermove", rememberActivity);
     window.addEventListener("keydown", rememberActivity);
     window.addEventListener("wheel", rememberActivity, { passive: true });
+    window.addEventListener("storage", onStorage);
     document.addEventListener("visibilitychange", checkSession);
     return () => {
-      window.clearInterval(timer);
+      window.clearTimeout(expiryTimer);
       window.removeEventListener("pointerdown", rememberActivity);
       window.removeEventListener("pointermove", rememberActivity);
       window.removeEventListener("keydown", rememberActivity);
       window.removeEventListener("wheel", rememberActivity);
+      window.removeEventListener("storage", onStorage);
       document.removeEventListener("visibilitychange", checkSession);
     };
   }, [signedInAt]);
