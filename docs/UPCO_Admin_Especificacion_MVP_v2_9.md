@@ -4,7 +4,7 @@
 |---|---|
 | Código | UPCO-ADM-SRS-001 |
 | Versión del módulo | 2.9 |
-| Estado | Navegación integrada y presentación visual alineada con referencia UPCO; permisos y operaciones de V2.8 preservados |
+| Estado | Implementada y revisada; navegación y presentación visual alineadas con referencia UPCO; permisos y operaciones de V2.8 preservados |
 | Fecha | 12 de noviembre de 2026 |
 | Base | UPCO Admin V1 y entrega integral UPCO Compras con corte 10/11/2026 |
 
@@ -151,6 +151,6 @@ La configuración fiscal en Supabase sigue sin propuesta/activación, y los cat�
 
 Administración aparece al inicio del sidebar global y despliega Resumen, Compras y documentos, Proveedores, Retenciones, Libros y cierres, Importaciones, Reportes y exportaciones, Configuración fiscal y Permisos. Las otras áreas continúan disponibles en el mismo shell. Los destinos se filtran por las concesiones de V2.8; Permisos solo aparece para administradores. El acceso se expande automáticamente al navegar por Administración y se conserva el árbol móvil en el panel lateral.
 
-Las pantallas adoptan la jerarquía visual del sitio de referencia UPCO Compras: navegación verde oscuro, contenido claro, tarjetas blancas, indicadores, filtros de estado/período, tablas y formularios reorganizados. La lista de compras ofrece filtros por mes, quincena y estado como parámetros de URL. El resumen muestra documentos, estados y períodos que la base realmente contiene; no inventa importes. Se retiró la navegación horizontal duplicada. Rutas, permisos del servidor/RLS, reglas fiscales, acciones de emisión/importación/exportación y datos se conservan.
+Las pantallas adoptan la jerarquía visual del sitio de referencia UPCO Compras: navegación verde oscuro, contenido claro, tarjetas blancas, indicadores, filtros de estado/período, tablas y formularios reorganizados. La lista de compras ofrece filtros por mes, quincena y estado como parámetros de URL; al consultar activos o borradores mantiene visibles los borradores que aún no tienen período o quincena asignados. La fecha de la tabla se identifica como fecha de operación. El resumen muestra documentos, estados y períodos que la base realmente contiene; no inventa importes. Se retiró la navegación horizontal duplicada. Rutas, permisos del servidor/RLS, reglas fiscales, acciones de emisión/importación/exportación y datos se conservan.
 
 La interfaz se verifica con typecheck, lint, build de producción y revisión visual responsive; no se ejecutan pruebas automatizadas. La publicación de V2.9 se registra en `docs/PROGRESO.md` una vez que Vercel confirma el despliegue. La configuración fiscal sigue requiriendo datos activos para habilitar emisión/importación real.

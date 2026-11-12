@@ -30,8 +30,14 @@ async function ComprasContent({ issued, period, half, state }: { issued: boolean
   const canReadFiscalVendors = hasAdministrationPermission(access, "purchases.read") || canManage;
   let documentQuery = access.supabase.from("administration_documents")
     .select("id, fiscal_vendor_id, document_type, invoice_number, issued_at, event_at, tax_period, tax_half, status, created_at", { count: "exact" })
-    .eq("organization_id", access.organizationId).eq("tax_period", period);
-  if (half !== "all") documentQuery = documentQuery.eq("tax_half", Number(half));
+    .eq("organization_id", access.organizationId);
+  if (state === "activos" || state === "draft") {
+    documentQuery = documentQuery.or(`tax_period.eq.${period},and(status.eq.draft,tax_period.is.null)`);
+    if (half !== "all") documentQuery = documentQuery.or(`tax_half.eq.${Number(half)},and(status.eq.draft,tax_half.is.null),and(status.eq.draft,tax_period.is.null)`);
+  } else {
+    documentQuery = documentQuery.eq("tax_period", period);
+    if (half !== "all") documentQuery = documentQuery.eq("tax_half", Number(half));
+  }
   if (state === "activos") documentQuery = documentQuery.in("status", ["draft", "issued"]);
   else documentQuery = documentQuery.eq("status", state);
   const [documentsResult, vendorsResult, invoicesResult] = await Promise.all([
@@ -69,14 +75,14 @@ async function ComprasContent({ issued, period, half, state }: { issued: boolean
         </nav>
         <form action="/administracion/compras" method="get" className="administration-period-filter">
           <input type="hidden" name="estado" value={state} /><input type="hidden" name="quincena" value={half} />
-          <label htmlFor="administration-period">Período</label><input id="administration-period" name="periodo" type="month" value={period} />
+          <label htmlFor="administration-period">Período</label><input id="administration-period" name="periodo" type="month" defaultValue={period} />
           <button className="quiet-button" type="submit">Actualizar</button>
         </form>
       </div>
-      <div className="administration-panel-heading"><div><h2>Compras y documentos</h2><p>{periodStart} · {documentsResult.count ?? rows.length} documentos encontrados</p></div></div>
+      <div className="administration-panel-heading"><div><h2>Compras y documentos</h2><p>{periodStart} · {documentsResult.count ?? rows.length} documentos encontrados{(state === "activos" || state === "draft") ? " · incluye borradores sin período asignado" : ""}</p></div></div>
       {documentsResult.error ? <p className="error-message" role="alert">No se pudo cargar la lista. Aplica las migraciones de Administración V2.</p> : rows.length === 0 ?
         <p className="work-empty">Aún no hay documentos para este período.</p> :
-        <div className="table-scroll"><table><thead><tr><th>Tipo y número</th><th>Proveedor</th><th>Emisión</th><th>Período</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+        <div className="table-scroll"><table><thead><tr><th>Tipo y número</th><th>Proveedor</th><th>Fecha de operación</th><th>Período</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
           {rows.map((row) => <tr key={row.id}><td><strong>{typeLabels[row.document_type] ?? row.document_type}</strong><br />{row.invoice_number ?? "Sin número"}</td><td>{row.fiscal_vendor_id ? vendorLabels.get(row.fiscal_vendor_id) ?? "Proveedor fiscal" : "Sin seleccionar"}</td><td>{row.event_at ?? row.issued_at ?? "—"}</td><td>{row.tax_period ? `${row.tax_period}${row.tax_half ? ` · Q${row.tax_half}` : ""}` : "Sin asignar"}</td><td><span className={`administration-status administration-status-${row.status}`}>{row.status === "issued" ? "Emitido" : row.status === "voided" ? "Anulado" : "Borrador"}</span></td><td><Link className="text-link" href={`/administracion/compras/${row.id}`}>{row.status === "draft" ? "Abrir" : "Ver"}</Link></td></tr>)}
         </tbody></table></div>}
       {canManage && vendorsResult.error && <p className="error-message">No se pudo cargar el directorio fiscal para crear borradores.</p>}
