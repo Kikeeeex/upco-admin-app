@@ -3,7 +3,7 @@ import { isOverdue, parseWorkItemId, parseWorkItemInput, parseWorkItemNote, pars
 
 const valid = {
   title: "  Preparar informe  ",
-  area: "administration",
+  area: "general",
   priority: "high",
   dueDate: "2026-10-27",
 };
@@ -12,7 +12,7 @@ describe("parseWorkItemInput", () => {
   it("trims the title and accepts valid values", () => {
     expect(parseWorkItemInput(valid)).toEqual({
       title: "Preparar informe",
-      area: "administration",
+      area: "general",
       priority: "high",
       dueDate: "2026-10-27",
     });

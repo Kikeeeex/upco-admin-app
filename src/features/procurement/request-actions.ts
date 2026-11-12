@@ -20,6 +20,7 @@ function lineFields(form: FormData) {
   const quantities = form.getAll("quantity");
   const units = form.getAll("unit");
   if (articles.length !== parts.length || articles.length !== quantities.length || articles.length !== units.length) return null;
+  if (articles.length > 50) return null;
   return articles.map((article, index) => ({
     article, partNumber: parts[index] || undefined, quantity: quantities[index], unit: units[index],
   }));

@@ -23,7 +23,7 @@ describe("collapsible sidebar", () => {
     render(<AppShell><p>Contenido</p></AppShell>);
     const work = screen.getByRole("group", { name: "Trabajo" });
     expect(work.querySelector('a[href="/inicio"]')).toBeInTheDocument();
-    expect(work.querySelector('a[href="/seguimientos"]')).toBeInTheDocument();
+    expect(work.querySelector('a[href="/mi-trabajo"]')).toBeInTheDocument();
     const areas = screen.getByRole("group", { name: "Áreas" });
     expect(areas.querySelector('a[href="/procura"]')).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Herramientas" }).querySelector('a[href="/configuracion"]')).toBeInTheDocument();

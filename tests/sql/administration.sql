@@ -1,154 +1,55 @@
+-- Administration V1 was retired in Administration V2. Keep checking that
+-- authenticated users cannot create or mutate V1 matters and follow-ups.
 BEGIN;
 
-INSERT INTO auth.users(id) VALUES
-  ('11111111-1111-4111-8111-111111111111'),
-  ('22222222-2222-4222-8222-222222222222'),
-  ('33333333-3333-4333-8333-333333333333');
-INSERT INTO organizations(id, name) VALUES
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Organización A'),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Organización B');
-INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_subject, active) VALUES
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'azure-subject-user-a', true),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'azure-subject-user-b', true),
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '33333333-3333-4333-8333-333333333333', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'azure-subject-user-c', true);
+INSERT INTO auth.users(id) VALUES ('11111111-1111-4111-8111-111111111111');
+INSERT INTO organizations(id, name)
+VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Organización A');
+INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_subject, active)
+VALUES (
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  '11111111-1111-4111-8111-111111111111',
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  'retirement-test-user',
+  true
+);
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
 
-SELECT public.create_admin_matter(
-  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Preparar informe', 'Informe', 'Cliente A',
-  NULL, '2026-11-02', 'pending', NULL, NULL, NULL, NULL
-);
-
-DO $$ DECLARE before_count integer;
+DO $$
 BEGIN
-  IF (SELECT count(*) FROM work_items WHERE type = 'administration' AND code LIKE 'ADM-%') <> 1 THEN
-    RAISE EXCEPTION 'ADM work item was not created';
+  IF has_table_privilege('authenticated', 'public.admin_details', 'SELECT')
+    OR has_table_privilege('authenticated', 'public.admin_details', 'INSERT')
+    OR has_table_privilege('authenticated', 'public.follow_ups', 'SELECT')
+    OR has_table_privilege('authenticated', 'public.follow_ups', 'INSERT') THEN
+    RAISE EXCEPTION 'retired administration tables remain accessible';
   END IF;
-  IF (SELECT count(*) FROM admin_details WHERE procedure_type = 'Informe' AND counterpart_name = 'Cliente A' AND document_status = 'pending') <> 1 THEN
-    RAISE EXCEPTION 'pending admin detail was not created';
+
+  IF has_function_privilege(
+    'authenticated',
+    'public.create_admin_matter(uuid,text,text,text,text,date,text,text,text,text,uuid)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'retired matter creation RPC remains executable';
   END IF;
-  IF (SELECT due_date FROM work_items WHERE type = 'administration') <> '2026-11-02' THEN
-    RAISE EXCEPTION 'commitment date was not saved';
-  END IF;
-  SELECT count(*) INTO before_count FROM work_items;
-  BEGIN
-    PERFORM public.create_admin_matter(
-      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fallida', 'Informe', 'Cliente A',
-      NULL, NULL, 'invalid', NULL, NULL, NULL, NULL
-    );
-    RAISE EXCEPTION 'invalid document status was accepted';
-  EXCEPTION WHEN check_violation THEN NULL;
-  END;
-  IF (SELECT count(*) FROM work_items) <> before_count THEN RAISE EXCEPTION 'failed detail left a work item'; END IF;
+
   BEGIN
     INSERT INTO work_items(organization_id, creator_id, type, title)
-    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', auth.uid(), 'administration', 'Sin ficha');
-    SET CONSTRAINTS ALL IMMEDIATE;
-    RAISE EXCEPTION 'direct ADM insert without detail was accepted';
-  EXCEPTION WHEN check_violation THEN NULL;
+    VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', auth.uid(), 'administration', 'Gestión retirada');
+    RAISE EXCEPTION 'retired administration work item was accepted';
+  EXCEPTION WHEN SQLSTATE '55000' THEN
+    NULL;
   END;
-  IF (SELECT count(*) FROM work_items) <> before_count THEN RAISE EXCEPTION 'direct ADM insert left an orphan'; END IF;
-  IF has_table_privilege('anon', 'public.admin_details', 'SELECT')
-    OR has_table_privilege('authenticated', 'public.admin_details', 'DELETE')
-    OR has_column_privilege('authenticated', 'public.admin_details', 'work_item_id', 'UPDATE') THEN
-    RAISE EXCEPTION 'admin detail privileges are too broad';
-  END IF;
-END $$;
 
-UPDATE admin_details SET document_status = 'received', document_reference = 'DOC-1'
-WHERE work_item_id = (SELECT id FROM work_items WHERE type = 'administration');
-DO $$ BEGIN
-  IF (SELECT count(*) FROM activity_log WHERE action = 'updated' AND after_values->>'document_status' = 'received') <> 1 THEN
-    RAISE EXCEPTION 'document update was not audited';
-  END IF;
-END $$;
-
-SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
-DO $$ DECLARE affected integer;
-BEGIN
-  IF (SELECT count(*) FROM admin_details) <> 1 THEN RAISE EXCEPTION 'same-org read was blocked'; END IF;
-  UPDATE admin_details SET document_status = 'reviewed';
-  GET DIAGNOSTICS affected = ROW_COUNT;
-  IF affected <> 0 THEN RAISE EXCEPTION 'non-owner changed document status'; END IF;
-END $$;
-
-SELECT set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
-DO $$ BEGIN
-  IF (SELECT count(*) FROM admin_details) <> 0 THEN RAISE EXCEPTION 'cross-org detail read'; END IF;
   BEGIN
     PERFORM public.create_admin_matter(
-      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Ajena', 'Informe', 'Cliente A',
+      'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Gestión retirada', 'Informe', 'Cliente A',
       NULL, NULL, 'pending', NULL, NULL, NULL, NULL
     );
-    RAISE EXCEPTION 'cross-org creation was allowed';
-  EXCEPTION WHEN insufficient_privilege THEN NULL;
-  END;
-END $$;
-
-SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
-INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
-SELECT id, '2026-11-01', 'Cliente A', 'Confirmar entrega', auth.uid()
-FROM work_items WHERE type = 'administration';
-SELECT set_config('test.admin_id', (SELECT id::text FROM work_items WHERE type = 'administration'), true);
-DO $$ BEGIN
-  IF (SELECT count(*) FROM follow_ups WHERE status = 'pending') <> 1 THEN RAISE EXCEPTION 'follow-up not created'; END IF;
-  IF (SELECT due_date FROM work_items WHERE type = 'administration') <> '2026-11-02' THEN RAISE EXCEPTION 'follow-up changed main commitment'; END IF;
-  IF (SELECT count(*) FROM activity_log WHERE after_values->>'follow_up_status' = 'pending') <> 1 THEN RAISE EXCEPTION 'follow-up creation not audited'; END IF;
-  IF has_table_privilege('anon', 'public.follow_ups', 'SELECT') OR has_table_privilege('authenticated', 'public.follow_ups', 'DELETE') THEN RAISE EXCEPTION 'follow-up grants too broad'; END IF;
-END $$;
-SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
-DO $$ DECLARE affected integer;
-BEGIN
-  UPDATE follow_ups SET scheduled_for = '2026-11-04';
-  GET DIAGNOSTICS affected = ROW_COUNT;
-  IF affected <> 0 THEN RAISE EXCEPTION 'non-owner changed pending follow-up'; END IF;
-  BEGIN
-    INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
-    SELECT id, '2026-11-04', 'Otro miembro', 'Intento', auth.uid() FROM work_items WHERE type = 'administration';
-    RAISE EXCEPTION 'non-owner created follow-up';
-  EXCEPTION WHEN insufficient_privilege THEN NULL;
-  END;
-END $$;
-SELECT set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', true);
-UPDATE follow_ups SET scheduled_for = '2026-11-03' WHERE status = 'pending';
-UPDATE follow_ups SET status = 'done', outcome = 'Entrega confirmada' WHERE status = 'pending';
-DO $$ BEGIN
-  IF (SELECT count(*) FROM follow_ups WHERE status = 'done' AND performed_at IS NOT NULL) <> 1 THEN RAISE EXCEPTION 'follow-up not completed'; END IF;
-  IF (SELECT count(*) FROM activity_log WHERE after_values->>'follow_up_status' = 'done') <> 1 THEN RAISE EXCEPTION 'completion not audited'; END IF;
-  IF (SELECT due_date FROM work_items WHERE type = 'administration') <> '2026-11-02' THEN RAISE EXCEPTION 'main commitment changed'; END IF;
-END $$;
-DO $$ DECLARE affected integer;
-BEGIN
-  UPDATE follow_ups SET scheduled_for = '2026-11-05' WHERE status = 'done';
-  GET DIAGNOSTICS affected = ROW_COUNT;
-  IF affected <> 0 THEN RAISE EXCEPTION 'completed follow-up was rescheduled'; END IF;
-END $$;
-UPDATE work_items SET archived_at = now() WHERE id = current_setting('test.admin_id')::uuid;
-DO $$ BEGIN
-  BEGIN
-    INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
-    VALUES (current_setting('test.admin_id')::uuid, '2026-11-06', 'Cliente A', 'Intento archivado', auth.uid());
-    RAISE EXCEPTION 'archived matter accepted follow-up';
-  EXCEPTION WHEN insufficient_privilege THEN NULL;
-  END;
-END $$;
-SELECT set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', true);
-DO $$ DECLARE affected integer;
-BEGIN
-  IF (SELECT count(*) FROM follow_ups) <> 1 THEN RAISE EXCEPTION 'same org follow-up read blocked'; END IF;
-  UPDATE follow_ups SET scheduled_for = '2026-11-04';
-  GET DIAGNOSTICS affected = ROW_COUNT;
-  IF affected <> 0 THEN RAISE EXCEPTION 'non-owner changed follow-up'; END IF;
-END $$;
-SELECT set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', true);
-DO $$ BEGIN
-  IF (SELECT count(*) FROM follow_ups) <> 0 THEN RAISE EXCEPTION 'cross-org follow-up read'; END IF;
-  BEGIN
-    INSERT INTO follow_ups(work_item_id, scheduled_for, contact_name, reason, created_by)
-    VALUES (current_setting('test.admin_id')::uuid, '2026-11-04', 'Ajeno', 'Intento', auth.uid());
-    RAISE EXCEPTION 'cross-org follow-up created';
-  EXCEPTION WHEN insufficient_privilege THEN NULL;
+    RAISE EXCEPTION 'retired matter creation RPC was accepted';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
   END;
 END $$;
 
