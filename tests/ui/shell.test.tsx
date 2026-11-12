@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => "/inicio" }));
 describe("AppShell", () => {
   it("offers every required area and common view", () => {
     const html = renderToStaticMarkup(<AppShell><p>Contenido</p></AppShell>);
-    for (const label of ["Inicio", "Mi trabajo", "Administración", "Procura", "Tecnología", "Proyectos", "Seguimientos", "Reportes", "Configuración"]) {
+    for (const label of ["Inicio", "Mi trabajo", "Administración", "Procura", "Tecnología", "Proyectos", "Reportes", "Configuración"]) {
       expect(html).toContain(label);
     }
     expect(html).toContain("Contenido");

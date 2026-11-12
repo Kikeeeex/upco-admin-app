@@ -9,10 +9,10 @@ INSERT INTO organizations(id, name) VALUES
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Organización B');
 INSERT INTO sites(id, organization_id, code, name) VALUES
   ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'SEDE-A', 'Sede A');
-INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_object_id, entra_subject, active) VALUES
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-a', true),
-  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-b', true),
-  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '33333333-3333-4333-8333-333333333333', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-c', true);
+INSERT INTO memberships(organization_id, user_id, entra_tenant_id, entra_object_id, entra_subject, active, role) VALUES
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-a', true, 'admin'),
+  ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '22222222-2222-4222-8222-222222222222', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-b', true, 'admin'),
+  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '33333333-3333-4333-8333-333333333333', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', NULL, 'azure-subject-user-c', true, 'member');
 
 DO $$ BEGIN
   IF has_table_privilege('anon', 'public.work_items', 'SELECT') THEN RAISE EXCEPTION 'anon table privilege remains'; END IF;
@@ -24,7 +24,7 @@ SELECT auth.uid() AS current_user_id, (SELECT count(*) FROM memberships) AS visi
 
 DO $$ BEGIN
   IF (SELECT count(*) FROM organizations) <> 1 THEN RAISE EXCEPTION 'organization RLS failed'; END IF;
-  IF (SELECT count(*) FROM memberships) <> 1 THEN RAISE EXCEPTION 'membership RLS failed'; END IF;
+  IF (SELECT count(*) FROM memberships) <> 2 THEN RAISE EXCEPTION 'same-organization admin membership RLS failed'; END IF;
 END $$;
 
 INSERT INTO work_items(organization_id, creator_id, type, title, priority, site_id) VALUES

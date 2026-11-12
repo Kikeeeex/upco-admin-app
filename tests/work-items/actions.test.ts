@@ -45,7 +45,7 @@ describe("createWorkItem", () => {
     expect(saved).toMatchObject({ description: null, site_id: null });
   });
 
-  it("sends administrative matters to their dedicated form", async () => {
+  it("rejects the retired administration work item area", async () => {
     const insert = vi.fn();
     accessContext.mockResolvedValue({ kind: "allowed", organizationId: orgId, user: { id: userId }, supabase: { from: () => ({ insert }) } });
     const form = new FormData();
@@ -54,7 +54,7 @@ describe("createWorkItem", () => {
     form.set("priority", "medium");
     const result = await createWorkItem({ kind: "idle", message: "" }, form);
     expect(result.kind).toBe("error");
-    expect(result.message).toContain("Administración");
+    expect(result.message).toContain("Revisa el título");
     expect(insert).not.toHaveBeenCalled();
   });
 
@@ -78,6 +78,7 @@ describe("updateWorkItem", () => {
     const query = {
       update(value: Record<string, unknown>) { saved = value; return this; },
       eq() { return this; },
+      neq() { return this; },
       is() { return this; },
       select() { return this; },
       async maybeSingle() { return { data: { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }, error: null }; },
@@ -99,7 +100,7 @@ describe("updateWorkItem", () => {
     let saved: Record<string, unknown> = {};
     const query = {
       update(value: Record<string, unknown>) { saved = value; return this; },
-      eq() { return this; }, is() { return this; }, select() { return this; },
+      eq() { return this; }, neq() { return this; }, is() { return this; }, select() { return this; },
       async maybeSingle() { return { data: { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }, error: null }; },
     };
     accessContext.mockResolvedValue({ kind: "allowed", supabase: { from: () => query }, organizationId: orgId, user: { id: userId } });
@@ -121,6 +122,7 @@ describe("updateWorkItem", () => {
       id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       organization_id: orgId,
       creator_id: userId,
+      type: "general",
       archived_at: "2026-10-28T18:00:00Z",
       title: "Original",
     };
@@ -129,6 +131,7 @@ describe("updateWorkItem", () => {
     const query = {
       update(value: Record<string, unknown>) { update = value; return this; },
       eq(field: keyof typeof item, value: string) { predicates.push((row) => row[field] === value); return this; },
+      neq(field: keyof typeof item, value: string) { predicates.push((row) => row[field] !== value); return this; },
       is(field: keyof typeof item, value: null) { predicates.push((row) => row[field] === value); return this; },
       select() { return this; },
       async maybeSingle() {
