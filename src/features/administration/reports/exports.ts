@@ -125,6 +125,46 @@ export async function buildIslrXml(access: Allowed, periodInput: string | null):
   return `<?xml version="1.0" encoding="UTF-8"?><RelacionRetencionesISLR RifAgente="${escapeXml(rif)}" Periodo="${period.replace("-", "")}">${details}</RelacionRetencionesISLR>`;
 }
 
+export async function buildIslrMacroXlsx(access: Allowed, periodInput: string | null): Promise<Uint8Array> {
+  const period = periodParts(periodInput);
+  await buildIslrXml(access, period);
+  const { rows, vendors } = await loadRows(access);
+  const selected = rows.filter((row) => row.status === "issued" && row.tax_period === period && row.islr_applies && cents(row, "islrRetentionCents") !== 0);
+  if (!selected.length) throw new Error("No hay retenciones ISLR en el período seleccionado.");
+  const settings = jsonObject(jsonObject(selected[0].settings_snapshot).config);
+  const agentRif = String(jsonObject(settings.company).rif ?? "");
+  if (!agentRif) throw new Error("La configuración congelada no contiene el RIF del agente de retención.");
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("retISLR");
+  sheet.addRows([
+    ["Data para Crear archivo XML de retISRLSalariosOtras", null, null, null, null, null, "RIF Agente :", agentRif],
+    ["RUTA SALIDA DE ARCHIVO XML:", null, null, null, null, null, "Periodo :", period.replace("-", "")],
+    ["ID-", "RIF", "Número", "Número", "Fecha", "Codigo", "Monto", "Porcentaje"],
+    ["Sec.", "Retenido", "Factura", "Control", "Operación", "Concepto", "Operación", "Retención"],
+  ]);
+  selected.forEach((row, index) => {
+    const vendor = row.fiscal_vendor_id ? vendors.get(row.fiscal_vendor_id) : undefined;
+    if (!vendor) throw new Error(`No se encontró el proveedor fiscal de ${row.invoice_number ?? row.id}.`);
+    const snapshot = jsonObject(row.calculation_snapshot);
+    const date = row.event_at ? new Date(`${row.event_at}T12:00:00-04:00`) : null;
+    sheet.addRow([index + 1, vendor.tax_identifier, (row.invoice_number ?? "").slice(-10), row.control_number || "NA", date, Number(snapshot.islrConceptCode ?? 0), Number(snapshot.islrTaxableBaseCents ?? 0) / 100, Number(snapshot.islrRate ?? 0)]);
+  });
+  sheet.columns = [{ width: 13 }, { width: 18 }, { width: 20 }, { width: 22 }, { width: 18 }, { width: 18 }, { width: 20 }, { width: 20 }];
+  sheet.views = [{ state: "frozen", ySplit: 4 }];
+  [1, 2].forEach((rowNumber) => sheet.getRow(rowNumber).font = { bold: true, color: { argb: "FF114C38" } });
+  [3, 4].forEach((rowNumber) => {
+    const row = sheet.getRow(rowNumber);
+    row.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    row.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF114C38" } };
+  });
+  sheet.getColumn(5).numFmt = "dd/mm/yyyy";
+  sheet.getColumn(7).numFmt = "#,##0.00";
+  sheet.getColumn(8).numFmt = "0.00";
+  const bytes = await workbook.xlsx.writeBuffer();
+  return new Uint8Array(bytes);
+}
+
 export async function buildBookXlsx(access: Allowed, periodInput: string | null, halfInput: string | null): Promise<Uint8Array> {
   const period = periodParts(periodInput);
   const half = halfInput ? Number(halfInput) : undefined;

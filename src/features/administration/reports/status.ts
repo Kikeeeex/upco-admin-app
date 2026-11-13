@@ -14,6 +14,45 @@ export type AdministrationDraftStatus = {
   error: boolean;
 };
 
+export type AdministrationPeriodStatus = {
+  total: number;
+  issued: number;
+  drafts: number;
+  invoiceTotalCents: number;
+  ivaRetainedCents: number;
+  islrRetainedCents: number;
+  mixedRateDocuments: number;
+  error: boolean;
+};
+
+function snapshotCents(value: unknown, key: string) {
+  const snapshot = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  const amount = Number(snapshot[key] ?? 0);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+export async function loadAdministrationPeriodStatus(
+  access: AllowedContext,
+  period: string,
+  half: 1 | 2,
+): Promise<AdministrationPeriodStatus> {
+  const { data, error } = await access.supabase.from("administration_documents")
+    .select("status, document_type, base16_cents, base8_cents, calculation_snapshot")
+    .eq("organization_id", access.organizationId).eq("tax_period", period).eq("tax_half", half).limit(10000);
+  if (error || !data) return { total: 0, issued: 0, drafts: 0, invoiceTotalCents: 0, ivaRetainedCents: 0, islrRetainedCents: 0, mixedRateDocuments: 0, error: true };
+  const issued = data.filter((row) => row.status === "issued");
+  return {
+    total: data.length,
+    issued: issued.length,
+    drafts: data.filter((row) => row.status === "draft").length,
+    invoiceTotalCents: issued.reduce((sum, row) => sum + snapshotCents(row.calculation_snapshot, "totalCents"), 0),
+    ivaRetainedCents: issued.reduce((sum, row) => sum + snapshotCents(row.calculation_snapshot, "ivaRetentionCents"), 0),
+    islrRetainedCents: issued.reduce((sum, row) => sum + snapshotCents(row.calculation_snapshot, "islrRetentionCents"), 0),
+    mixedRateDocuments: data.filter((row) => Number(row.base16_cents) !== 0 && Number(row.base8_cents) !== 0).length,
+    error: false,
+  };
+}
+
 export async function loadAdministrationDraftStatus(access: AllowedContext): Promise<AdministrationDraftStatus> {
   const { data, error } = await access.supabase.from("administration_documents")
     .select("document_type, islr_applies, igtf_applies, tax_period, status")

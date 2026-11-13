@@ -158,7 +158,8 @@ export function ImportPreview({ canImport = false }: { canImport?: boolean }) {
   const missingRifCount = rifColumn ? (preview?.rows.filter((row) => !row[rifColumn].trim()).length ?? 0) : 0;
 
   return <section className="work-card">
-    <h2>Vista previa local</h2>
+    <div className="administration-panel-heading"><div><h2>Importar documentos históricos</h2><p>Plantilla UPCO y validación de archivos históricos.</p></div><a className="quiet-button" href="/UPCO_Plantilla_Importar_Documentos.xlsx" download>Descargar plantilla</a></div>
+    <h3>Vista previa local</h3>
     <p className="muted-note">El archivo se procesa en este navegador y no se envía al servidor. Se elimina de la vista al cambiarlo o cerrar la página. La vista previa no valida el contenido fiscal contra la autoridad.</p>
     <div className="field import-file-field"><label htmlFor="administration-import-file">Archivo CSV, JSON o XLSX</label><input id="administration-import-file" type="file" accept=".csv,.json,.xlsx,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(event) => void readFile(event.target.files?.[0])} /></div>
     {busy && <p role="status">Leyendo archivo local…</p>}

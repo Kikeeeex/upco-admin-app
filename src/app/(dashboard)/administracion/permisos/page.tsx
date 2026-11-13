@@ -11,7 +11,7 @@ export default async function AdministrationPermissionsPage() {
     access.supabase.from("administration_permissions").select("user_id,permission").eq("organization_id", access.organizationId),
     access.supabase.from("user_profiles").select("user_id,display_name"),
   ]);
-  if (membersResult.error || grantsResult.error || profilesResult.error) return <div className="page-content"><h1>Permisos de Administración</h1><p role="alert" className="error-message">No se pudo consultar el directorio de membresías. Revisa que la migración V2.8 esté aplicada.</p></div>;
+  if (membersResult.error || grantsResult.error || profilesResult.error) return <div className="page-content"><h1>Usuarios</h1><p role="alert" className="error-message">No se pudo consultar el directorio de membresías. Revisa que la migración V2.8 esté aplicada.</p></div>;
   const names = new Map((profilesResult.data ?? []).map((profile) => [profile.user_id, profile.display_name]));
   const grants = new Map<string, AdministrationPermission[]>();
   for (const row of grantsResult.data ?? []) {
@@ -20,7 +20,7 @@ export default async function AdministrationPermissionsPage() {
     grants.set(row.user_id, current);
   }
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">ACCESOS</span><h1>Permisos</h1><p>Asigna acceso por tarea a miembros activos de esta organización.</p></div>
+    <div className="page-heading"><span className="eyebrow">ACCESOS</span><h1>Usuarios</h1><p>Administra los accesos de miembros activos de esta organización.</p></div>
     <p className="administration-lock-note">Los administradores conservan acceso completo. Emitir, anular, activar configuración e importar documentos reales siguen siendo acciones exclusivas de administradores. Cada cambio queda auditado.</p>
     {membersResult.data?.length ? membersResult.data.map((member) => <AdministrationPermissionsForm
       key={member.user_id} userId={member.user_id} displayName={names.get(member.user_id)?.trim() || "Miembro sin nombre visible"}

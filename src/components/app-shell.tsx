@@ -10,6 +10,7 @@ import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AdministrationNavigation } from "@/components/administration-navigation";
+import { AdministrationHeaderControls } from "@/components/administration-header-controls";
 import { ADMINISTRATION_NAVIGATION } from "@/features/administration/permissions/catalog";
 
 type NavigationItem = { href: string; label: string; icon: LucideIcon };
@@ -56,9 +57,9 @@ function NavigationLinks({ pathname, mobile = false, collapsed = false, administ
   isAdministrationAdmin: boolean;
 }) {
   return <>
-    <AdministrationNavigation key={pathname} permissions={administrationPermissions} isAdmin={isAdministrationAdmin} mobile={mobile} collapsed={collapsed} />
     {navigationGroups.map((group) => <div key={group.label} className="nav-group" role="group" aria-label={group.label}>
       <span className="nav-caption" aria-hidden="true">{group.label.toUpperCase()}</span>
+      {group.label === "Áreas" && <AdministrationNavigation key={pathname} permissions={administrationPermissions} isAdmin={isAdministrationAdmin} mobile={mobile} collapsed={collapsed} />}
       {group.items.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(`${href}/`);
         const link = <Link key={href} href={href} aria-current={active ? "page" : undefined} aria-label={collapsed ? label : undefined} title={collapsed ? label : undefined}>
@@ -70,10 +71,11 @@ function NavigationLinks({ pathname, mobile = false, collapsed = false, administ
   </>;
 }
 
-export function AppShell({ children, administrationPermissions, isAdministrationAdmin }: {
+export function AppShell({ children, administrationPermissions, isAdministrationAdmin, administrationUserLabel }: {
   children: ReactNode;
   administrationPermissions: string[];
   isAdministrationAdmin: boolean;
+  administrationUserLabel: string;
 }) {
   const pathname = usePathname() ?? "/inicio";
   const isAdministrationRoute = pathname.startsWith("/administracion");
@@ -125,9 +127,12 @@ export function AppShell({ children, administrationPermissions, isAdministration
             <div><nav className="topbar-eyebrow topbar-breadcrumb" aria-label="Ruta actual"><Link href="/inicio">UPCO</Link><span aria-hidden="true">/</span>
               {isAdministrationRoute ? <><Link href="/administracion">Administración</Link>{current.href !== "/administracion" && <><span aria-hidden="true">/</span><Link href={current.href}>{current.label}</Link></>}{detailLabel && <><span aria-hidden="true">/</span><span aria-current="page">{detailLabel}</span></>}</>
                 : detailLabel ? <><Link href={current.href}>{current.label}</Link><span aria-hidden="true">/</span><span aria-current="page">{detailLabel}</span></> : <span aria-current="page">{current.label}</span>}
-            </nav><strong>{detailLabel ?? current.label}</strong></div>
+            </nav><strong>{detailLabel ?? current.label}</strong>{isAdministrationRoute && <small className="administration-company-label">UPCO DE VENEZUELA CONSULTORES, S.A.</small>}</div>
           </div>
-          <form action="/auth/signout" method="post"><button className="quiet-button" type="submit">Cerrar sesión</button></form>
+          <div className="topbar-actions">
+            {isAdministrationRoute && <AdministrationHeaderControls isAdmin={isAdministrationAdmin} userLabel={administrationUserLabel} />}
+            <form action="/auth/signout" method="post"><button className="quiet-button" type="submit">Cerrar sesión</button></form>
+          </div>
         </header>
         <main id="contenido" className="main-content">{children}</main>
       </div>

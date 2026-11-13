@@ -222,8 +222,37 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .administration-app-frame .topbar { height: 72px; padding: 0 34px; border-color: var(--admin-border); }
 .administration-app-frame .topbar-eyebrow { color: var(--admin-muted); }
 .administration-app-frame .topbar strong { color: #16251d; }
+.administration-app-frame .administration-company-label { display: block; margin-top: 2px; color: var(--admin-muted); font-size: .61rem; font-weight: 650; letter-spacing: .05em; }
 .administration-app-frame .topbar .quiet-button { border-color: var(--admin-border); color: #385343; }
 .administration-app-frame .topbar .quiet-button:hover { background: #f1f6f2; }
+.administration-app-frame .topbar-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; min-width: 0; }
+.administration-header-controls { display: flex; align-items: center; gap: 10px; }
+.administration-period-control { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 10px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: #68806f; }
+.administration-period-control input { width: 132px; border: 0; background: transparent; color: #263b2e; font: inherit; font-size: .76rem; }
+.administration-user-pill { display: inline-flex; align-items: center; gap: 8px; max-width: 190px; padding: 8px 11px; border: 1px solid #e3e9e3; border-radius: 999px; background: #f7f9f7; color: #485d4e; font-size: .72rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.administration-user-pill > span { width: 7px; height: 7px; border-radius: 50%; background: #73ab64; }
+.administration-report-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: 0 0 18px; padding: 12px 15px; border: 1px solid var(--admin-border); border-radius: 12px; background: #fff; }
+.administration-report-filter label { color: var(--admin-muted); font-size: .74rem; font-weight: 700; }
+.administration-report-filter input, .administration-report-filter select { min-height: 36px; padding: 5px 9px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: #263b2e; }
+.administration-report-filter .quiet-button { margin-left: auto; min-height: 36px; }
+.administration-module .administration-close-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.administration-close-form button { grid-column: 1 / -1; }
+.administration-checklist { display: grid; gap: 9px; margin: 16px 0 0; padding-left: 19px; color: #5b6d60; font-size: .82rem; line-height: 1.5; }
+.administration-retention-rules { margin-top: 14px; }
+.administration-retentions-summary .administration-panel-heading { padding: 0 0 12px; }
+.administration-anchor { scroll-margin-top: 18px; }
+.administration-config-sections { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.administration-config-sections a { display: inline-flex; align-items: center; min-height: 37px; padding: 0 12px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: var(--admin-green); font-size: .76rem; font-weight: 750; }
+.administration-config-sections a:hover { background: #f1f6f2; }
+.administration-module .fiscal-settings-group { min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--admin-border); border-radius: 12px; }
+.administration-module .fiscal-settings-group > legend { padding: 0 7px; color: #263b2e; font-size: .9rem; font-weight: 800; }
+.administration-module .fiscal-settings-group > .administration-lock-note,
+.administration-module .fiscal-settings-group > .muted-note { margin: 0 0 12px; }
+.fiscal-settings-group-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fiscal-settings-group-grid > .description-field { grid-column: 1 / -1; }
+.administration-module .fiscal-settings-form > .fiscal-settings-group { grid-column: 1 / -1; }
+.administration-module .fiscal-settings-group .description-field { margin: 0 0 12px; }
+.administration-module .fiscal-settings-group .description-field:last-child { margin-bottom: 0; }
 .administration-mobile-menu-panel { background: #0e1914; color: #ededed; border-color: rgba(237, 237, 237, .2); }
 .administration-mobile-menu-panel [data-slot="sheet-title"] { color: #ededed; }
 .administration-mobile-menu-panel .mobile-nav a { color: #d1d9d3; }
@@ -288,6 +317,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .administration-document-downloads a { display: inline-flex; align-items: center; padding: 10px 12px; border: 1px solid var(--admin-border); border-radius: 8px; color: var(--admin-green); font-size: .8rem; font-weight: 700; }
 .administration-document-downloads a:hover { background: #f3f7f3; }
 .administration-purchase-filters { display: grid; gap: 14px; padding: 18px 20px; border-bottom: 1px solid #e8ede9; }
+.administration-purchase-search { display: flex; gap: 8px; }
+.administration-purchase-search input { flex: 1; min-width: 0; min-height: 38px; padding: 7px 11px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: #263b2e; }
+.administration-purchase-search .quiet-button { min-height: 38px; padding: 0 14px; }
 .administration-filter-pills { display: flex; flex-wrap: wrap; gap: 7px; }
 .administration-filter-pills a { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; color: #586d5f; font-size: .75rem; font-weight: 700; }
 .administration-filter-pills a:hover { background: #f1f6f2; }
@@ -353,6 +385,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 640px) {
   .administration-app-frame .main-content { padding: 24px 16px 32px; }
   .administration-app-frame .topbar { height: 65px; padding: 0 14px; }
+  .administration-app-frame .topbar-actions { gap: 8px; }
+  .administration-period-control { padding: 0 7px; }
+  .administration-period-control input { width: 115px; }
+  .administration-user-pill { display: none; }
   .administration-mobile-menu-panel { background: #0e1914; }
   .administration-mobile-menu-panel .admin-nav-group { margin: 0 0 8px; }
   .administration-mobile-menu-panel .admin-nav-parent-row > a { min-height: 46px; }
@@ -376,6 +412,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .administration-period-filter { width: 100%; margin: 0; }
   .administration-period-filter input { flex: 1; min-width: 0; }
   .administration-purchase-filters { padding: 15px; }
+  .administration-purchase-search { width: 100%; }
+  .administration-report-filter { align-items: stretch; }
+  .administration-report-filter input, .administration-report-filter select, .administration-report-filter .quiet-button { flex: 1; }
+  .fiscal-settings-group-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .administration-app-frame .admin-nav-toggle svg { transition: none; }

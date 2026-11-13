@@ -1,19 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
-  BadgePercent,
-  BookOpenCheck,
   Building2,
   ChartNoAxesCombined,
   ChevronDown,
   ClipboardList,
-  FileUp,
   LayoutDashboard,
-  ShieldCheck,
   SlidersHorizontal,
+  UsersRound,
 } from "lucide-react";
 import { SheetClose } from "@/components/ui/sheet";
 import { ADMINISTRATION_NAVIGATION } from "@/features/administration/permissions/catalog";
@@ -22,12 +19,9 @@ const icons = {
   "/administracion": LayoutDashboard,
   "/administracion/compras": ClipboardList,
   "/administracion/proveedores": Building2,
-  "/administracion/retenciones": BadgePercent,
-  "/administracion/libros": BookOpenCheck,
-  "/administracion/importaciones": FileUp,
   "/administracion/reportes": ChartNoAxesCombined,
   "/administracion/configuracion-fiscal": SlidersHorizontal,
-  "/administracion/permisos": ShieldCheck,
+  "/administracion/permisos": UsersRound,
 };
 
 type Props = {
@@ -39,6 +33,7 @@ type Props = {
 
 export function AdministrationNavigation({ permissions, isAdmin, mobile = false, collapsed = false }: Props) {
   const pathname = usePathname() ?? "/inicio";
+  const searchParams = useSearchParams();
   const isAdministrationRoute = pathname === "/administracion" || pathname.startsWith("/administracion/");
   const [expanded, setExpanded] = useState(isAdministrationRoute);
 
@@ -47,9 +42,18 @@ export function AdministrationNavigation({ permissions, isAdmin, mobile = false,
       ? isAdmin
       : isAdmin || section.permissions.some((permission) => permissions.includes(permission)),
   );
+  const periodParams = new URLSearchParams();
+  for (const key of ["period", "half"]) {
+    const value = searchParams.get(key);
+    if (value) periodParams.set(key, value);
+  }
+  const sectionHref = (href: string) => {
+    const query = periodParams.toString();
+    return query ? `${href}?${query}` : href;
+  };
   const parentLink = (
     <Link
-      href="/administracion"
+      href={sectionHref("/administracion")}
       aria-label={collapsed ? "Administración" : undefined}
       title={collapsed ? "Administración" : undefined}
       className={`admin-nav-parent${isAdministrationRoute ? " is-active" : ""}`}
@@ -83,7 +87,7 @@ export function AdministrationNavigation({ permissions, isAdmin, mobile = false,
             const Icon = icons[section.href as keyof typeof icons];
             const link = (
               <Link
-                href={section.href}
+                href={sectionHref(section.href)}
                 aria-current={active ? "page" : undefined}
                 aria-label={collapsed ? section.label : undefined}
                 title={collapsed ? section.label : undefined}

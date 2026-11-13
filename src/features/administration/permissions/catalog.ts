@@ -20,14 +20,11 @@ export const ADMINISTRATION_PERMISSION_OPTIONS: { key: AdministrationPermission;
 
 export const ADMINISTRATION_NAVIGATION = [
   { href: "/administracion", label: "Resumen", exact: true, permissions: ADMINISTRATION_PERMISSIONS },
-  { href: "/administracion/compras", label: "Compras y documentos", permissions: ["purchases.read", "purchases.manage"] },
+  { href: "/administracion/compras", label: "Compras y notas", permissions: ["purchases.read", "purchases.manage", "retentions.read"] },
   { href: "/administracion/proveedores", label: "Proveedores", permissions: ["vendors.read", "vendors.manage"] },
-  { href: "/administracion/retenciones", label: "Retenciones", permissions: ["retentions.read"] },
-  { href: "/administracion/libros", label: "Libros y cierres", permissions: ["books.read"] },
-  { href: "/administracion/importaciones", label: "Importaciones", permissions: ["imports.validate"] },
-  { href: "/administracion/reportes", label: "Reportes y exportaciones", permissions: ["reports.export"] },
-  { href: "/administracion/configuracion-fiscal", label: "Configuración fiscal", permissions: ["fiscal_settings.read", "fiscal_settings.manage"] },
-  { href: "/administracion/permisos", label: "Permisos", adminOnly: true, permissions: [] },
+  { href: "/administracion/reportes", label: "Reportes", permissions: ["reports.export", "books.read", "imports.validate"] },
+  { href: "/administracion/configuracion-fiscal", label: "Configuración", permissions: ["fiscal_settings.read", "fiscal_settings.manage"] },
+  { href: "/administracion/permisos", label: "Usuarios", adminOnly: true, permissions: [] },
 ] as const;
 
 export function isAdministrationPermission(value: string): value is AdministrationPermission {

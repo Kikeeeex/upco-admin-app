@@ -14,10 +14,12 @@ export default async function ConfiguracionFiscalPage({ searchParams }: { search
     .eq("organization_id", access.organizationId).order("version_no", { ascending: false }).limit(10);
   const { data: activeData, error: activeError } = await access.supabase.from("fiscal_settings_activations")
     .select("proposal_id, version_no, activated_at").eq("organization_id", access.organizationId).is("ended_at", null).maybeSingle();
+  const activeProposal = (data ?? []).find((proposal) => proposal.id === activeData?.proposal_id);
   return <div className="page-content">
     <div className="page-heading"><span className="eyebrow">ADMINISTRACIÓN</span><h1>Configuración fiscal</h1><p>Parámetros, conceptos, cuentas, CECO y correlativos fiscales.</p></div>
     <p className="administration-lock-note"><strong>Configuración versionada:</strong> las propuestas no afectan documentos hasta activar una versión. Las nuevas emisiones toman la versión activa y guardan una copia inmutable de sus parámetros.</p>
-    {activationResult === "ok" && <p className="success-message" role="status">Versión fiscal activada y registrada. Los cálculos y la emisión se habilitarán en las operaciones cuando su integración técnica esté disponible.</p>}
+    {canManage && <nav className="administration-config-sections" aria-label="Secciones de configuración fiscal"><a href="#settings-company-group">Agente y tasas</a><a href="#settings-islr-group">Conceptos ISLR</a><a href="#settings-catalogs-group">CECO y cuentas</a><a href="#settings-sequences-group">Correlativos</a></nav>}
+    {activationResult === "ok" && <p className="success-message" role="status">Configuración fiscal activada. Las nuevas emisiones usan esta versión y conservan sus parámetros en el snapshot.</p>}
     {activationResult === "error" && <p className="error-message" role="alert">No se pudo activar la versión. Confirma permisos y que las migraciones V2.2 estén aplicadas en este entorno.</p>}
     {activationResult === "sin-permiso" && <p className="error-message" role="alert">Solo una persona administradora puede activar la configuración fiscal.</p>}
     {canManage && <FiscalSettingsProposalForm />}
@@ -38,5 +40,6 @@ export default async function ConfiguracionFiscalPage({ searchParams }: { search
     </section>
     {activeError && <p className="error-message" role="alert">No se pudo consultar la versión fiscal activa. Aplica la migración V2.2.</p>}
     {activeData && <p className="muted-note">Configuración activa desde {new Date(activeData.activated_at).toLocaleString("es-VE", { timeZone: "America/Caracas" })}. La activación conserva su versión y su historial.</p>}
+    {activeProposal && <section className="work-card"><h2>Versión activa V{activeProposal.version_no} · {activeProposal.proposal_label}</h2><p>Las tasas, conceptos, CECO, cuentas y secuencias se guardan como snapshot en cada documento emitido.</p><details><summary>Ver valores vigentes</summary><pre>{JSON.stringify(activeProposal.config_values, null, 2)}</pre></details></section>}
   </div>;
 }
