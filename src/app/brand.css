@@ -175,13 +175,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* Administration V2.9: align its shell and screens with the UPCO Compras reference. */
 .administration-app-frame {
   --admin-forest: #0e1914;
-  --admin-green: #0b4b32;
+  --admin-green: #0d4d34;
   --admin-green-deep: #08402d;
-  --admin-lime: #a4d85a;
-  --admin-canvas: #f1f3f0;
+  --admin-lime: #93ca5d;
+  --admin-canvas: #f4f7f5;
   --admin-surface: #fff;
-  --admin-border: #dbe3dc;
-  --admin-muted: #718178;
+  --admin-border: #dce4de;
+  --admin-muted: #64766a;
+  font-family: var(--font-satoshi), "Satoshi", "Segoe UI", Arial, sans-serif;
 }
 .administration-app-frame .sidebar { position: sticky; top: 0; width: 248px; height: 100vh; min-height: 100vh; overflow: hidden; background: var(--admin-forest); padding: 18px 14px 16px; }
 .administration-app-frame .brand { padding: 10px 10px 22px; }
@@ -371,6 +372,75 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .administration-period-stat > div > span { display: block; height: 100%; border-radius: inherit; background: #13844d; }
 .administration-period-action { display: flex; justify-content: center; align-items: center; min-height: 40px; margin-top: auto; border: 1px solid var(--admin-border); border-radius: 9px; color: var(--admin-green); font-size: .78rem; font-weight: 800; }
 .administration-period-action:hover { background: #f2f7f2; }
+
+/* V2.11: match the live Compras workspace content inside UPCO Admin's shared shell. */
+.administration-app-frame .content-frame { background: var(--admin-canvas); }
+.administration-app-frame .topbar { background: #f7f9f7; }
+.administration-app-frame .administration-hero {
+  background: linear-gradient(118deg, #0d4d34 0%, #0e1914 100%);
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 14px 28px rgba(14, 25, 20, .14);
+}
+.administration-app-frame .administration-hero-link { background: var(--admin-lime); }
+.administration-app-frame .administration-hero-link:hover { background: #a6d978; }
+.administration-period-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.administration-period-chips a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9px;
+  background: #fff;
+  color: #52665a;
+  font-size: .75rem;
+  font-weight: 750;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.administration-period-chips a:hover { background: #eef5ef; }
+.administration-period-chips a.is-active { border-color: var(--admin-green); background: var(--admin-green); color: #fff; }
+.administration-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 0 0 18px; }
+.administration-kpi {
+  position: relative;
+  min-width: 0;
+  min-height: 140px;
+  padding: 18px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(14, 25, 20, .045);
+}
+.administration-kpi > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.administration-kpi > div > span:first-child { color: #5f7466; font-size: .75rem; font-weight: 700; }
+.administration-kpi > div > span:last-child { display: grid; place-items: center; flex: none; width: 34px; height: 34px; border-radius: 9px; background: #edf5ec; color: var(--admin-green); font-size: .95rem; font-weight: 800; }
+.administration-kpi > strong { display: block; margin-top: 8px; overflow-wrap: anywhere; color: #17251d; font-size: clamp(1.1rem, 1.7vw, 1.55rem); font-weight: 750; letter-spacing: -.035em; line-height: 1.2; }
+.administration-kpi > small { display: block; margin-top: 7px; color: var(--admin-muted); font-size: .7rem; }
+.administration-reference-overview { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(260px, 1fr); align-items: stretch; gap: 14px; }
+.administration-reference-overview > * { min-width: 0; }
+.administration-recent-documents { margin-top: 0; padding: 0 !important; overflow: hidden; }
+.administration-recent-documents .administration-panel-heading { padding: 18px 20px; }
+.administration-recent-documents .administration-table-scroll { border-radius: 0 0 14px 14px; }
+.administration-recent-documents table { min-width: 640px; }
+.administration-recent-documents td a { color: #17251d; font-weight: 700; }
+.administration-recent-documents td a:hover { color: var(--admin-green); text-decoration: underline; }
+.administration-period-panel { display: flex; flex-direction: column; gap: 12px; }
+.administration-period-panel .administration-panel-heading { padding: 0 0 2px; }
+.administration-period-stat { border-color: #e2e9e2; background: #f8faf8; }
+.administration-period-stat > div > span { background: #0a8446; }
+.administration-period-action { margin-top: auto; }
+.administration-module .page-heading h1 { letter-spacing: -.04em; }
+.administration-module .work-card,
+.administration-module .overview-card,
+.administration-module .empty-card { box-shadow: 0 5px 18px rgba(14, 25, 20, .045); }
+.administration-vendor-cell { display: flex; align-items: center; gap: 10px; min-width: 190px; }
+.administration-vendor-cell > span { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 9px; background: #e8f1e9; color: var(--admin-green); font-size: .66rem; font-weight: 850; }
+.administration-vendor-cell > strong { color: #20352a; font-size: .78rem; font-weight: 750; }
+.administration-mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+@media (max-width: 1100px) {
+  .administration-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .administration-reference-overview { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 1100px) {
   .administration-module .administration-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }

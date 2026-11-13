@@ -5,7 +5,7 @@ import { hasAdministrationPermission, requireAnyAdministrationPermission } from 
 
 type SearchParams = { buscar?: string | string[] };
 type FiscalVendorRow = {
-  id: string; legal_name: string; tax_identifier: string; person_type: string;
+  id: string; legal_name: string; tax_identifier: string; taxpayer_type: string | null; person_type: string;
   iva_retention_rate: number; active: boolean; review_state: string;
 };
 
@@ -18,16 +18,15 @@ export default async function ProveedoresFiscalesPage({ searchParams }: { search
   const query = (typeof rawQuery === "string" ? rawQuery : "").trim().slice(0, 100);
   const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
   const selectVendors = () => access.supabase.from("fiscal_vendors")
-    .select("id, legal_name, tax_identifier, person_type, iva_retention_rate, active, review_state")
-    .eq("organization_id", access.organizationId).order("legal_name").limit(100);
+    .select("id, legal_name, tax_identifier, taxpayer_type, person_type, iva_retention_rate, active, review_state")
+    .eq("organization_id", access.organizationId).order("legal_name").limit(500);
   const nameResult = await (query ? selectVendors().ilike("legal_name", pattern) : selectVendors());
   const rifResult = query ? await selectVendors().ilike("tax_identifier", pattern) : null;
   const error = nameResult.error ?? rifResult?.error ?? null;
   const vendors = [...new Map([...(nameResult.data ?? []), ...(rifResult?.data ?? [])].map((vendor) => [vendor.id, vendor])).values()] as FiscalVendorRow[];
   vendors.sort((left, right) => left.legal_name.localeCompare(right.legal_name, "es"));
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">DIRECTORIO FISCAL</span><h1>Proveedores</h1><p>Directorio fiscal separado del catálogo comercial de Procura.</p></div>
-    <p className="administration-lock-note">La entrega más reciente reporta 347 proveedores. El registro está confirmado como vigente, pero esta versión aún no se ha conciliado con el snapshot previo ni con Procura; no se ha importado.</p>
+    <div className="page-heading"><span className="eyebrow">DIRECTORIO FISCAL</span><h1>Proveedores</h1><p>Datos tributarios que alimentan facturas y comprobantes.</p></div>
     {canManage && <details className="administration-create-panel">
       <summary>Nuevo proveedor</summary>
       <CreateFiscalVendorForm />
@@ -40,11 +39,12 @@ export default async function ProveedoresFiscalesPage({ searchParams }: { search
       </form>
       {error ? <p className="error-message" role="alert">No se pudo cargar el directorio fiscal. Aplica su migración y vuelve a intentarlo.</p> : vendors.length === 0 ?
         <p className="work-empty">{query ? "No se encontraron proveedores con esa razón social o RIF." : "Aún no hay proveedores fiscales registrados."}</p> :
-        <div className="table-scroll"><table><thead><tr><th>Razón social</th><th>RIF</th><th>Persona</th><th>Retención IVA</th><th>Estado</th><th>Revisión</th><th>Ficha</th></tr></thead><tbody>
+        <div className="table-scroll"><table><thead><tr><th>Proveedor</th><th>RIF</th><th>Tipo</th><th>Persona</th><th>Ret. IVA</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
           {vendors.map((vendor) => <tr key={vendor.id}>
-            <td>{vendor.legal_name}</td><td>{vendor.tax_identifier}</td><td>{vendor.person_type === "natural" ? "Natural" : "Jurídica"}</td>
-            <td>{vendor.iva_retention_rate}%</td><td>{vendor.active ? "Activo" : "Inactivo"}</td>
-            <td><span className="badge">{vendor.review_state === "confirmed" ? "Confirmado" : "Por revisar"}</span></td>
+            <td><div className="administration-vendor-cell"><span aria-hidden="true">{vendor.legal_name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase()}</span><strong>{vendor.legal_name}</strong></div></td>
+            <td className="administration-mono">{vendor.tax_identifier}</td>
+            <td>{vendor.taxpayer_type || "Sin clasificar"}</td><td>{vendor.person_type === "natural" ? "Natural" : "Jurídica"}</td>
+            <td className="administration-mono">{vendor.iva_retention_rate}%</td><td><span className={`administration-status ${vendor.active ? "administration-status-issued" : "administration-status-voided"}`}>{vendor.active ? "Activo" : "Inactivo"}</span></td>
             <td><Link className="text-link" href={`/administracion/proveedores/${vendor.id}`}>Ver ficha</Link></td>
           </tr>)}
         </tbody></table></div>}
