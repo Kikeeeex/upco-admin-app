@@ -35,7 +35,7 @@ async function ComprasContent({ issued, period, half, state, search }: { issued:
   const canReadRetentions = hasAdministrationPermission(access, "retentions.read");
   const canReadFiscalVendors = canReadPurchases;
   let documentQuery = access.supabase.from("administration_documents")
-    .select("id, fiscal_vendor_id, document_type, invoice_number, issued_at, event_at, tax_period, tax_half, base16_cents, base8_cents, calculation_snapshot, status, created_at", { count: "exact" })
+    .select("id, fiscal_vendor_id, document_type, invoice_number, control_number, issued_at, event_at, tax_period, tax_half, base16_cents, base8_cents, calculation_snapshot, status, created_at", { count: "exact" })
     .eq("organization_id", access.organizationId);
   if (state === "activos" || state === "draft") {
     documentQuery = documentQuery.or(`tax_period.eq.${period},and(status.eq.draft,tax_period.is.null)`);
@@ -61,6 +61,9 @@ async function ComprasContent({ issued, period, half, state, search }: { issued:
   const rows = search ? allRows.filter((row) => `${row.invoice_number ?? ""} ${row.fiscal_vendor_id ? vendorLabels.get(row.fiscal_vendor_id) ?? "" : ""}`.toLocaleLowerCase("es").includes(searchTerm)) : allRows;
   const invoices = invoicesResult.data ?? [];
   const typeLabels: Record<string, string> = { invoice: "Factura", credit_note: "Nota de crédito", debit_note: "Nota de débito" };
+  const formatDate = (value: string | null) => value ? value.slice(0, 10).split("-").reverse().join("/") : "—";
+  const formatMoney = (cents: number) => `Bs. ${(cents / 100).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase() || "P";
   const periodLabel = new Intl.DateTimeFormat("es-VE", { timeZone: "America/Caracas", month: "long", year: "numeric" }).format(new Date(`${period}-01T12:00:00-04:00`));
   const [year, month] = period.split("-").map(Number);
   const lastDay = new Date(year, month, 0).getDate();
@@ -97,7 +100,19 @@ async function ComprasContent({ issued, period, half, state, search }: { issued:
       {documentsResult.error ? <p className="error-message" role="alert">No se pudo cargar la lista. Aplica las migraciones de Administración V2.</p> : rows.length === 0 ?
         <p className="work-empty">Aún no hay documentos para este período.</p> :
         <div className="table-scroll"><table><thead><tr><th>Tipo y número</th><th>Proveedor</th><th>Emisión</th><th>Base 16 %</th><th>Base 8 %</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
-          {rows.map((row) => <tr key={row.id}><td><strong>{typeLabels[row.document_type] ?? row.document_type}</strong><br />{row.invoice_number ?? "Sin número"}</td><td>{row.fiscal_vendor_id ? vendorLabels.get(row.fiscal_vendor_id) ?? "Proveedor fiscal" : "Sin seleccionar"}</td><td>{row.event_at ?? row.issued_at ?? "—"}</td><td>{row.base16_cents == null ? "—" : `Bs. ${(Number(row.base16_cents) / 100).toFixed(2)}`}</td><td>{row.base8_cents == null ? "—" : `Bs. ${(Number(row.base8_cents) / 100).toFixed(2)}`}</td><td>{row.status === "issued" ? `Bs. ${(Number((row.calculation_snapshot as Record<string, unknown> | null)?.totalCents ?? 0) / 100).toFixed(2)}` : "—"}</td><td><span className={`administration-status administration-status-${row.status}`}>{row.status === "issued" ? "Emitido" : row.status === "voided" ? "Anulado" : "Borrador"}</span></td><td><Link className="text-link" href={`/administracion/compras/${row.id}`}>{row.status === "draft" ? "Abrir" : "Ver"}</Link></td></tr>)}
+          {rows.map((row) => {
+            const vendorName = row.fiscal_vendor_id ? vendorLabels.get(row.fiscal_vendor_id) ?? "Proveedor no encontrado" : "Sin seleccionar";
+            return <tr key={row.id}>
+              <td><strong>{typeLabels[row.document_type] ?? row.document_type} Nº {row.invoice_number ?? "sin número"}</strong><br /><span className="administration-table-subline">Control {row.control_number || "—"}</span></td>
+              <td><div className="administration-vendor-cell"><span aria-hidden="true">{initials(vendorName)}</span><strong>{vendorName}</strong></div></td>
+              <td className="administration-mono">{formatDate(row.event_at ?? row.issued_at)}</td>
+              <td className="administration-mono">{row.base16_cents == null ? "—" : formatMoney(Number(row.base16_cents))}</td>
+              <td className="administration-mono">{row.base8_cents == null ? "—" : formatMoney(Number(row.base8_cents))}</td>
+              <td className="administration-mono">{row.status === "issued" ? formatMoney(Number((row.calculation_snapshot as Record<string, unknown> | null)?.totalCents ?? 0)) : "—"}</td>
+              <td><span className={`administration-status administration-status-${row.status}`}>{row.status === "issued" ? "Emitido" : row.status === "voided" ? "Anulado" : "Borrador"}</span></td>
+              <td><Link className="text-link" href={`/administracion/compras/${row.id}`}>Ver</Link></td>
+            </tr>;
+          })}
         </tbody></table></div>}
       {canManage && vendorsResult.error && <p className="error-message">No se pudo cargar el directorio fiscal para crear borradores.</p>}
       {!documentsResult.error && rows.length === 50 && <p className="muted-note">Se muestran 50 resultados de {documentsResult.count ?? rows.length} documentos.</p>}

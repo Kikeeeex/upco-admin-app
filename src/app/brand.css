@@ -436,6 +436,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .administration-vendor-cell > span { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 9px; background: #e8f1e9; color: var(--admin-green); font-size: .66rem; font-weight: 850; }
 .administration-vendor-cell > strong { color: #20352a; font-size: .78rem; font-weight: 750; }
 .administration-mono { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.administration-table-subline { display: inline-block; margin-top: 4px; color: #718178; font-size: .68rem; font-variant-numeric: tabular-nums; }
+.administration-module .administration-purchase-filters + .administration-panel-heading { border-bottom: 1px solid #e8ede9; }
+.administration-module .administration-purchase-filters ~ .table-scroll table { min-width: 1080px; }
+.administration-vendor-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.administration-vendor-actions { display: flex; align-items: center; gap: 9px; }
+.administration-vendor-actions .quiet-button,
+.administration-vendor-audit .administration-panel-heading .quiet-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 9px; background: #fff; color: #284a36; font-size: .76rem; font-weight: 750; white-space: nowrap; }
+.administration-vendor-audit { margin-bottom: 16px; }
+.administration-vendor-audit .administration-panel-heading { padding: 0 0 14px; }
+.administration-vendor-audit-summary { display: grid; grid-template-columns: auto minmax(120px, 1fr) auto minmax(190px, 1.5fr); align-items: center; gap: 8px 11px; margin-bottom: 14px; padding: 13px 15px; border: 1px solid #e2e9e2; border-radius: 10px; background: #f8faf8; }
+.administration-vendor-audit-summary strong { color: #17251d; font-size: 1.2rem; }
+.administration-vendor-audit-summary span { color: var(--admin-muted); font-size: .72rem; }
+.administration-vendor-audit > .muted-note { margin-bottom: 14px; }
+.administration-vendor-audit-table { max-height: 340px; border-radius: 9px; }
+.administration-vendor-audit-table table { min-width: 780px; }
 
 @media (max-width: 1100px) {
   .administration-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -453,6 +468,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .administration-app-frame .main-content { padding: 28px 24px 36px; }
 }
 @media (max-width: 640px) {
+  .administration-vendor-heading { align-items: stretch; flex-direction: column; gap: 12px; }
+  .administration-vendor-actions { width: 100%; }
+  .administration-vendor-actions > * { flex: 1; }
+  .administration-vendor-audit-summary { grid-template-columns: auto 1fr; }
   .administration-app-frame .main-content { padding: 24px 16px 32px; }
   .administration-app-frame .topbar { height: 65px; padding: 0 14px; }
   .administration-app-frame .topbar-actions { gap: 8px; }

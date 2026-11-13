@@ -27,7 +27,8 @@ La agrupación conserva las funciones aprobadas:
 
 - Se usan la paleta, tipografía y jerarquía visual de la página publicada dentro de las pantallas de Administración.
 - Resumen presenta el período, selector de quincena, cuatro indicadores, documentos recientes y estado de la quincena en una composición adaptable.
-- Proveedores presenta razón social, RIF, tipo, persona, retención IVA, estado y acceso a la ficha. Se elimina el aviso anterior que afirmaba que el padrón vigente seguía sin importarse.
+- Compras presenta proveedor con avatar de iniciales, número/control, fecha local, bases, total, estado y acceso al documento; los importes usan formato venezolano con dos decimales.
+- Proveedores presenta razón social, RIF, tipo, persona, retención IVA, estado y acceso a la ficha. Incluye revisión interna de calidad del padrón y descarga CSV bajo los mismos permisos de lectura. La revisión no consulta SENIAT. Se elimina el aviso anterior que afirmaba que el padrón vigente seguía sin importarse.
 - La consulta de proveedores admite hasta 500 filas, por encima de las 345 fichas activas y confirmadas registradas en UPCO Admin.
 - El directorio fiscal sigue separado del catálogo comercial de Procura. No se crean asociaciones inferidas.
 
@@ -39,6 +40,6 @@ No se cambian cálculos, formatos de salida, autenticación, esquema, RLS, permi
 
 ## Verificación y pendientes
 
-La revisión comparó los recursos CSS/JS públicos de la página y el código disponible en la rama de entrega. Typecheck, ESLint, build de producción y `git diff --check` pasaron. No se ejecutaron pruebas automatizadas. La inspección autenticada de cada pantalla y el despliegue de V2.11 quedan pendientes.
+La revisión comparó los recursos CSS/JS públicos de la página y el código disponible en la rama de entrega. Typecheck, ESLint, build de producción y `git diff --check` pasaron para la revisión local. No se ejecutaron pruebas automatizadas. La inspección autenticada de cada pantalla y el despliegue de los ajustes finales de compras/proveedores quedan pendientes.
 
 La reconciliación de las 349 fichas SQLite con las 345 fichas fiscales de UPCO Admin es una tarea de datos separada; no forma parte de la réplica visual.
