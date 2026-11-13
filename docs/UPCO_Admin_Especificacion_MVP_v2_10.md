@@ -4,7 +4,7 @@
 |---|---|
 | Código | UPCO-ADM-SRS-001 |
 | Versión del módulo | 2.10 |
-| Estado | Implementada en la rama de trabajo; typecheck, lint, build y diff check correctos; revisión visual autenticada y publicación pendientes |
+| Estado | Publicada en Producción; typecheck, lint, build y diff check correctos; queda revisión visual autenticada |
 | Fecha | 13 de noviembre de 2026 |
 | Base | UPCO Admin V1 y entrega integral UPCO Compras con corte 10/11/2026 |
 
@@ -176,4 +176,4 @@ Se agrupan Retenciones dentro de Compras y Libros, cierres e Importaciones dentr
 
 Los textos de configuración reflejan la aprobación de Contabilidad: IVA 16 %/8 %, ISLR y sus conceptos aprobados, e IGTF 3 % sobre base indicada sumado al neto. Se mantienen propuestas versionadas, activación reservada a admin y snapshots por documento. Los seis destinos siguen aplicando los permisos V2.8; los permisos de Retenciones no habilitan lectura de la lista de compras. Ningún cambio de V2.10 altera datos, migraciones, RLS o cálculos de documentos.
 
-El diseño y plan de esta versión están en `docs/superpowers/specs/2026-11-13-administration-reference-parity-design.md` y `docs/superpowers/plans/2026-11-13-administration-reference-parity.md`. Typecheck, ESLint, build y `git diff --check` pasan. No se ejecutaron pruebas automatizadas. La revisión visual con usuario autenticado y la publicación se registran en `docs/PROGRESO.md` cuando se completen.
+El diseño y plan de esta versión están en `docs/superpowers/specs/2026-11-13-administration-reference-parity-design.md` y `docs/superpowers/plans/2026-11-13-administration-reference-parity.md`. Typecheck, ESLint, build y `git diff --check` pasan. No se ejecutaron pruebas automatizadas. La publicación en Producción se registra en `docs/PROGRESO.md`; la revisión visual autenticada sigue pendiente porque el entorno no tiene una sesión UPCO disponible.
