@@ -236,6 +236,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .administration-report-filter label { color: var(--admin-muted); font-size: .74rem; font-weight: 700; }
 .administration-report-filter input, .administration-report-filter select { min-height: 36px; padding: 5px 9px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: #263b2e; }
 .administration-report-filter .quiet-button { margin-left: auto; min-height: 36px; }
+.administration-report-period { color: var(--admin-muted); font-size: .74rem; }
+.administration-report-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+.administration-report-card { display: flex; min-height: 230px; flex-direction: column; align-items: flex-start; padding: 21px; border: 1px solid #e7eee7; border-radius: 15px; background: #fff; box-shadow: 0 3px 14px rgba(27, 71, 57, .035); }
+.administration-report-card h2 { margin: 0 0 6px; color: #1c4535; font-size: .94rem; letter-spacing: -.02em; }
+.administration-report-card p { flex: 1; margin: 0 0 22px; color: #829287; font-size: .72rem; line-height: 1.55; }
+.administration-report-icon { display: grid; width: 42px; height: 42px; place-items: center; margin-bottom: 16px; border-radius: 11px; }
+.administration-report-icon.green { background: #e9f5eb; color: #37815b; }
+.administration-report-icon.blue { background: #eaf1fa; color: #4d78a9; }
+.administration-report-icon.sand { background: #fcf3e8; color: #a87638; }
+.administration-report-card .quiet-button { min-height: 38px; padding: 0 13px; border: 1px solid var(--admin-border); border-radius: 8px; background: #fff; color: var(--admin-green); font-weight: 750; }
+.administration-report-card .quiet-button:hover:not(:disabled) { background: #f1f6f2; }
+.administration-report-card .quiet-button:disabled { cursor: not-allowed; opacity: .58; }
+.administration-report-close { margin-bottom: 16px; }
+.administration-report-close .administration-panel-heading { margin-bottom: 16px; }
+.administration-report-close > p { margin: 12px 0 0; color: var(--admin-muted); font-size: .76rem; }
+.administration-module .administration-report-close .administration-close-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.administration-report-close .administration-close-form .field { margin: 0; }
+.administration-report-close .administration-close-form .primary-button { min-height: 40px; white-space: nowrap; }
 .administration-module .administration-close-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .administration-close-form button { grid-column: 1 / -1; }
 .administration-checklist { display: grid; gap: 9px; margin: 16px 0 0; padding-left: 19px; color: #5b6d60; font-size: .82rem; line-height: 1.5; }
@@ -466,6 +484,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .administration-app-frame .sidebar.is-collapsed { width: 72px; }
   .administration-app-frame .topbar { padding: 0 24px; }
   .administration-app-frame .main-content { padding: 28px 24px 36px; }
+  .administration-report-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .administration-vendor-heading { align-items: stretch; flex-direction: column; gap: 12px; }
@@ -497,6 +516,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .administration-module .administration-recent-documents { padding: 0; }
   .administration-module .administration-export-grid,
   .administration-module .administration-module-grid { grid-template-columns: 1fr; }
+  .administration-report-grid { grid-template-columns: 1fr; }
+  .administration-module .administration-report-close .administration-close-form { grid-template-columns: 1fr; }
+  .administration-module .administration-report-close .administration-close-form button { grid-column: 1; }
+  .administration-report-period { flex-basis: 100%; }
   .administration-module .permission-options { grid-template-columns: 1fr; }
   .administration-period-filter { width: 100%; margin: 0; }
   .administration-period-filter input { flex: 1; min-width: 0; }

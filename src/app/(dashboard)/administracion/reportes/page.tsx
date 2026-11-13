@@ -2,8 +2,10 @@ import { ImportPreview } from "@/components/administration/import-preview";
 import { getAccessContext } from "@/features/auth/access";
 import { loadAdministrationDraftStatus, loadAdministrationPeriodStatus } from "@/features/administration/reports/status";
 import { hasAdministrationPermission, requireAnyAdministrationPermission } from "@/features/administration/permissions/access-control";
+import { BookOpen, FileArchive, FileSpreadsheet, FileText } from "lucide-react";
 
 type Search = { period?: string; half?: string };
+type Half = 1 | 2 | "all";
 function currentPeriod() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Caracas", year: "numeric", month: "2-digit" }).format(new Date());
 }
@@ -17,66 +19,79 @@ export default async function ReportesAdministracionPage({ searchParams }: { sea
   const canValidateImports = hasAdministrationPermission(access, "imports.validate");
   const params = await searchParams;
   const period = params.period && /^\d{4}-(0[1-9]|1[0-2])$/.test(params.period) ? params.period : currentPeriod();
-  const half: 1 | 2 = params.half === "1" || params.half === "2" ? Number(params.half) as 1 | 2 : 1;
-  const [periodStatus, draftStatus] = await Promise.all([
-    canExport || canReadBooks ? loadAdministrationPeriodStatus(access, period, half) : Promise.resolve(null),
+  const half: Half = params.half === "2" ? 2 : params.half === "all" ? "all" : 1;
+  const [periodStatuses, draftStatus] = await Promise.all([
+    canExport || canReadBooks
+      ? Promise.all((half === "all" ? [1, 2] as const : [half] as const).map((selectedHalf) => loadAdministrationPeriodStatus(access, period, selectedHalf)))
+      : Promise.resolve(null),
     canExport ? loadAdministrationDraftStatus(access) : Promise.resolve(null),
   ]);
+  const periodStatus = periodStatuses ? {
+    total: periodStatuses.reduce((sum, status) => sum + status.total, 0),
+    issued: periodStatuses.reduce((sum, status) => sum + status.issued, 0),
+    ivaRetainedCents: periodStatuses.reduce((sum, status) => sum + status.ivaRetainedCents, 0),
+    islrRetainedCents: periodStatuses.reduce((sum, status) => sum + status.islrRetainedCents, 0),
+    mixedRateDocuments: periodStatuses.reduce((sum, status) => sum + status.mixedRateDocuments, 0),
+    error: periodStatuses.some((status) => status.error),
+  } : null;
+  const periodLabel = half === "all" ? "mes completo" : `quincena ${half}`;
+  const monthEnd = new Date(Number(period.slice(0, 4)), Number(period.slice(5)), 0).getDate().toString().padStart(2, "0");
   return <div className="page-content">
-    <div className="page-heading"><span className="eyebrow">REPORTES</span><h1>Reportes</h1><p>Libros, declaraciones, conciliación e importación histórica en un solo espacio.</p></div>
+    <div className="page-heading"><span className="eyebrow">CIERRE FISCAL</span><h1>Reportes y exportaciones</h1><p>Descarga los archivos generados a partir de los mismos documentos.</p></div>
     <form action="/administracion/reportes" method="get" className="administration-period-filter administration-report-filter">
       <label htmlFor="reports-period">Período</label><input id="reports-period" type="month" name="period" defaultValue={period} />
-      <label htmlFor="reports-half">Quincena</label><select id="reports-half" name="half" defaultValue={half}><option value="1">Primera quincena</option><option value="2">Segunda quincena</option></select>
+      <select id="reports-half" name="half" aria-label="Quincena de exportación" defaultValue={half}><option value="all">Mes completo</option><option value="1">Primera quincena</option><option value="2">Segunda quincena</option></select>
+      <span className="administration-report-period">Período: {period}{half === "all" ? "" : ` · ${half === 1 ? "1–15" : "16–fin de mes"}`}</span>
       <button className="quiet-button" type="submit">Actualizar</button>
     </form>
 
-    {canExport && <section id="declaraciones" className="work-card">
-      <div className="administration-panel-heading"><div><h2>Declaraciones y exportaciones</h2><p>Salidas calculadas desde documentos emitidos y sus snapshots fiscales.</p></div></div>
-      <div className="administration-export-grid">
-        <form action="/api/administracion/exportaciones/libro-xlsx" method="get" className="work-form">
-          <h3>Libro de compras XLSX</h3><p>Incluye las bases e IVA al 16 % y 8 % en columnas separadas y distribución contable.</p>
-          <label className="field">Período<input type="month" name="period" required defaultValue={period} /></label>
-          <label className="field">Quincena<select name="half" defaultValue={half}><option value="1">1–15</option><option value="2">16–fin de mes</option></select></label>
-          <button className="primary-button" type="submit">Generar libro XLSX</button>
+    {canExport && <>
+      <div id="declaraciones" className="administration-report-grid">
+        <form action="/api/administracion/exportaciones/libro-xlsx" method="get" className="administration-report-card">
+          <div className="administration-report-icon green"><BookOpen size={21} aria-hidden="true" /></div><h2>Libro de compras</h2>
+          <p>Excel con columnas separadas para base e IVA al 16 % y al 8 %, además de totales, retenciones y distribución contable.</p>
+          <input type="hidden" name="period" value={period} />{half !== "all" && <input type="hidden" name="half" value={half} />}
+          <button className="quiet-button" type="submit">Descargar Excel</button>
         </form>
-        <form action="/api/administracion/exportaciones/iva-txt" method="get" className="work-form">
-          <h3>Retenciones de IVA</h3><p>Archivo TXT quincenal con las operaciones declarables.</p>
-          <label className="field">Período<input type="month" name="period" required defaultValue={period} /></label>
-          <label className="field">Quincena<select name="half" required defaultValue={half}><option value="1">1–15</option><option value="2">16–fin de mes</option></select></label>
-          <button className="primary-button" type="submit">Generar TXT IVA</button>
+        <form action="/api/administracion/exportaciones/iva-txt" method="get" className="administration-report-card">
+          <div className="administration-report-icon blue"><FileText size={21} aria-hidden="true" /></div><h2>Retenciones de IVA</h2>
+          <p>TXT de la quincena para revisión y carga posterior en SENIAT. Requiere seleccionar primera o segunda quincena.</p>
+          <input type="hidden" name="period" value={period} />{half !== "all" && <input type="hidden" name="half" value={half} />}
+          <button className="quiet-button" type="submit" disabled={half === "all"}>{half === "all" ? "Selecciona una quincena" : "Descargar TXT"}</button>
         </form>
-        <form action="/api/administracion/exportaciones/islr-xml" method="get" className="work-form">
-          <h3>Retenciones de ISLR</h3><p>Archivo XML mensual para revisión y carga posterior en el portal.</p>
-          <label className="field">Período<input type="month" name="period" required defaultValue={period} /></label>
-          <button className="primary-button" type="submit">Generar XML ISLR</button>
+        <form action="/api/administracion/exportaciones/islr-xml" method="get" className="administration-report-card">
+          <div className="administration-report-icon sand"><FileArchive size={21} aria-hidden="true" /></div><h2>Retenciones de ISLR</h2>
+          <p>Archivo XML mensual con los conceptos y datos de las retenciones practicadas.</p><input type="hidden" name="period" value={period} />
+          <button className="quiet-button" type="submit">Descargar XML</button>
         </form>
-        <form action="/api/administracion/exportaciones/islr-macro-xlsx" method="get" className="work-form">
-          <h3>Relación ISLR para macro</h3><p>XLSX mensual con las columnas A:H de la macro histórica; el archivo no incluye macros VBA.</p>
-          <label className="field">Período<input type="month" name="period" required defaultValue={period} /></label>
-          <button className="primary-button" type="submit">Generar XLSX ISLR</button>
+        <form action="/api/administracion/exportaciones/islr-macro-xlsx" method="get" className="administration-report-card">
+          <div className="administration-report-icon green"><FileSpreadsheet size={21} aria-hidden="true" /></div><h2>Relación ISLR para macro</h2>
+          <p>Excel mensual con las columnas A:H de la macro histórica. Copia esos datos en la macro original; el archivo no contiene macros.</p><input type="hidden" name="period" value={period} />
+          <button className="quiet-button" type="submit">Descargar Excel</button>
         </form>
-        <section className="work-form">
-          <h3>Cierre contable XLSX</h3><p>Documentos emitidos por fecha de pago o abono, con detalle de distribución por CECO.</p>
-          <form action="/api/administracion/exportaciones/cierre-xlsx" method="get" className="work-form administration-close-form">
-            <label className="field">Desde<input type="date" name="from" required defaultValue={`${period}-01`} /></label>
-          <label className="field">Hasta<input type="date" name="to" required defaultValue={`${period}-${new Date(Number(period.slice(0, 4)), Number(period.slice(5)), 0).getDate().toString().padStart(2, "0")}`} /></label>
-            <button className="primary-button" type="submit">Generar cierre XLSX</button>
-          </form>
-        </section>
       </div>
-      <p>Las exportaciones se detienen si encuentran casos no representables en el formato entregado, como IVA mixto en una misma línea, borradores o notas que cruzan períodos.</p>
-    </section>}
+      <section className="work-card administration-report-close">
+        <div className="administration-panel-heading"><div><h2>Cierre contable por fechas</h2><p>Excel con descripción de cada compra, cuenta de pago y distribución entre CECO para revisar la contabilidad.</p></div><FileSpreadsheet size={19} color="#5f9c70" aria-hidden="true" /></div>
+        <form action="/api/administracion/exportaciones/cierre-xlsx" method="get" className="administration-close-form">
+          <label className="field">Desde<input type="date" name="from" required defaultValue={`${period}-01`} /></label>
+          <label className="field">Hasta<input type="date" name="to" required defaultValue={`${period}-${monthEnd}`} /></label>
+          <button className="primary-button" type="submit">Exportar cierre</button>
+        </form>
+        <p>Incluye documentos emitidos con pago o abono en cuenta dentro del rango, sin borradores ni anulados.</p>
+      </section>
+      <p className="administration-lock-note">Las exportaciones se detienen si encuentran casos no representables en el formato entregado, como documentos mixtos, borradores o notas que cruzan períodos.</p>
+    </>}
 
     {(canExport || canReadBooks) && <section id="books" className="work-card">
-      <div className="administration-panel-heading"><div><h2>Libros y conciliación</h2><p>Control operativo de {period} · quincena {half}.</p></div></div>
+      <div className="administration-panel-heading"><div><h2>Libros y conciliación</h2><p>Control operativo de {period} · {periodLabel}.</p></div></div>
       {periodStatus?.error ? <p className="error-message">No se pudo cargar la conciliación del período.</p> : <dl className="detail-grid">
         <div><dt>Documentos registrados</dt><dd>{periodStatus?.total ?? 0}</dd></div><div><dt>Documentos emitidos</dt><dd>{periodStatus?.issued ?? 0}</dd></div>
         <div><dt>IVA retenido</dt><dd>Bs. {((periodStatus?.ivaRetainedCents ?? 0) / 100).toFixed(2)}</dd></div><div><dt>ISLR retenido</dt><dd>Bs. {((periodStatus?.islrRetainedCents ?? 0) / 100).toFixed(2)}</dd></div>
       </dl>}
       {draftStatus && !draftStatus.error && <p className="administration-lock-note">{draftStatus.total ? `${draftStatus.total} borradores administrativos requieren revisión antes de preparar salidas.` : "No hay borradores pendientes de revisión."}</p>}
       {periodStatus && !periodStatus.error && <ul className="administration-checklist">
-        <li>{periodStatus.mixedRateDocuments ? `${periodStatus.mixedRateDocuments} documentos mezclan IVA al 16 % y 8 %; revisa antes de generar TXT.` : "No se detectaron documentos con tasas mixtas en la quincena."}</li>
-        <li>{periodStatus.issued ? `${periodStatus.issued} documentos emitidos alimentan la conciliación.` : "No hay documentos emitidos en esta quincena."}</li>
+        <li>{periodStatus.mixedRateDocuments ? `${periodStatus.mixedRateDocuments} documentos mezclan IVA al 16 % y 8 %; revisa antes de generar TXT.` : `No se detectaron documentos con tasas mixtas en el período seleccionado (${periodLabel}).`}</li>
+        <li>{periodStatus.issued ? `${periodStatus.issued} documentos emitidos alimentan la conciliación.` : `No hay documentos emitidos en ${periodLabel}.`}</li>
       </ul>}
     </section>}
 
