@@ -40,6 +40,6 @@ No se cambian cálculos, formatos de salida, autenticación, esquema, RLS, permi
 
 ## Verificación y pendientes
 
-La revisión comparó los recursos CSS/JS públicos de la página y el código disponible en la rama de entrega. Typecheck, ESLint, build de producción y `git diff --check` pasaron para la revisión local. No se ejecutaron pruebas automatizadas. La inspección autenticada de cada pantalla y el despliegue de los ajustes finales de compras/proveedores quedan pendientes.
+La revisión comparó los recursos CSS/JS públicos de la página y el código disponible en la rama de entrega. Typecheck, ESLint, build de producción y `git diff --check` pasaron. El commit V2.11 `18938af` quedó `READY` en Producción. Sin sesión, `/login` respondió 200, `/administracion` redirigió a `/login` (307) y el endpoint CSV devolvió 403. No se ejecutaron pruebas automatizadas. La inspección visual autenticada de cada pantalla sigue pendiente.
 
 La reconciliación de las 349 fichas SQLite con las 345 fichas fiscales de UPCO Admin es una tarea de datos separada; no forma parte de la réplica visual.
